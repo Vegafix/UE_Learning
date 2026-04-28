@@ -4,22 +4,22 @@
 #include "Engine/Engine.h"
 #include "Engine/World.h"
 #include "Misc/AutomationTest.h"
+#include "UE_LearningPlayerController.h"
 
 #if WITH_DEV_AUTOMATION_TESTS
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
-    FTopDownCSTSanityTest,
-    "UE_learning.Basic.Sanity",
+    FUE_LearningPlayerControllerTest,
+    "UE_Learning.PlayerControllerDefaults",
     EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
-    bool FTopDownCSTSanityTest::RunTest(const FString& Parameters)
+    bool FUE_LearningPlayerControllerTest::RunTest(const FString& Parameters)
 {
-    TestEqual(TEXT("2 + 2 equals 4"), 2 + 2, 4);
-
-    const FVector UnitX(1.0, 0.0, 0.0);
-    TestTrue(
-        TEXT("FVector(1,0,0) has unit length"),
-        FMath::IsNearlyEqual(UnitX.Size(), 1.0));
+    const AUE_LearningPlayerController* CDO = GetDefault<AUE_LearningPlayerController>();
+    if (!TestNotNull(TEXT("PlayerController CDO is valid"), CDO))
+    {
+        return false;
+    }
 
     return true;
 }
