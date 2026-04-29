@@ -24,20 +24,7 @@ public class UE_Learning : ModuleRules
 		PrivateDependencyModuleNames.AddRange(new string[] { });
 
 		PublicIncludePaths.AddRange(new string[] {
-			"UE_Learning",
-			"UE_Learning/Variant_Platforming",
-			"UE_Learning/Variant_Platforming/Animation",
-			"UE_Learning/Variant_Combat",
-			"UE_Learning/Variant_Combat/AI",
-			"UE_Learning/Variant_Combat/Animation",
-			"UE_Learning/Variant_Combat/Gameplay",
-			"UE_Learning/Variant_Combat/Interfaces",
-			"UE_Learning/Variant_Combat/UI",
-			"UE_Learning/Variant_SideScrolling",
-			"UE_Learning/Variant_SideScrolling/AI",
-			"UE_Learning/Variant_SideScrolling/Gameplay",
-			"UE_Learning/Variant_SideScrolling/Interfaces",
-			"UE_Learning/Variant_SideScrolling/UI"
+			"UE_Learning"
 		});
 
 		// Uncomment if you are using Slate UI
