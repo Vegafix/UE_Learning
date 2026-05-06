@@ -1,22 +1,20 @@
-
-
 #pragma once
 
 #include "CoreMinimal.h"
 #include "UObject/Interface.h"
-#include "Interactable.generated.h"
+#include "TPInteractable.generated.h"
 
-UINTERFACE(BlueprintType, MinimalAPI)
-class UInteractable : public UInterface
+UINTERFACE(Blueprintable)
+class UE_LEARNING_API UTPInteractable : public UInterface
 {
 	GENERATED_BODY()
 };
 
-class UE_LEARNING_API IInteractable
+class UE_LEARNING_API ITPInteractable
 {
 	GENERATED_BODY()
 
 public:
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Interaction")
-	void Interact(AActor* Instigator);
+	void Interact(AActor* InstigatorActor);
 };

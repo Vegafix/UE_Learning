@@ -6,6 +6,8 @@
 #include "EnhancedInputSubsystems.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "TPInteractable.h"
+#include "Engine/World.h"
 
 ATPPlayerCharacter::ATPPlayerCharacter()
 {
@@ -53,6 +55,7 @@ void ATPPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ATPPlayerCharacter::Look);
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &ACharacter::Jump);
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
+		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Started, this, &ATPPlayerCharacter::Interact);
 	}
 }
 
@@ -81,5 +84,35 @@ void ATPPlayerCharacter::Look(const FInputActionValue& Value)
 	{
 		AddControllerYawInput(LookAxisVector.X);
 		AddControllerPitchInput(LookAxisVector.Y);
+	}
+}
+
+void ATPPlayerCharacter::Interact()
+{
+	APlayerController* PlayerController = Cast<APlayerController>(GetController());
+	if (!PlayerController)
+	{
+		return;
+	}
+
+	FVector ViewLocation;
+	FRotator ViewRotation;
+	PlayerController->GetPlayerViewPoint(ViewLocation, ViewRotation);
+
+	const FVector TraceStart = ViewLocation;
+	const FVector TraceEnd = TraceStart + ViewRotation.Vector() * 500.0f;
+
+	FHitResult HitResult;
+	FCollisionQueryParams QueryParams;
+	QueryParams.AddIgnoredActor(this);
+
+	if (GetWorld()->LineTraceSingleByChannel(HitResult, TraceStart, TraceEnd, ECC_Visibility, QueryParams))
+	{
+		AActor* HitActor = HitResult.GetActor();
+
+		if (HitActor && HitActor->GetClass()->ImplementsInterface(UTPInteractable::StaticClass()))
+		{
+			ITPInteractable::Execute_Interact(HitActor, this);
+		}
 	}
 }
