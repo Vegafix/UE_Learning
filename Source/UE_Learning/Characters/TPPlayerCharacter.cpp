@@ -18,7 +18,9 @@ ATPPlayerCharacter::ATPPlayerCharacter()
 
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 	GetCharacterMovement()->RotationRate = FRotator(0.0f, 500.0f, 0.0f);
-
+	GetCharacterMovement()->GetNavAgentPropertiesRef().bCanCrouch = true;
+	GetCharacterMovement()->MaxWalkSpeedCrouched = 200.0f;
+	
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	CameraBoom->SetupAttachment(RootComponent);
 	CameraBoom->TargetArmLength = 400.0f;
@@ -61,7 +63,12 @@ void ATPPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 		{
 			EnhancedInputComponent->BindAction(DashAction, ETriggerEvent::Started, this, &ATPPlayerCharacter::Dash);
 		}
+		if (CrouchAction)
+		{
+			EnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Started, this, &ATPPlayerCharacter::ToggleCrouch);
+		}
 	}
+	
 }
 
 void ATPPlayerCharacter::Move(const FInputActionValue& Value)
@@ -133,4 +140,21 @@ void ATPPlayerCharacter::Dash()
 	{
 		ASC->TryActivateAbilityByClass(DashAbilityClass);
 	}
+}
+
+void ATPPlayerCharacter::ToggleCrouch()
+{
+	if (bIsCrouched)
+	{
+		UnCrouch();
+	}
+	else
+	{
+		Crouch();
+	}
+}
+
+bool ATPPlayerCharacter::IsCrouchingState() const
+{
+	return bIsCrouched;
 }

@@ -5,7 +5,6 @@
 #include "GameFramework/Pawn.h"
 #include "TimerManager.h"
 #include "UObject/UObjectGlobals.h"
-#include "UObject/SoftObjectPath.h"
 
 #define LOCTEXT_NAMESPACE "FHomeworkPluginModule"
 

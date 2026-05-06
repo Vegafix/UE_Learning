@@ -55,6 +55,13 @@ private:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Abilities", meta = (AllowPrivateAccess = "true"))
 	TSubclassOf<UGameplayAbility> DashAbilityClass;
 	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UInputAction> CrouchAction;
+	
 	void Interact();
 	void Dash();
+	void ToggleCrouch();
+
+	UFUNCTION(BlueprintCallable, Category = "Movement")
+	bool IsCrouchingState() const;
 };
