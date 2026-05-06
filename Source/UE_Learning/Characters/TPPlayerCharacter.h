@@ -8,6 +8,7 @@ class USpringArmComponent;
 class UCameraComponent;
 class UInputMappingContext;
 class UInputAction;
+class UGameplayAbility;
 struct FInputActionValue;
 
 UCLASS()
@@ -48,5 +49,12 @@ private:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UInputAction> InteractAction;
 	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UInputAction> DashAction;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Abilities", meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<UGameplayAbility> DashAbilityClass;
+	
 	void Interact();
+	void Dash();
 };

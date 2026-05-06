@@ -8,6 +8,7 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "TPInteractable.h"
 #include "Engine/World.h"
+#include "AbilitySystemComponent.h"
 
 ATPPlayerCharacter::ATPPlayerCharacter()
 {
@@ -56,6 +57,10 @@ void ATPPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &ACharacter::Jump);
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
 		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Started, this, &ATPPlayerCharacter::Interact);
+		if (DashAction)
+		{
+			EnhancedInputComponent->BindAction(DashAction, ETriggerEvent::Started, this, &ATPPlayerCharacter::Dash);
+		}
 	}
 }
 
@@ -114,5 +119,18 @@ void ATPPlayerCharacter::Interact()
 		{
 			ITPInteractable::Execute_Interact(HitActor, this);
 		}
+	}
+}
+
+void ATPPlayerCharacter::Dash()
+{
+	if (!DashAbilityClass)
+	{
+		return;
+	}
+
+	if (UAbilitySystemComponent* ASC = GetAbilitySystemComponent())
+	{
+		ASC->TryActivateAbilityByClass(DashAbilityClass);
 	}
 }
