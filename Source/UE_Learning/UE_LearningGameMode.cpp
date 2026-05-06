@@ -2,7 +2,11 @@
 
 #include "UE_LearningGameMode.h"
 
+#include "UE_LearningPlayerController.h"
+#include "Characters/TPPlayerCharacter.h"
+
 AUE_LearningGameMode::AUE_LearningGameMode()
 {
-	// stub
+	PlayerControllerClass = AUE_LearningPlayerController::StaticClass();
+	DefaultPawnClass = ATPPlayerCharacter::StaticClass();
 }

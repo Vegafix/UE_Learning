@@ -1,13 +1,11 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "HomeworkPlugin.h"
-#include "Engine/StaticMesh.h"
-#include "Engine/StaticMeshActor.h"
-#include "Components/StaticMeshComponent.h"
 #include "GameFramework/PlayerController.h"
 #include "GameFramework/Pawn.h"
 #include "TimerManager.h"
 #include "UObject/UObjectGlobals.h"
+#include "UObject/SoftObjectPath.h"
 
 #define LOCTEXT_NAMESPACE "FHomeworkPluginModule"
 
@@ -70,17 +68,27 @@ void FHomeworkPluginModule::SpawnCubeForPlayer(UWorld* World)
 	}
 
 	const FVector Forward = ViewRotation.Vector();
-
-	// Куб появится в 2.5 метрах перед игроком на высоте его камеры.
+	
 	const FVector SpawnLocation = ViewLocation + Forward * 250.0f;
 	const FRotator SpawnRotation = FRotator::ZeroRotator;
 
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.SpawnCollisionHandlingOverride =
 		ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+	
+	UClass* CubeClass = LoadClass<AActor>(
+		nullptr,
+		TEXT("/Game/Blueprints/BP_HomeworkCube.BP_HomeworkCube_C")
+	);
 
-	AStaticMeshActor* CubeActor = World->SpawnActor<AStaticMeshActor>(
-		AStaticMeshActor::StaticClass(),
+	if (!CubeClass)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("HomeworkPlugin: BP_HomeworkCube class not found."));
+		return;
+	}
+
+	AActor* CubeActor = World->SpawnActor<AActor>(
+		CubeClass,
 		SpawnLocation,
 		SpawnRotation,
 		SpawnParams
@@ -88,37 +96,12 @@ void FHomeworkPluginModule::SpawnCubeForPlayer(UWorld* World)
 
 	if (!CubeActor)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("HomeworkPlugin: Failed to spawn cube."));
+		UE_LOG(LogTemp, Warning, TEXT("HomeworkPlugin: BP_HomeworkCube was not spawned."));
 		return;
 	}
 
-	UStaticMeshComponent* MeshComponent = CubeActor->GetStaticMeshComponent();
-
-	if (!MeshComponent)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("HomeworkPlugin: StaticMeshComponent not found."));
-		return;
-	}
-
-	UStaticMesh* CubeMesh = LoadObject<UStaticMesh>(
-		nullptr,
-		TEXT("/Engine/BasicShapes/Cube.Cube")
-	);
-
-	if (!CubeMesh)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("HomeworkPlugin: Cube mesh not found."));
-		return;
-	}
-
-	MeshComponent->SetMobility(EComponentMobility::Movable);
-	MeshComponent->SetStaticMesh(CubeMesh);
-	MeshComponent->SetWorldScale3D(FVector(1.0f));
-	MeshComponent->SetCollisionProfileName(TEXT("PhysicsActor"));
-	MeshComponent->SetSimulatePhysics(true);
-	MeshComponent->WakeAllRigidBodies();
-
-	UE_LOG(LogTemp, Display, TEXT("HomeworkPlugin: Falling cube spawned."));
+	UE_LOG(LogTemp, Display, TEXT("HomeworkPlugin: BP_HomeworkCube spawned."));
+	
 }
 
 #undef LOCTEXT_NAMESPACE
