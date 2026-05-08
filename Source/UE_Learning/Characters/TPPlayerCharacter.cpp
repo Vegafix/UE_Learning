@@ -9,6 +9,7 @@
 #include "TPInteractable.h"
 #include "Engine/World.h"
 #include "AbilitySystemComponent.h"
+#include "TPWeaponActor.h"
 
 ATPPlayerCharacter::ATPPlayerCharacter()
 {
@@ -34,6 +35,8 @@ ATPPlayerCharacter::ATPPlayerCharacter()
 void ATPPlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+	
+	SpawnDefaultWeapon();
 
 	if (APlayerController* PlayerController = Cast<APlayerController>(GetController()))
 	{
@@ -157,4 +160,45 @@ void ATPPlayerCharacter::ToggleCrouch()
 bool ATPPlayerCharacter::IsCrouchingState() const
 {
 	return bIsCrouched;
+}
+
+void ATPPlayerCharacter::SpawnDefaultWeapon()
+{
+	if (!WeaponClass)
+	{
+		return;
+	}
+
+	if (CurrentWeapon)
+	{
+		return;
+	}
+
+	UWorld* World = GetWorld();
+	if (!World)
+	{
+		return;
+	}
+
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.Owner = this;
+	SpawnParams.Instigator = this;
+
+	CurrentWeapon = World->SpawnActor<ATPWeaponActor>(
+		WeaponClass,
+		FVector::ZeroVector,
+		FRotator::ZeroRotator,
+		SpawnParams
+	);
+
+	if (!CurrentWeapon)
+	{
+		return;
+	}
+
+	CurrentWeapon->AttachToComponent(
+		GetMesh(),
+		FAttachmentTransformRules::SnapToTargetNotIncludingScale,
+		WeaponSocketName
+	);
 }

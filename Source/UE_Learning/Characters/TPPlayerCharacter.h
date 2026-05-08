@@ -9,6 +9,7 @@ class UCameraComponent;
 class UInputMappingContext;
 class UInputAction;
 class UGameplayAbility;
+class ATPWeaponActor;
 struct FInputActionValue;
 
 UCLASS()
@@ -58,9 +59,19 @@ private:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UInputAction> CrouchAction;
 	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon", meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<ATPWeaponActor> WeaponClass;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon", meta = (AllowPrivateAccess = "true"))
+	FName WeaponSocketName = TEXT("weapon_r_socket");
+
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Weapon", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<ATPWeaponActor> CurrentWeapon;
+	
 	void Interact();
 	void Dash();
 	void ToggleCrouch();
+	void SpawnDefaultWeapon();
 
 	UFUNCTION(BlueprintCallable, Category = "Movement")
 	bool IsCrouchingState() const;
