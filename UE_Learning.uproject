@@ -8,6 +8,11 @@
       "Name": "UE_Learning",
       "Type": "Runtime",
       "LoadingPhase": "Default"
+    },
+    {
+      "Name": "HW3Module",
+      "Type": "Runtime",
+      "LoadingPhase": "Default"
     }
   ],
   "Plugins": [
@@ -29,6 +34,10 @@
     },
     {
       "Name": "GameplayAbilities",
+      "Enabled": true
+    },
+    {
+      "Name": "HW3Plugin",
       "Enabled": true
     }
   ],

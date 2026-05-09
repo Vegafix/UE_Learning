@@ -4,13 +4,17 @@
 #include "Characters/TPBaseCharacter.h"
 #include "TPPlayerCharacter.generated.h"
 
+
 class USpringArmComponent;
 class UCameraComponent;
 class UInputMappingContext;
 class UInputAction;
 class UGameplayAbility;
 class ATPWeaponActor;
+class AHW3ModuleActor;
+class AHW3PluginActor;
 struct FInputActionValue;
+
 
 UCLASS()
 class UE_LEARNING_API ATPPlayerCharacter : public ATPBaseCharacter
@@ -70,10 +74,19 @@ private:
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Weapon", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<ATPWeaponActor> CurrentWeapon;
 	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UInputAction> SpawnModuleActorAction;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UInputAction> SpawnPluginActorAction;
+	
+	
 	void Interact();
 	void Dash();
 	void ToggleCrouch();
 	void SpawnDefaultWeapon();
+	void SpawnModuleActor();
+	void SpawnPluginActor();
 
 	UFUNCTION(BlueprintCallable, Category = "Movement")
 	bool IsCrouchingState() const;

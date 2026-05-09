@@ -21,7 +21,9 @@ public class UE_Learning : ModuleRules
 			"Slate",
 			"GameplayAbilities",
 			"GameplayTags",
-			"GameplayTasks"
+			"GameplayTasks",
+			"HW3Module",
+			"HW3Plugin"
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] { });

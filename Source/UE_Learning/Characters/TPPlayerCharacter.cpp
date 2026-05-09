@@ -10,6 +10,8 @@
 #include "Engine/World.h"
 #include "AbilitySystemComponent.h"
 #include "TPWeaponActor.h"
+#include "HW3Module/HW3ModuleActor.h"
+#include "HW3PluginActor.h"
 
 ATPPlayerCharacter::ATPPlayerCharacter()
 {
@@ -70,8 +72,66 @@ void ATPPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 		{
 			EnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Started, this, &ATPPlayerCharacter::ToggleCrouch);
 		}
+		if (SpawnModuleActorAction)
+		{
+			EnhancedInputComponent->BindAction(SpawnModuleActorAction, ETriggerEvent::Started, this, &ATPPlayerCharacter::SpawnModuleActor);
+		}
+		if (SpawnPluginActorAction)
+		{
+			EnhancedInputComponent->BindAction(SpawnPluginActorAction, ETriggerEvent::Started, this, &ATPPlayerCharacter::SpawnPluginActor);
+		}
 	}
 	
+}
+
+void ATPPlayerCharacter::SpawnModuleActor()
+{
+	UWorld* World = GetWorld();
+	if (!World)
+	{
+		return;
+	}
+
+	const FVector SpawnLocation =
+		GetActorLocation() + GetActorForwardVector() * 300.0f + FVector(0.0f, 0.0f, 80.0f);
+
+	const FRotator SpawnRotation = GetActorRotation();
+
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.Owner = this;
+	SpawnParams.Instigator = this;
+
+	World->SpawnActor<AHW3ModuleActor>(
+		AHW3ModuleActor::StaticClass(),
+		SpawnLocation,
+		SpawnRotation,
+		SpawnParams
+	);
+}
+
+void ATPPlayerCharacter::SpawnPluginActor()
+{
+	UWorld* World = GetWorld();
+	if (!World)
+	{
+		return;
+	}
+
+	const FVector SpawnLocation =
+		GetActorLocation() + GetActorForwardVector() * 400.0f + FVector(0.0f, 0.0f, 100.0f);
+
+	const FRotator SpawnRotation = GetActorRotation();
+
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.Owner = this;
+	SpawnParams.Instigator = this;
+
+	World->SpawnActor<AHW3PluginActor>(
+		AHW3PluginActor::StaticClass(),
+		SpawnLocation,
+		SpawnRotation,
+		SpawnParams
+	);
 }
 
 void ATPPlayerCharacter::Move(const FInputActionValue& Value)
