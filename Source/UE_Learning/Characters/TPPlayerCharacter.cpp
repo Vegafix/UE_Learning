@@ -10,7 +10,7 @@
 #include "Engine/World.h"
 #include "AbilitySystemComponent.h"
 #include "TPWeaponActor.h"
-#include "HW3Module/HW3ModuleActor.h"
+#include "HW3ModuleActor.h"
 #include "HW3PluginActor.h"
 
 ATPPlayerCharacter::ATPPlayerCharacter()
