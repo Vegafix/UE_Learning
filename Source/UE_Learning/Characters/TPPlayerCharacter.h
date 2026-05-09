@@ -19,6 +19,8 @@ class UE_LEARNING_API ATPPlayerCharacter : public ATPBaseCharacter
 
 public:
 	ATPPlayerCharacter();
+	UFUNCTION(BlueprintPure, Category = "Weapon")
+	ATPWeaponActor* GetCurrentWeapon() const;
 
 protected:
 	virtual void BeginPlay() override;

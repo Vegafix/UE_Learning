@@ -202,3 +202,8 @@ void ATPPlayerCharacter::SpawnDefaultWeapon()
 		WeaponSocketName
 	);
 }
+
+ATPWeaponActor* ATPPlayerCharacter::GetCurrentWeapon() const
+{
+	return CurrentWeapon;
+}

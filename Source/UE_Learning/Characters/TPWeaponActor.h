@@ -15,6 +15,9 @@ class UE_LEARNING_API ATPWeaponActor : public AActor
 public:
 	ATPWeaponActor();
 
+	UFUNCTION(BlueprintPure, Category = "Weapon|IK")
+	USceneComponent* GetLeftHandIKTarget() const;
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -23,4 +26,7 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
 	TObjectPtr<UStaticMeshComponent> WeaponMesh;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon|IK")
+	TObjectPtr<USceneComponent> LeftHandIKTarget;
 };

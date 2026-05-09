@@ -14,7 +14,15 @@ ATPWeaponActor::ATPWeaponActor()
 	WeaponMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("WeaponMesh"));
 	WeaponMesh->SetupAttachment(WeaponRoot);
 
+	LeftHandIKTarget = CreateDefaultSubobject<USceneComponent>(TEXT("LeftHandIKTarget"));
+	LeftHandIKTarget->SetupAttachment(WeaponRoot);
+
 	WeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+}
+
+USceneComponent* ATPWeaponActor::GetLeftHandIKTarget() const
+{
+	return LeftHandIKTarget;
 }
 
 void ATPWeaponActor::BeginPlay()
