@@ -12,6 +12,9 @@
 #include "TPWeaponActor.h"
 #include "HW3ModuleActor.h"
 #include "HW3PluginActor.h"
+#include "Components/CapsuleComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
+
 
 ATPPlayerCharacter::ATPPlayerCharacter()
 {
@@ -32,6 +35,7 @@ ATPPlayerCharacter::ATPPlayerCharacter()
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
 	FollowCamera->bUsePawnControlRotation = false;
+	
 }
 
 void ATPPlayerCharacter::BeginPlay()
@@ -51,6 +55,9 @@ void ATPPlayerCharacter::BeginPlay()
 			}
 		}
 	}
+	GetCharacterMovement()->MaxWalkSpeed = RunSpeed;
+	UpdateMovementSpeed();
+	UpdateRotationMode();
 }
 
 void ATPPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -64,21 +71,43 @@ void ATPPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &ACharacter::Jump);
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
 		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Started, this, &ATPPlayerCharacter::Interact);
+		
 		if (DashAction)
 		{
 			EnhancedInputComponent->BindAction(DashAction, ETriggerEvent::Started, this, &ATPPlayerCharacter::Dash);
 		}
+		
 		if (CrouchAction)
 		{
 			EnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Started, this, &ATPPlayerCharacter::ToggleCrouch);
 		}
+		
 		if (SpawnModuleActorAction)
 		{
 			EnhancedInputComponent->BindAction(SpawnModuleActorAction, ETriggerEvent::Started, this, &ATPPlayerCharacter::SpawnModuleActor);
 		}
+		
 		if (SpawnPluginActorAction)
 		{
 			EnhancedInputComponent->BindAction(SpawnPluginActorAction, ETriggerEvent::Started, this, &ATPPlayerCharacter::SpawnPluginActor);
+		}
+		
+		if (WalkAction)
+		{
+			EnhancedInputComponent->BindAction(WalkAction, ETriggerEvent::Started, this, &ATPPlayerCharacter::StartWalk);
+			EnhancedInputComponent->BindAction(WalkAction, ETriggerEvent::Completed, this, &ATPPlayerCharacter::StopWalk);
+		}
+
+		if (SprintAction)
+		{
+			EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Started, this, &ATPPlayerCharacter::StartSprint);
+			EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Completed, this, &ATPPlayerCharacter::StopSprint);
+		}
+
+		if (AimAction)
+		{
+			EnhancedInputComponent->BindAction(AimAction, ETriggerEvent::Started, this, &ATPPlayerCharacter::StartAim);
+			EnhancedInputComponent->BindAction(AimAction, ETriggerEvent::Completed, this, &ATPPlayerCharacter::StopAim);
 		}
 	}
 	
@@ -210,16 +239,13 @@ void ATPPlayerCharacter::ToggleCrouch()
 	if (bIsCrouched)
 	{
 		UnCrouch();
+		UpdateMovementSpeed();
 	}
 	else
 	{
 		Crouch();
+		UpdateMovementSpeed();
 	}
-}
-
-bool ATPPlayerCharacter::IsCrouchingState() const
-{
-	return bIsCrouched;
 }
 
 void ATPPlayerCharacter::SpawnDefaultWeapon()
@@ -263,7 +289,179 @@ void ATPPlayerCharacter::SpawnDefaultWeapon()
 	);
 }
 
+void ATPPlayerCharacter::StartWalk()
+{
+	bIsWalking = true;
+	bIsSprinting = false;
+	UpdateMovementSpeed();
+}
+
+void ATPPlayerCharacter::StopWalk()
+{
+	bIsWalking = false;
+	UpdateMovementSpeed();
+}
+
+void ATPPlayerCharacter::StartSprint()
+{
+	if (bIsAiming || bIsCrouched)
+	{
+		return;
+	}
+
+	bIsSprinting = true;
+	bIsWalking = false;
+	UpdateMovementSpeed();
+}
+
+void ATPPlayerCharacter::StopSprint()
+{
+	bIsSprinting = false;
+	UpdateMovementSpeed();
+}
+
+void ATPPlayerCharacter::StartAim()
+{
+	bIsAiming = true;
+	bIsSprinting = false;
+
+	UpdateMovementSpeed();
+	UpdateRotationMode();
+}
+
+void ATPPlayerCharacter::StopAim()
+{
+	bIsAiming = false;
+
+	UpdateMovementSpeed();
+	UpdateRotationMode();
+}
+
+void ATPPlayerCharacter::UpdateMovementSpeed()
+{
+	if (!GetCharacterMovement())
+	{
+		return;
+	}
+
+	if (bIsCrouched)
+	{
+		GetCharacterMovement()->MaxWalkSpeed = CrouchSpeed;
+		return;
+	}
+
+	if (bIsAiming)
+	{
+		GetCharacterMovement()->MaxWalkSpeed = AimSpeed;
+		return;
+	}
+
+	if (bIsSprinting)
+	{
+		GetCharacterMovement()->MaxWalkSpeed = SprintSpeed;
+		return;
+	}
+
+	if (bIsWalking)
+	{
+		GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
+		return;
+	}
+
+	GetCharacterMovement()->MaxWalkSpeed = RunSpeed;
+}
+
+void ATPPlayerCharacter::UpdateRotationMode()
+{
+	if (!GetCharacterMovement())
+	{
+		return;
+	}
+
+	if (bIsAiming)
+	{
+		bUseControllerRotationYaw = true;
+		GetCharacterMovement()->bOrientRotationToMovement = false;
+	}
+	else
+	{
+		bUseControllerRotationYaw = false;
+		GetCharacterMovement()->bOrientRotationToMovement = true;
+	}
+}
+
+void ATPPlayerCharacter::UpdateLandingPrediction()
+{
+	bIsPreparingLanding = false;
+
+	UWorld* World = GetWorld();
+	if (!World || !GetCharacterMovement() || !GetCapsuleComponent())
+	{
+		return;
+	}
+
+	const bool bIsActuallyFalling = GetCharacterMovement()->IsFalling();
+	const float VerticalVelocity = GetVelocity().Z;
+
+	if (!bIsActuallyFalling || VerticalVelocity > LandingVerticalSpeedThreshold)
+	{
+		return;
+	}
+
+	const float CapsuleHalfHeight = GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
+
+	const FVector Start = GetActorLocation() - FVector(0.0f, 0.0f, CapsuleHalfHeight - 5.0f);
+	const FVector End = Start - FVector(0.0f, 0.0f, LandingTraceDistance);
+
+	FCollisionQueryParams QueryParams;
+	QueryParams.AddIgnoredActor(this);
+
+	FHitResult HitResult;
+	const bool bHitGround = World->LineTraceSingleByChannel(
+		HitResult,
+		Start,
+		End,
+		ECC_Visibility,
+		QueryParams
+	);
+
+	bIsPreparingLanding = bHitGround;
+}
+
+void ATPPlayerCharacter::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	UpdateLandingPrediction();
+}
+
+bool ATPPlayerCharacter::IsCrouchingState() const
+{
+	return bIsCrouched;
+}
+
+bool ATPPlayerCharacter::IsWalkingState() const
+{
+	return bIsWalking;
+}
+
+bool ATPPlayerCharacter::IsSprintingState() const
+{
+	return bIsSprinting;
+}
+
+bool ATPPlayerCharacter::IsAimingState() const
+{
+	return bIsAiming;
+}
+
+bool ATPPlayerCharacter::IsPreparingLandingState() const
+{
+	return bIsPreparingLanding;
+}
+
 ATPWeaponActor* ATPPlayerCharacter::GetCurrentWeapon() const
 {
 	return CurrentWeapon;
 }
+

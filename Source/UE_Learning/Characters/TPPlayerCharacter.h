@@ -26,10 +26,14 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Weapon")
 	ATPWeaponActor* GetCurrentWeapon() const;
 
+	UFUNCTION(BlueprintCallable, Category = "Movement")
+	bool IsPreparingLandingState() const;
+	
 protected:
 	virtual void BeginPlay() override;
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
-
+	virtual void Tick(float DeltaTime) override;
+	
 private:
 	void Move(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);
@@ -80,6 +84,49 @@ private:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UInputAction> SpawnPluginActorAction;
 	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UInputAction> WalkAction;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UInputAction> SprintAction;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UInputAction> AimAction;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
+	float WalkSpeed = 200.0f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
+	float RunSpeed = 450.0f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
+	float SprintSpeed = 750.0f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
+	float AimSpeed = 300.0f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
+	float CrouchSpeed = 180.0f;
+	
+	UPROPERTY(BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
+	bool bIsWalking = false;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
+	bool bIsSprinting = false;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
+	bool bIsAiming = false;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Movement|Landing", meta = (AllowPrivateAccess = "true"))
+	float LandingTraceDistance = 180.0f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Movement|Landing", meta = (AllowPrivateAccess = "true"))
+	float LandingVerticalSpeedThreshold = -100.0f;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Movement|Landing", meta = (AllowPrivateAccess = "true"))
+	bool bIsPreparingLanding = false;
+
+	void UpdateLandingPrediction();
 	
 	void Interact();
 	void Dash();
@@ -87,7 +134,26 @@ private:
 	void SpawnDefaultWeapon();
 	void SpawnModuleActor();
 	void SpawnPluginActor();
+	void StartWalk();
+	void StopWalk();
+	void StartSprint();
+	void StopSprint();
+	void StartAim();
+	void StopAim();
+	void UpdateMovementSpeed();
+	void UpdateRotationMode();
+
+	UFUNCTION(BlueprintCallable, Category = "Movement")
+	bool IsWalkingState() const;
+
+	UFUNCTION(BlueprintCallable, Category = "Movement")
+	bool IsSprintingState() const;
+
+	UFUNCTION(BlueprintCallable, Category = "Movement")
+	bool IsAimingState() const;
 
 	UFUNCTION(BlueprintCallable, Category = "Movement")
 	bool IsCrouchingState() const;
+	
+	
 };
