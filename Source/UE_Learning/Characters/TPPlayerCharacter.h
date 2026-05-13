@@ -123,6 +123,24 @@ private:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Movement|Landing", meta = (AllowPrivateAccess = "true"))
 	float LandingVerticalSpeedThreshold = -100.0f;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = "true"))
+	float CameraBoomLength = 400.0f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Interaction", meta = (AllowPrivateAccess = "true"))
+	float InteractionTraceDistance = 500.0f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Spawn", meta = (AllowPrivateAccess = "true"))
+	float ModuleActorSpawnDistance = 300.0f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Spawn", meta = (AllowPrivateAccess = "true"))
+	float PluginActorSpawnDistance = 400.0f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Spawn", meta = (AllowPrivateAccess = "true"))
+	float SpawnHeightOffset = 80.0f;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Spawn", meta = (AllowPrivateAccess = "true"))
+	float PluginActorSpawnHeightOffset = 100.0f;
+	
 	UPROPERTY(BlueprintReadOnly, Category = "Movement|Landing", meta = (AllowPrivateAccess = "true"))
 	bool bIsPreparingLanding = false;
 

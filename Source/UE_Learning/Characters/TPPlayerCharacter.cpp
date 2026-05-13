@@ -29,7 +29,7 @@ ATPPlayerCharacter::ATPPlayerCharacter()
 	
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	CameraBoom->SetupAttachment(RootComponent);
-	CameraBoom->TargetArmLength = 400.0f;
+	CameraBoom->TargetArmLength = CameraBoomLength;
 	CameraBoom->bUsePawnControlRotation = true;
 
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
@@ -122,7 +122,9 @@ void ATPPlayerCharacter::SpawnModuleActor()
 	}
 
 	const FVector SpawnLocation =
-		GetActorLocation() + GetActorForwardVector() * 300.0f + FVector(0.0f, 0.0f, 80.0f);
+	GetActorLocation()
+	+ GetActorForwardVector() * ModuleActorSpawnDistance
+	+ FVector(0.0f, 0.0f, SpawnHeightOffset);
 
 	const FRotator SpawnRotation = GetActorRotation();
 
@@ -147,7 +149,9 @@ void ATPPlayerCharacter::SpawnPluginActor()
 	}
 
 	const FVector SpawnLocation =
-		GetActorLocation() + GetActorForwardVector() * 400.0f + FVector(0.0f, 0.0f, 100.0f);
+	GetActorLocation()
+	+ GetActorForwardVector() * PluginActorSpawnDistance
+	+ FVector(0.0f, 0.0f, PluginActorSpawnHeightOffset);
 
 	const FRotator SpawnRotation = GetActorRotation();
 
@@ -204,7 +208,7 @@ void ATPPlayerCharacter::Interact()
 	PlayerController->GetPlayerViewPoint(ViewLocation, ViewRotation);
 
 	const FVector TraceStart = ViewLocation;
-	const FVector TraceEnd = TraceStart + ViewRotation.Vector() * 500.0f;
+	const FVector TraceEnd = TraceStart + ViewRotation.Vector() * InteractionTraceDistance;
 
 	FHitResult HitResult;
 	FCollisionQueryParams QueryParams;
