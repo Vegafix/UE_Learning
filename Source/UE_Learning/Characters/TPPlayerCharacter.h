@@ -23,11 +23,24 @@ class UE_LEARNING_API ATPPlayerCharacter : public ATPBaseCharacter
 
 public:
 	ATPPlayerCharacter();
+	
 	UFUNCTION(BlueprintPure, Category = "Weapon")
 	ATPWeaponActor* GetCurrentWeapon() const;
 
-	UFUNCTION(BlueprintCallable, Category = "Movement")
+	UFUNCTION(BlueprintPure, Category = "Movement")
 	bool IsPreparingLandingState() const;
+	
+	UFUNCTION(BlueprintPure, Category = "Movement")
+	bool IsWalkingState() const;
+
+	UFUNCTION(BlueprintPure, Category = "Movement")
+	bool IsSprintingState() const;
+
+	UFUNCTION(BlueprintPure, Category = "Movement")
+	bool IsAimingState() const;
+
+	UFUNCTION(BlueprintPure, Category = "Movement")
+	bool IsCrouchingState() const;
 	
 protected:
 	virtual void BeginPlay() override;
@@ -37,8 +50,7 @@ protected:
 private:
 	void Move(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);
-
-private:
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<USpringArmComponent> CameraBoom;
 
@@ -108,15 +120,6 @@ private:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
 	float CrouchSpeed = 180.0f;
 	
-	UPROPERTY(BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
-	bool bIsWalking = false;
-
-	UPROPERTY(BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
-	bool bIsSprinting = false;
-
-	UPROPERTY(BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
-	bool bIsAiming = false;
-	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Movement|Landing", meta = (AllowPrivateAccess = "true"))
 	float LandingTraceDistance = 180.0f;
 
@@ -141,6 +144,15 @@ private:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Spawn", meta = (AllowPrivateAccess = "true"))
 	float PluginActorSpawnHeightOffset = 100.0f;
 	
+	UPROPERTY(BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
+	bool bIsWalking = false;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
+	bool bIsSprinting = false;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
+	bool bIsAiming = false;
+	
 	UPROPERTY(BlueprintReadOnly, Category = "Movement|Landing", meta = (AllowPrivateAccess = "true"))
 	bool bIsPreparingLanding = false;
 
@@ -160,18 +172,4 @@ private:
 	void StopAim();
 	void UpdateMovementSpeed();
 	void UpdateRotationMode();
-
-	UFUNCTION(BlueprintCallable, Category = "Movement")
-	bool IsWalkingState() const;
-
-	UFUNCTION(BlueprintCallable, Category = "Movement")
-	bool IsSprintingState() const;
-
-	UFUNCTION(BlueprintCallable, Category = "Movement")
-	bool IsAimingState() const;
-
-	UFUNCTION(BlueprintCallable, Category = "Movement")
-	bool IsCrouchingState() const;
-	
-	
 };
