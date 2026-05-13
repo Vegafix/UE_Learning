@@ -422,26 +422,35 @@ void ATPPlayerCharacter::UpdateLandingPrediction()
 	bIsPreparingLanding = false;
 
 	UWorld* World = GetWorld();
-	if (!World || !GetCharacterMovement() || !GetCapsuleComponent())
+	UCharacterMovementComponent* MovementComponent = GetCharacterMovement();
+	UCapsuleComponent* Capsule = GetCapsuleComponent();
+
+	if (!World || !MovementComponent || !Capsule)
 	{
 		return;
 	}
 
-	const bool bIsActuallyFalling = GetCharacterMovement()->IsFalling();
+	if (!MovementComponent->IsFalling())
+	{
+		StopLandingPrediction();
+		return;
+	}
+
 	const float VerticalVelocity = GetVelocity().Z;
-
-	if (!bIsActuallyFalling || VerticalVelocity > LandingVerticalSpeedThreshold)
+	if (VerticalVelocity > LandingVerticalSpeedThreshold)
 	{
 		return;
 	}
 
-	const float CapsuleHalfHeight = GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
+	const float CapsuleHalfHeight = Capsule->GetScaledCapsuleHalfHeight();
 
-	const FVector Start = GetActorLocation() - FVector(0.0f, 0.0f, CapsuleHalfHeight - 5.0f);
-	const FVector End = Start - FVector(0.0f, 0.0f, LandingTraceDistance);
+	const FVector Start =
+		GetActorLocation() - FVector(0.0f, 0.0f, CapsuleHalfHeight - 5.0f);
 
-	FCollisionQueryParams QueryParams;
-	QueryParams.AddIgnoredActor(this);
+	const FVector End =
+		Start - FVector(0.0f, 0.0f, LandingTraceDistance);
+
+	FCollisionQueryParams QueryParams(SCENE_QUERY_STAT(LandingPredictionTrace), false, this);
 
 	FHitResult HitResult;
 	const bool bHitGround = World->LineTraceSingleByChannel(
@@ -455,11 +464,64 @@ void ATPPlayerCharacter::UpdateLandingPrediction()
 	bIsPreparingLanding = bHitGround;
 }
 
-void ATPPlayerCharacter::Tick(float DeltaTime)
+void ATPPlayerCharacter::StartLandingPrediction()
 {
-	Super::Tick(DeltaTime);
+	if (!GetWorld())
+	{
+		return;
+	}
 
-	UpdateLandingPrediction();
+	if (GetWorldTimerManager().IsTimerActive(LandingPredictionTimerHandle))
+	{
+		return;
+	}
+
+	GetWorldTimerManager().SetTimer(
+		LandingPredictionTimerHandle,
+		this,
+		&ATPPlayerCharacter::UpdateLandingPrediction,
+		LandingPredictionInterval,
+		true
+	);
+}
+
+void ATPPlayerCharacter::StopLandingPrediction()
+{
+	if (GetWorld())
+	{
+		GetWorldTimerManager().ClearTimer(LandingPredictionTimerHandle);
+	}
+
+	bIsPreparingLanding = false;
+}
+
+void ATPPlayerCharacter::OnMovementModeChanged(
+	EMovementMode PrevMovementMode,
+	uint8 PreviousCustomMode
+)
+{
+	Super::OnMovementModeChanged(PrevMovementMode, PreviousCustomMode);
+
+	if (!GetCharacterMovement())
+	{
+		return;
+	}
+
+	if (GetCharacterMovement()->MovementMode == MOVE_Falling)
+	{
+		StartLandingPrediction();
+	}
+	else
+	{
+		StopLandingPrediction();
+	}
+}
+
+void ATPPlayerCharacter::Landed(const FHitResult& Hit)
+{
+	Super::Landed(Hit);
+
+	StopLandingPrediction();
 }
 
 void ATPPlayerCharacter::SetMovementState(ETPMovementState NewMovementState)

@@ -56,7 +56,8 @@ public:
 protected:
 	virtual void BeginPlay() override;
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
-	virtual void Tick(float DeltaTime) override;
+	virtual void Landed(const FHitResult& Hit) override;
+	virtual void OnMovementModeChanged(EMovementMode PrevMovementMode,uint8 PreviousCustomMode = 0) override;
 	
 private:
 	void Move(const FInputActionValue& Value);
@@ -137,6 +138,9 @@ private:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Movement|Landing", meta = (AllowPrivateAccess = "true"))
 	float LandingVerticalSpeedThreshold = -100.0f;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Movement|Landing", meta = (AllowPrivateAccess = "true"))
+	float LandingPredictionInterval = 0.03f;
+	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = "true"))
 	float CameraBoomLength = 400.0f;
 
@@ -164,6 +168,10 @@ private:
 	UPROPERTY(BlueprintReadOnly, Category = "Movement|Landing", meta = (AllowPrivateAccess = "true"))
 	bool bIsPreparingLanding = false;
 
+	FTimerHandle LandingPredictionTimerHandle;
+	
+	void StartLandingPrediction();
+	void StopLandingPrediction();
 	void UpdateLandingPrediction();
 	void Interact();
 	void Dash();
