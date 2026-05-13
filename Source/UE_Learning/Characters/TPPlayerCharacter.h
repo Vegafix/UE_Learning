@@ -15,6 +15,14 @@ class AHW3ModuleActor;
 class AHW3PluginActor;
 struct FInputActionValue;
 
+UENUM(BlueprintType)
+enum class ETPMovementState : uint8
+{
+	Running UMETA(DisplayName = "Running"),
+	Walking UMETA(DisplayName = "Walking"),
+	Sprinting UMETA(DisplayName = "Sprinting"),
+	Aiming UMETA(DisplayName = "Aiming")
+};
 
 UCLASS()
 class UE_LEARNING_API ATPPlayerCharacter : public ATPBaseCharacter
@@ -41,6 +49,9 @@ public:
 
 	UFUNCTION(BlueprintPure, Category = "Movement")
 	bool IsCrouchingState() const;
+	
+	UFUNCTION(BlueprintPure, Category = "Movement")
+	ETPMovementState GetMovementState() const;
 	
 protected:
 	virtual void BeginPlay() override;
@@ -144,20 +155,16 @@ private:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Spawn", meta = (AllowPrivateAccess = "true"))
 	float PluginActorSpawnHeightOffset = 100.0f;
 	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
+	float RotationYawRate = 500.0f;
+	
 	UPROPERTY(BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
-	bool bIsWalking = false;
-
-	UPROPERTY(BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
-	bool bIsSprinting = false;
-
-	UPROPERTY(BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
-	bool bIsAiming = false;
+	ETPMovementState MovementState = ETPMovementState::Running;
 	
 	UPROPERTY(BlueprintReadOnly, Category = "Movement|Landing", meta = (AllowPrivateAccess = "true"))
 	bool bIsPreparingLanding = false;
 
 	void UpdateLandingPrediction();
-	
 	void Interact();
 	void Dash();
 	void ToggleCrouch();
@@ -172,4 +179,5 @@ private:
 	void StopAim();
 	void UpdateMovementSpeed();
 	void UpdateRotationMode();
+	void SetMovementState(ETPMovementState NewMovementState);
 };

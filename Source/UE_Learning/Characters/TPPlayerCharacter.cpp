@@ -13,7 +13,6 @@
 #include "HW3ModuleActor.h"
 #include "HW3PluginActor.h"
 #include "Components/CapsuleComponent.h"
-#include "GameFramework/CharacterMovementComponent.h"
 
 
 ATPPlayerCharacter::ATPPlayerCharacter()
@@ -23,9 +22,9 @@ ATPPlayerCharacter::ATPPlayerCharacter()
 	bUseControllerRotationRoll = false;
 
 	GetCharacterMovement()->bOrientRotationToMovement = true;
-	GetCharacterMovement()->RotationRate = FRotator(0.0f, 500.0f, 0.0f);
+	GetCharacterMovement()->RotationRate = FRotator(0.0f, RotationYawRate, 0.0f);
 	GetCharacterMovement()->GetNavAgentPropertiesRef().bCanCrouch = true;
-	GetCharacterMovement()->MaxWalkSpeedCrouched = 200.0f;
+	GetCharacterMovement()->MaxWalkSpeedCrouched = CrouchSpeed;
 	
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	CameraBoom->SetupAttachment(RootComponent);
@@ -55,7 +54,12 @@ void ATPPlayerCharacter::BeginPlay()
 			}
 		}
 	}
-	GetCharacterMovement()->MaxWalkSpeed = RunSpeed;
+	
+	if (UCharacterMovementComponent* MovementComponent = GetCharacterMovement())
+	{
+		MovementComponent->MaxWalkSpeedCrouched = CrouchSpeed;
+	}
+
 	UpdateMovementSpeed();
 	UpdateRotationMode();
 }
@@ -100,8 +104,19 @@ void ATPPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 
 		if (SprintAction)
 		{
-			EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Started, this, &ATPPlayerCharacter::StartSprint);
-			EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Completed, this, &ATPPlayerCharacter::StopSprint);
+			EnhancedInputComponent->BindAction(
+				SprintAction,
+				ETriggerEvent::Started,
+				this,
+				&ATPPlayerCharacter::StartSprint
+			);
+
+			EnhancedInputComponent->BindAction(
+				SprintAction,
+				ETriggerEvent::Completed,
+				this,
+				&ATPPlayerCharacter::StopSprint
+			);
 		}
 
 		if (AimAction)
@@ -243,13 +258,19 @@ void ATPPlayerCharacter::ToggleCrouch()
 	if (bIsCrouched)
 	{
 		UnCrouch();
-		UpdateMovementSpeed();
 	}
 	else
 	{
+		if (MovementState == ETPMovementState::Sprinting)
+		{
+			SetMovementState(ETPMovementState::Running);
+		}
+
 		Crouch();
-		UpdateMovementSpeed();
 	}
+
+	UpdateMovementSpeed();
+	UpdateRotationMode();
 }
 
 void ATPPlayerCharacter::SpawnDefaultWeapon()
@@ -295,84 +316,91 @@ void ATPPlayerCharacter::SpawnDefaultWeapon()
 
 void ATPPlayerCharacter::StartWalk()
 {
-	bIsWalking = true;
-	bIsSprinting = false;
-	UpdateMovementSpeed();
-}
-
-void ATPPlayerCharacter::StopWalk()
-{
-	bIsWalking = false;
-	UpdateMovementSpeed();
-}
-
-void ATPPlayerCharacter::StartSprint()
-{
-	if (bIsAiming || bIsCrouched)
+	if (MovementState == ETPMovementState::Aiming)
 	{
 		return;
 	}
 
-	bIsSprinting = true;
-	bIsWalking = false;
-	UpdateMovementSpeed();
+	SetMovementState(ETPMovementState::Walking);
+}
+
+void ATPPlayerCharacter::StopWalk()
+{
+	if (MovementState == ETPMovementState::Walking)
+	{
+		SetMovementState(ETPMovementState::Running);
+	}
+}
+
+void ATPPlayerCharacter::StartSprint()
+{
+	if (bIsCrouched)
+	{
+		return;
+	}
+
+	if (MovementState == ETPMovementState::Aiming)
+	{
+		return;
+	}
+
+	SetMovementState(ETPMovementState::Sprinting);
 }
 
 void ATPPlayerCharacter::StopSprint()
 {
-	bIsSprinting = false;
-	UpdateMovementSpeed();
+	if (MovementState == ETPMovementState::Sprinting)
+	{
+		SetMovementState(ETPMovementState::Running);
+	}
 }
 
 void ATPPlayerCharacter::StartAim()
 {
-	bIsAiming = true;
-	bIsSprinting = false;
-
-	UpdateMovementSpeed();
-	UpdateRotationMode();
+	SetMovementState(ETPMovementState::Aiming);
 }
 
 void ATPPlayerCharacter::StopAim()
 {
-	bIsAiming = false;
-
-	UpdateMovementSpeed();
-	UpdateRotationMode();
+	if (MovementState == ETPMovementState::Aiming)
+	{
+		SetMovementState(ETPMovementState::Running);
+	}
 }
 
 void ATPPlayerCharacter::UpdateMovementSpeed()
 {
-	if (!GetCharacterMovement())
+	UCharacterMovementComponent* MovementComponent = GetCharacterMovement();
+	if (!MovementComponent)
 	{
 		return;
 	}
 
 	if (bIsCrouched)
 	{
-		GetCharacterMovement()->MaxWalkSpeed = CrouchSpeed;
+		MovementComponent->MaxWalkSpeed = CrouchSpeed;
 		return;
 	}
 
-	if (bIsAiming)
+	switch (MovementState)
 	{
-		GetCharacterMovement()->MaxWalkSpeed = AimSpeed;
-		return;
-	}
+	case ETPMovementState::Walking:
+		MovementComponent->MaxWalkSpeed = WalkSpeed;
+		break;
 
-	if (bIsSprinting)
-	{
-		GetCharacterMovement()->MaxWalkSpeed = SprintSpeed;
-		return;
-	}
+	case ETPMovementState::Sprinting:
+		MovementComponent->MaxWalkSpeed = SprintSpeed;
+		break;
 
-	if (bIsWalking)
-	{
-		GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
-		return;
-	}
+	case ETPMovementState::Aiming:
+		MovementComponent->MaxWalkSpeed = AimSpeed;
+		break;
 
-	GetCharacterMovement()->MaxWalkSpeed = RunSpeed;
+	case ETPMovementState::Running:
+	default:
+		MovementComponent->MaxWalkSpeed = RunSpeed;
+		break;
+	}
 }
 
 void ATPPlayerCharacter::UpdateRotationMode()
@@ -382,17 +410,12 @@ void ATPPlayerCharacter::UpdateRotationMode()
 		return;
 	}
 
-	if (bIsAiming)
-	{
-		bUseControllerRotationYaw = true;
-		GetCharacterMovement()->bOrientRotationToMovement = false;
-	}
-	else
-	{
-		bUseControllerRotationYaw = false;
-		GetCharacterMovement()->bOrientRotationToMovement = true;
-	}
+	const bool bShouldUseAimRotation = MovementState == ETPMovementState::Aiming;
+
+	bUseControllerRotationYaw = bShouldUseAimRotation;
+	GetCharacterMovement()->bOrientRotationToMovement = !bShouldUseAimRotation;
 }
+
 
 void ATPPlayerCharacter::UpdateLandingPrediction()
 {
@@ -439,6 +462,14 @@ void ATPPlayerCharacter::Tick(float DeltaTime)
 	UpdateLandingPrediction();
 }
 
+void ATPPlayerCharacter::SetMovementState(ETPMovementState NewMovementState)
+{
+	MovementState = NewMovementState;
+
+	UpdateMovementSpeed();
+	UpdateRotationMode();
+}
+
 bool ATPPlayerCharacter::IsCrouchingState() const
 {
 	return bIsCrouched;
@@ -446,17 +477,17 @@ bool ATPPlayerCharacter::IsCrouchingState() const
 
 bool ATPPlayerCharacter::IsWalkingState() const
 {
-	return bIsWalking;
+	return MovementState == ETPMovementState::Walking;
 }
 
 bool ATPPlayerCharacter::IsSprintingState() const
 {
-	return bIsSprinting;
+	return MovementState == ETPMovementState::Sprinting;
 }
 
 bool ATPPlayerCharacter::IsAimingState() const
 {
-	return bIsAiming;
+	return MovementState == ETPMovementState::Aiming;
 }
 
 bool ATPPlayerCharacter::IsPreparingLandingState() const
@@ -464,8 +495,12 @@ bool ATPPlayerCharacter::IsPreparingLandingState() const
 	return bIsPreparingLanding;
 }
 
+ETPMovementState ATPPlayerCharacter::GetMovementState() const
+{
+	return MovementState;
+}
+
 ATPWeaponActor* ATPPlayerCharacter::GetCurrentWeapon() const
 {
 	return CurrentWeapon;
 }
-
