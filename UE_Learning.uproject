@@ -39,6 +39,10 @@
     {
       "Name": "HW3Plugin",
       "Enabled": true
+    },
+    {
+      "Name": "CommonUI",
+      "Enabled": true
     }
   ],
   "TargetPlatforms": [

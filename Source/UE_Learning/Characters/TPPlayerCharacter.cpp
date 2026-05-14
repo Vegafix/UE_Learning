@@ -6,13 +6,17 @@
 #include "EnhancedInputSubsystems.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
-#include "TPInteractable.h"
+#include "Interaction/Interactable.h"
+#include "Interaction/InteractionDetectorComponent.h"
 #include "Engine/World.h"
 #include "AbilitySystemComponent.h"
 #include "TPWeaponActor.h"
 #include "HW3ModuleActor.h"
 #include "HW3PluginActor.h"
 #include "Components/CapsuleComponent.h"
+#include "UI/InteractionPromptWidget.h"
+#include "Blueprint/UserWidget.h"
+
 
 
 ATPPlayerCharacter::ATPPlayerCharacter()
@@ -25,6 +29,8 @@ ATPPlayerCharacter::ATPPlayerCharacter()
 	GetCharacterMovement()->RotationRate = FRotator(0.0f, RotationYawRate, 0.0f);
 	GetCharacterMovement()->GetNavAgentPropertiesRef().bCanCrouch = true;
 	GetCharacterMovement()->MaxWalkSpeedCrouched = CrouchSpeed;
+	
+	InteractionDetector = CreateDefaultSubobject<UInteractionDetectorComponent>(TEXT("InteractionDetector"));
 	
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	CameraBoom->SetupAttachment(RootComponent);
@@ -59,7 +65,29 @@ void ATPPlayerCharacter::BeginPlay()
 	{
 		MovementComponent->MaxWalkSpeedCrouched = CrouchSpeed;
 	}
+	
+	if (InteractionPromptWidgetClass)
+	{
+		InteractionPromptWidget = CreateWidget<UInteractionPromptWidget>(
+			GetWorld(),
+			InteractionPromptWidgetClass
+		);
 
+		if (InteractionPromptWidget)
+		{
+			InteractionPromptWidget->AddToViewport();
+			InteractionPromptWidget->SetPromptVisible(false);
+		}
+	}
+	
+	if (InteractionDetector)
+	{
+		InteractionDetector->OnFocusedInteractableChanged.AddDynamic(
+			this,
+			&ATPPlayerCharacter::HandleFocusedInteractableChanged
+		);
+	}
+	
 	UpdateMovementSpeed();
 	UpdateRotationMode();
 }
@@ -212,32 +240,30 @@ void ATPPlayerCharacter::Look(const FInputActionValue& Value)
 
 void ATPPlayerCharacter::Interact()
 {
-	APlayerController* PlayerController = Cast<APlayerController>(GetController());
-	if (!PlayerController)
+	if (!InteractionDetector)
 	{
 		return;
 	}
 
-	FVector ViewLocation;
-	FRotator ViewRotation;
-	PlayerController->GetPlayerViewPoint(ViewLocation, ViewRotation);
-
-	const FVector TraceStart = ViewLocation;
-	const FVector TraceEnd = TraceStart + ViewRotation.Vector() * InteractionTraceDistance;
-
-	FHitResult HitResult;
-	FCollisionQueryParams QueryParams;
-	QueryParams.AddIgnoredActor(this);
-
-	if (GetWorld()->LineTraceSingleByChannel(HitResult, TraceStart, TraceEnd, ECC_Visibility, QueryParams))
+	AActor* FocusedActor = InteractionDetector->GetFocusedActor();
+	if (!FocusedActor)
 	{
-		AActor* HitActor = HitResult.GetActor();
-
-		if (HitActor && HitActor->GetClass()->ImplementsInterface(UTPInteractable::StaticClass()))
-		{
-			ITPInteractable::Execute_Interact(HitActor, this);
-		}
+		return;
 	}
+
+	if (!FocusedActor->GetClass()->ImplementsInterface(UInteractable::StaticClass()))
+	{
+		return;
+	}
+
+	if (!IInteractable::Execute_CanInteract(FocusedActor, this))
+	{
+		return;
+	}
+
+	IInteractable::Execute_Interact(FocusedActor, this);
+
+	InteractionDetector->RefreshFocusNow();
 }
 
 void ATPPlayerCharacter::Dash()
@@ -532,6 +558,31 @@ void ATPPlayerCharacter::SetMovementState(ETPMovementState NewMovementState)
 	UpdateRotationMode();
 }
 
+void ATPPlayerCharacter::HandleFocusedInteractableChanged(AActor* NewFocusedActor)
+{
+	if (!InteractionPromptWidget)
+	{
+		return;
+	}
+
+	if (!NewFocusedActor || !NewFocusedActor->GetClass()->ImplementsInterface(UInteractable::StaticClass()))
+	{
+		InteractionPromptWidget->SetPromptVisible(false);
+		return;
+	}
+
+	const FText PromptText = IInteractable::Execute_GetInteractionPrompt(NewFocusedActor);
+
+	if (PromptText.IsEmpty())
+	{
+		InteractionPromptWidget->SetPromptVisible(false);
+		return;
+	}
+
+	InteractionPromptWidget->SetPromptText(PromptText);
+	InteractionPromptWidget->SetPromptVisible(true);
+}
+
 bool ATPPlayerCharacter::IsCrouchingState() const
 {
 	return bIsCrouched;
@@ -566,3 +617,4 @@ ATPWeaponActor* ATPPlayerCharacter::GetCurrentWeapon() const
 {
 	return CurrentWeapon;
 }
+

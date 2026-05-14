@@ -18,6 +18,7 @@ public class UE_Learning : ModuleRules
 			"StateTreeModule",
 			"GameplayStateTreeModule",
 			"UMG",
+			"CommonUI",
 			"Slate",
 			"GameplayAbilities",
 			"GameplayTags",

@@ -13,7 +13,10 @@ class UGameplayAbility;
 class ATPWeaponActor;
 class AHW3ModuleActor;
 class AHW3PluginActor;
+class UInteractionDetectorComponent;
+class UInteractionPromptWidget;
 struct FInputActionValue;
+
 
 UENUM(BlueprintType)
 enum class ETPMovementState : uint8
@@ -168,6 +171,18 @@ private:
 	UPROPERTY(BlueprintReadOnly, Category = "Movement|Landing", meta = (AllowPrivateAccess = "true"))
 	bool bIsPreparingLanding = false;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI", meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<UInteractionPromptWidget> InteractionPromptWidgetClass;
+
+	UPROPERTY()
+	TObjectPtr<UInteractionPromptWidget> InteractionPromptWidget;
+
+	UFUNCTION()
+	void HandleFocusedInteractableChanged(AActor* NewFocusedActor);
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Interaction", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UInteractionDetectorComponent> InteractionDetector;
+	
 	FTimerHandle LandingPredictionTimerHandle;
 	
 	void StartLandingPrediction();
