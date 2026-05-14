@@ -37,9 +37,6 @@ public:
 	
 	UFUNCTION(BlueprintPure, Category = "Weapon")
 	ATPWeaponActor* GetCurrentWeapon() const;
-
-	UFUNCTION(BlueprintPure, Category = "Movement")
-	bool IsPreparingLandingState() const;
 	
 	UFUNCTION(BlueprintPure, Category = "Movement")
 	bool IsWalkingState() const;
@@ -60,8 +57,7 @@ protected:
 	virtual void BeginPlay() override;
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 	virtual void Landed(const FHitResult& Hit) override;
-	virtual void OnMovementModeChanged(EMovementMode PrevMovementMode,uint8 PreviousCustomMode = 0) override;
-	
+
 private:
 	void Move(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);
@@ -135,15 +131,6 @@ private:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
 	float CrouchSpeed = 180.0f;
 	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Movement|Landing", meta = (AllowPrivateAccess = "true"))
-	float LandingTraceDistance = 180.0f;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Movement|Landing", meta = (AllowPrivateAccess = "true"))
-	float LandingVerticalSpeedThreshold = -100.0f;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Movement|Landing", meta = (AllowPrivateAccess = "true"))
-	float LandingPredictionInterval = 0.03f;
-	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = "true"))
 	float CameraBoomLength = 400.0f;
 
@@ -167,9 +154,6 @@ private:
 	
 	UPROPERTY(BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
 	ETPMovementState MovementState = ETPMovementState::Running;
-	
-	UPROPERTY(BlueprintReadOnly, Category = "Movement|Landing", meta = (AllowPrivateAccess = "true"))
-	bool bIsPreparingLanding = false;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI", meta = (AllowPrivateAccess = "true"))
 	TSubclassOf<UInteractionPromptWidget> InteractionPromptWidgetClass;
@@ -183,11 +167,6 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Interaction", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UInteractionDetectorComponent> InteractionDetector;
 	
-	FTimerHandle LandingPredictionTimerHandle;
-	
-	void StartLandingPrediction();
-	void StopLandingPrediction();
-	void UpdateLandingPrediction();
 	void Interact();
 	void Dash();
 	void ToggleCrouch();

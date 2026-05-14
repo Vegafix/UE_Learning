@@ -16,6 +16,7 @@
 #include "Components/CapsuleComponent.h"
 #include "UI/InteractionPromptWidget.h"
 #include "Blueprint/UserWidget.h"
+#include "Animation/TPCharacterAnimInstance.h"
 
 
 
@@ -442,112 +443,18 @@ void ATPPlayerCharacter::UpdateRotationMode()
 	GetCharacterMovement()->bOrientRotationToMovement = !bShouldUseAimRotation;
 }
 
-
-void ATPPlayerCharacter::UpdateLandingPrediction()
-{
-	bIsPreparingLanding = false;
-
-	UWorld* World = GetWorld();
-	UCharacterMovementComponent* MovementComponent = GetCharacterMovement();
-	UCapsuleComponent* Capsule = GetCapsuleComponent();
-
-	if (!World || !MovementComponent || !Capsule)
-	{
-		return;
-	}
-
-	if (!MovementComponent->IsFalling())
-	{
-		StopLandingPrediction();
-		return;
-	}
-
-	const float VerticalVelocity = GetVelocity().Z;
-	if (VerticalVelocity > LandingVerticalSpeedThreshold)
-	{
-		return;
-	}
-
-	const float CapsuleHalfHeight = Capsule->GetScaledCapsuleHalfHeight();
-
-	const FVector Start =
-		GetActorLocation() - FVector(0.0f, 0.0f, CapsuleHalfHeight - 5.0f);
-
-	const FVector End =
-		Start - FVector(0.0f, 0.0f, LandingTraceDistance);
-
-	FCollisionQueryParams QueryParams(SCENE_QUERY_STAT(LandingPredictionTrace), false, this);
-
-	FHitResult HitResult;
-	const bool bHitGround = World->LineTraceSingleByChannel(
-		HitResult,
-		Start,
-		End,
-		ECC_Visibility,
-		QueryParams
-	);
-
-	bIsPreparingLanding = bHitGround;
-}
-
-void ATPPlayerCharacter::StartLandingPrediction()
-{
-	if (!GetWorld())
-	{
-		return;
-	}
-
-	if (GetWorldTimerManager().IsTimerActive(LandingPredictionTimerHandle))
-	{
-		return;
-	}
-
-	GetWorldTimerManager().SetTimer(
-		LandingPredictionTimerHandle,
-		this,
-		&ATPPlayerCharacter::UpdateLandingPrediction,
-		LandingPredictionInterval,
-		true
-	);
-}
-
-void ATPPlayerCharacter::StopLandingPrediction()
-{
-	if (GetWorld())
-	{
-		GetWorldTimerManager().ClearTimer(LandingPredictionTimerHandle);
-	}
-
-	bIsPreparingLanding = false;
-}
-
-void ATPPlayerCharacter::OnMovementModeChanged(
-	EMovementMode PrevMovementMode,
-	uint8 PreviousCustomMode
-)
-{
-	Super::OnMovementModeChanged(PrevMovementMode, PreviousCustomMode);
-
-	if (!GetCharacterMovement())
-	{
-		return;
-	}
-
-	if (GetCharacterMovement()->MovementMode == MOVE_Falling)
-	{
-		StartLandingPrediction();
-	}
-	else
-	{
-		StopLandingPrediction();
-	}
-}
-
 void ATPPlayerCharacter::Landed(const FHitResult& Hit)
 {
 	Super::Landed(Hit);
 
-	StopLandingPrediction();
+	if (USkeletalMeshComponent* CharacterMesh = GetMesh())
+	{
+		if (UTPCharacterAnimInstance* AnimInstance =
+			Cast<UTPCharacterAnimInstance>(CharacterMesh->GetAnimInstance()))
+		{
+			AnimInstance->ResetLandingPrediction();
+		}
+	}
 }
 
 void ATPPlayerCharacter::SetMovementState(ETPMovementState NewMovementState)
@@ -601,11 +508,6 @@ bool ATPPlayerCharacter::IsSprintingState() const
 bool ATPPlayerCharacter::IsAimingState() const
 {
 	return MovementState == ETPMovementState::Aiming;
-}
-
-bool ATPPlayerCharacter::IsPreparingLandingState() const
-{
-	return bIsPreparingLanding;
 }
 
 ETPMovementState ATPPlayerCharacter::GetMovementState() const
