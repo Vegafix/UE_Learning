@@ -1,18 +1,26 @@
 ﻿#include "UI/InteractionPromptWidget.h"
 
-#include "Components/TextBlock.h"
+#include "CommonTextBlock.h"
 
 void UInteractionPromptWidget::SetPromptText(const FText& InPromptText)
 {
-	if (PromptTextBlock)
-	{
-		const FText FullPrompt = FText::Format(
-			NSLOCTEXT("Interaction", "PromptFormat", "[E] {0}"),
-			InPromptText
-		);
+	SetPromptData(FallbackInputKeyText, InPromptText);
+}
 
-		PromptTextBlock->SetText(FullPrompt);
+void UInteractionPromptWidget::SetPromptData(const FText& InputKeyText, const FText& PromptText)
+{
+	if (!PromptTextBlock)
+	{
+		return;
 	}
+
+	const FText FullPrompt = FText::Format(
+		NSLOCTEXT("Interaction", "PromptFormat", "[{0}] {1}"),
+		InputKeyText,
+		PromptText
+	);
+
+	PromptTextBlock->SetText(FullPrompt);
 }
 
 void UInteractionPromptWidget::SetPromptVisible(bool bVisible)

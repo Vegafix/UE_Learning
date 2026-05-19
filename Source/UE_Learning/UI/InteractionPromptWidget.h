@@ -4,7 +4,7 @@
 #include "CommonUserWidget.h"
 #include "InteractionPromptWidget.generated.h"
 
-class UTextBlock;
+class UCommonTextBlock;
 
 UCLASS()
 class UE_LEARNING_API UInteractionPromptWidget : public UCommonUserWidget
@@ -17,8 +17,14 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Interaction")
 	void SetPromptVisible(bool bVisible);
+	
+	UFUNCTION(BlueprintCallable, Category = "Interaction")
+	void SetPromptData(const FText& InputKeyText, const FText& PromptText);
 
 protected:
 	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UTextBlock> PromptTextBlock;
+	TObjectPtr<UCommonTextBlock> PromptTextBlock;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Interaction")
+	FText FallbackInputKeyText = FText::FromString(TEXT("?"));
 };

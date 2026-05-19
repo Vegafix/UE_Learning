@@ -45,7 +45,8 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interaction|Highlight")
 	bool bUseHighlight = true;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interaction|Highlight")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interaction|Highlight",
+	meta = (ClampMin = "1", ClampMax = "255", UIMin = "1", UIMax = "255"))
 	int32 FocusedStencilValue = 1;
 
 	void SetFocusedHighlight(bool bFocused);

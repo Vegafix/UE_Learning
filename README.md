@@ -172,3 +172,7 @@
 `Object from homework 2`
 
 Надпись реализована через `TextRenderComponent` внутри Blueprint и скрывается через несколько секунд после взаимодействия.
+
+Система ввода доработана: вместо отдельных `UInputAction*` в персонаже используется `TPInputConfig` Data Asset с привязкой действий через `GameplayTag`. Это позволяет менять Input Action assets без добавления новых полей в `TPPlayerCharacter`.
+
+CommonUI-подсказка взаимодействия использует `UCommonTextBlock`. Клавиша взаимодействия отображается динамически: она берётся из `InputConfig` и `DefaultMappingContext`, поэтому при изменении клавиши в `IMC_Default` текст подсказки обновляется без правки C++.

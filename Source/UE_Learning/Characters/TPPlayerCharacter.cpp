@@ -17,6 +17,10 @@
 #include "UI/InteractionPromptWidget.h"
 #include "Blueprint/UserWidget.h"
 #include "Animation/TPCharacterAnimInstance.h"
+#include "Input/TPInputConfig.h"
+#include "Input/TPInputTags.h"
+#include "InputMappingContext.h"
+#include "InputAction.h"
 
 
 
@@ -97,64 +101,55 @@ void ATPPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
-	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent))
+	UEnhancedInputComponent* EnhancedInputComponent =
+		Cast<UEnhancedInputComponent>(PlayerInputComponent);
+
+	if (!EnhancedInputComponent || !InputConfig)
 	{
-		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &ATPPlayerCharacter::Move);
-		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ATPPlayerCharacter::Look);
-		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &ACharacter::Jump);
-		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
-		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Started, this, &ATPPlayerCharacter::Interact);
-		
-		if (DashAction)
-		{
-			EnhancedInputComponent->BindAction(DashAction, ETriggerEvent::Started, this, &ATPPlayerCharacter::Dash);
-		}
-		
-		if (CrouchAction)
-		{
-			EnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Started, this, &ATPPlayerCharacter::ToggleCrouch);
-		}
-		
-		if (SpawnModuleActorAction)
-		{
-			EnhancedInputComponent->BindAction(SpawnModuleActorAction, ETriggerEvent::Started, this, &ATPPlayerCharacter::SpawnModuleActor);
-		}
-		
-		if (SpawnPluginActorAction)
-		{
-			EnhancedInputComponent->BindAction(SpawnPluginActorAction, ETriggerEvent::Started, this, &ATPPlayerCharacter::SpawnPluginActor);
-		}
-		
-		if (WalkAction)
-		{
-			EnhancedInputComponent->BindAction(WalkAction, ETriggerEvent::Started, this, &ATPPlayerCharacter::StartWalk);
-			EnhancedInputComponent->BindAction(WalkAction, ETriggerEvent::Completed, this, &ATPPlayerCharacter::StopWalk);
-		}
-
-		if (SprintAction)
-		{
-			EnhancedInputComponent->BindAction(
-				SprintAction,
-				ETriggerEvent::Started,
-				this,
-				&ATPPlayerCharacter::StartSprint
-			);
-
-			EnhancedInputComponent->BindAction(
-				SprintAction,
-				ETriggerEvent::Completed,
-				this,
-				&ATPPlayerCharacter::StopSprint
-			);
-		}
-
-		if (AimAction)
-		{
-			EnhancedInputComponent->BindAction(AimAction, ETriggerEvent::Started, this, &ATPPlayerCharacter::StartAim);
-			EnhancedInputComponent->BindAction(AimAction, ETriggerEvent::Completed, this, &ATPPlayerCharacter::StopAim);
-		}
+		return;
 	}
-	
+
+	auto BindActionByTag = [this, EnhancedInputComponent](
+		const FGameplayTag& InputTag,
+		ETriggerEvent TriggerEvent,
+		auto Callback
+	)
+	{
+		const UInputAction* InputAction = InputConfig->FindInputActionByTag(InputTag);
+		if (!InputAction)
+		{
+			return;
+		}
+
+		EnhancedInputComponent->BindAction(
+			InputAction,
+			TriggerEvent,
+			this,
+			Callback
+		);
+	};
+
+	BindActionByTag(TAG_Input_Move, ETriggerEvent::Triggered, &ATPPlayerCharacter::Move);
+	BindActionByTag(TAG_Input_Look, ETriggerEvent::Triggered, &ATPPlayerCharacter::Look);
+
+	BindActionByTag(TAG_Input_Jump, ETriggerEvent::Started, &ACharacter::Jump);
+	BindActionByTag(TAG_Input_Jump, ETriggerEvent::Completed, &ACharacter::StopJumping);
+
+	BindActionByTag(TAG_Input_Interact, ETriggerEvent::Started, &ATPPlayerCharacter::Interact);
+	BindActionByTag(TAG_Input_Dash, ETriggerEvent::Started, &ATPPlayerCharacter::Dash);
+	BindActionByTag(TAG_Input_Crouch, ETriggerEvent::Started, &ATPPlayerCharacter::ToggleCrouch);
+
+	BindActionByTag(TAG_Input_Walk, ETriggerEvent::Started, &ATPPlayerCharacter::StartWalk);
+	BindActionByTag(TAG_Input_Walk, ETriggerEvent::Completed, &ATPPlayerCharacter::StopWalk);
+
+	BindActionByTag(TAG_Input_Sprint, ETriggerEvent::Started, &ATPPlayerCharacter::StartSprint);
+	BindActionByTag(TAG_Input_Sprint, ETriggerEvent::Completed, &ATPPlayerCharacter::StopSprint);
+
+	BindActionByTag(TAG_Input_Aim, ETriggerEvent::Started, &ATPPlayerCharacter::StartAim);
+	BindActionByTag(TAG_Input_Aim, ETriggerEvent::Completed, &ATPPlayerCharacter::StopAim);
+
+	BindActionByTag(TAG_Input_Spawn_ModuleActor, ETriggerEvent::Started, &ATPPlayerCharacter::SpawnModuleActor);
+	BindActionByTag(TAG_Input_Spawn_PluginActor, ETriggerEvent::Started, &ATPPlayerCharacter::SpawnPluginActor);
 }
 
 void ATPPlayerCharacter::SpawnModuleActor()
@@ -486,8 +481,43 @@ void ATPPlayerCharacter::HandleFocusedInteractableChanged(AActor* NewFocusedActo
 		return;
 	}
 
-	InteractionPromptWidget->SetPromptText(PromptText);
+	const FText InputKeyText = GetInputKeyTextForTag(TAG_Input_Interact);
+
+	InteractionPromptWidget->SetPromptData(
+		InputKeyText.IsEmpty() ? FText::FromString(TEXT("?")) : InputKeyText,
+		PromptText
+	);
+
 	InteractionPromptWidget->SetPromptVisible(true);
+}
+
+FText ATPPlayerCharacter::GetInputKeyTextForTag(const FGameplayTag& InputTag) const
+{
+	if (!InputConfig || !DefaultMappingContext)
+	{
+		return FText::GetEmpty();
+	}
+
+	const UInputAction* TargetInputAction =
+		InputConfig->FindInputActionByTag(InputTag, false);
+
+	if (!TargetInputAction)
+	{
+		return FText::GetEmpty();
+	}
+
+	const TArray<FEnhancedActionKeyMapping>& Mappings =
+		DefaultMappingContext->GetMappings();
+
+	for (const FEnhancedActionKeyMapping& Mapping : Mappings)
+	{
+		if (Mapping.Action == TargetInputAction)
+		{
+			return Mapping.Key.GetDisplayName(false);
+		}
+	}
+
+	return FText::GetEmpty();
 }
 
 bool ATPPlayerCharacter::IsCrouchingState() const

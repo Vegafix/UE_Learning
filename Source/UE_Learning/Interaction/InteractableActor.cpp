@@ -62,6 +62,9 @@ void AInteractableActor::SetFocusedHighlight(bool bFocused)
 	}
 
 	MeshComponent->SetRenderCustomDepth(bFocused);
-	MeshComponent->SetCustomDepthStencilValue(FocusedStencilValue);
-	FocusedStencilValue = 1;
+	if (bFocused)
+	{
+		MeshComponent->SetCustomDepthStencilValue(FocusedStencilValue);
+	}
+	
 }
