@@ -13,11 +13,15 @@ UCLASS(abstract)
 class AUE_LearningGameMode : public AGameModeBase
 {
 	GENERATED_BODY()
+	
+protected:
+	virtual void BeginPlay() override;
 
 public:
 	
 	/** Constructor */
 	AUE_LearningGameMode();
+	
 };
 
 

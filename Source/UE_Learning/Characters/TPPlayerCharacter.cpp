@@ -21,6 +21,7 @@
 #include "Input/TPInputTags.h"
 #include "InputMappingContext.h"
 #include "InputAction.h"
+#include "Weapon/TPWeaponEquipmentComponent.h"
 
 
 
@@ -297,43 +298,10 @@ void ATPPlayerCharacter::ToggleCrouch()
 
 void ATPPlayerCharacter::SpawnDefaultWeapon()
 {
-	if (!WeaponClass)
+	if (WeaponEquipmentComponent)
 	{
-		return;
+		WeaponEquipmentComponent->EquipDefaultWeapon();
 	}
-
-	if (CurrentWeapon)
-	{
-		return;
-	}
-
-	UWorld* World = GetWorld();
-	if (!World)
-	{
-		return;
-	}
-
-	FActorSpawnParameters SpawnParams;
-	SpawnParams.Owner = this;
-	SpawnParams.Instigator = this;
-
-	CurrentWeapon = World->SpawnActor<ATPWeaponActor>(
-		WeaponClass,
-		FVector::ZeroVector,
-		FRotator::ZeroRotator,
-		SpawnParams
-	);
-
-	if (!CurrentWeapon)
-	{
-		return;
-	}
-
-	CurrentWeapon->AttachToComponent(
-		GetMesh(),
-		FAttachmentTransformRules::SnapToTargetNotIncludingScale,
-		WeaponSocketName
-	);
 }
 
 void ATPPlayerCharacter::StartWalk()
@@ -488,7 +456,7 @@ void ATPPlayerCharacter::HandleFocusedInteractableChanged(AActor* NewFocusedActo
 		PromptText
 	);
 
-	InteractionPromptWidget->SetPromptVisible(true);
+	InteractionPromptWidget->SetPromptVisible(true); 
 }
 
 FText ATPPlayerCharacter::GetInputKeyTextForTag(const FGameplayTag& InputTag) const
@@ -547,6 +515,8 @@ ETPMovementState ATPPlayerCharacter::GetMovementState() const
 
 ATPWeaponActor* ATPPlayerCharacter::GetCurrentWeapon() const
 {
-	return CurrentWeapon;
+	return WeaponEquipmentComponent
+		? WeaponEquipmentComponent->GetCurrentWeapon()
+		: nullptr;
 }
 

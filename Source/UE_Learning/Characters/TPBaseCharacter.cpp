@@ -4,6 +4,7 @@
 #include "Abilities/GameplayAbility.h"
 #include "TPAttributeSet.h"
 #include "GameplayEffect.h"
+#include "Weapon/TPWeaponEquipmentComponent.h"
 
 ATPBaseCharacter::ATPBaseCharacter()
 {
@@ -11,6 +12,11 @@ ATPBaseCharacter::ATPBaseCharacter()
 	AttributeSet = CreateDefaultSubobject<UTPAttributeSet>(TEXT("AttributeSet"));
 
 	TeamId = FGenericTeamId(0);
+	
+	WeaponEquipmentComponent =
+	CreateDefaultSubobject<UTPWeaponEquipmentComponent>(
+		TEXT("WeaponEquipmentComponent")
+	);
 }
 
 UAbilitySystemComponent* ATPBaseCharacter::GetAbilitySystemComponent() const
@@ -77,4 +83,10 @@ void ATPBaseCharacter::ApplyDefaultEffects()
 			}
 		}
 	}
+}
+
+UTPWeaponEquipmentComponent*
+ATPBaseCharacter::GetWeaponEquipmentComponent() const
+{
+	return WeaponEquipmentComponent;
 }

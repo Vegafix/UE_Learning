@@ -18,6 +18,17 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Weapon|IK")
 	USceneComponent* GetLeftHandIKTarget() const;
 
+	UFUNCTION(BlueprintPure, Category = "Weapon")
+	USceneComponent* GetMuzzlePoint() const;
+	
+	virtual void Tick(float DeltaSeconds) override;
+
+	UFUNCTION(BlueprintCallable, Category = "Weapon|Debug")
+	void DrawDebugMuzzleDirection() const;
+	
+	UFUNCTION(BlueprintCallable, Category = "Weapon|Debug")
+	bool DebugFireOnce(AActor* TargetActor);
+	
 protected:
 	virtual void BeginPlay() override;
 
@@ -29,4 +40,14 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon|IK")
 	TObjectPtr<USceneComponent> LeftHandIKTarget;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
+	TObjectPtr<USceneComponent> MuzzlePoint;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|Debug")
+	bool bDrawDebugMuzzleDirection = false;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|Debug",
+		meta = (ClampMin = "0.0"))
+	float DebugMuzzleDirectionLength = 1000.0f;
 };

@@ -10,6 +10,7 @@ class UAbilitySystemComponent;
 class UTPAttributeSet;
 class UGameplayAbility;
 class UGameplayEffect;
+class UTPWeaponEquipmentComponent;
 
 UCLASS()
 class UE_LEARNING_API ATPBaseCharacter : public ACharacter, public IAbilitySystemInterface, public IGenericTeamAgentInterface
@@ -22,13 +23,18 @@ public:
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 	virtual FGenericTeamId GetGenericTeamId() const override;
 
+	UFUNCTION(BlueprintPure, Category = "Weapon")
+	UTPWeaponEquipmentComponent* GetWeaponEquipmentComponent() const;
+	
 protected:
 	virtual void BeginPlay() override;
 
 	void GiveDefaultAbilities();
 	void ApplyDefaultEffects();
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
+	TObjectPtr<UTPWeaponEquipmentComponent> WeaponEquipmentComponent;
 
-protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GAS")
 	TObjectPtr<UAbilitySystemComponent> AbilitySystemComponent;
 
