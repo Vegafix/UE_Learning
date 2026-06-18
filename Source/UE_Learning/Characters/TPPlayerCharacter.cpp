@@ -24,6 +24,8 @@
 #include "Weapon/TPWeaponEquipmentComponent.h"
 #include "Characters/TPAttributeSet.h"
 #include "UI/TPHealthBarWidget.h"
+#include "Blueprint/UserWidget.h"
+#include "GameFramework/PlayerController.h"
 
 
 
@@ -99,6 +101,14 @@ void ATPPlayerCharacter::BeginPlay()
 	UpdateMovementSpeed();
 	UpdateRotationMode();
 	InitializePlayerHealthWidget();
+	
+	if (APlayerController* PlayerController = Cast<APlayerController>(GetController()))
+	{
+		PlayerController->bShowMouseCursor = false;
+
+		FInputModeGameOnly InputMode;
+		PlayerController->SetInputMode(InputMode);
+	}
 }
 
 void ATPPlayerCharacter::HandleDeath()
@@ -110,6 +120,39 @@ void ATPPlayerCharacter::HandleDeath()
 		PlayerHealthWidget->RemoveFromParent();
 		PlayerHealthWidget = nullptr;
 	}
+
+	if (!PlayerDeathScreenWidgetClass)
+	{
+		return;
+	}
+
+	PlayerDeathScreenWidget = CreateWidget<UUserWidget>(
+		GetWorld(),
+		PlayerDeathScreenWidgetClass
+	);
+
+	if (!PlayerDeathScreenWidget)
+	{
+		return;
+	}
+
+	PlayerDeathScreenWidget->AddToViewport(100);
+
+	APlayerController* PlayerController =
+		Cast<APlayerController>(GetController());
+
+	if (!PlayerController)
+	{
+		return;
+	}
+
+	PlayerController->bShowMouseCursor = true;
+
+	FInputModeUIOnly InputMode;
+	InputMode.SetWidgetToFocus(PlayerDeathScreenWidget->TakeWidget());
+	InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+
+	PlayerController->SetInputMode(InputMode);
 }
 
 void ATPPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)

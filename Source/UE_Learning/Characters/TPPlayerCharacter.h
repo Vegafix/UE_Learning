@@ -18,6 +18,7 @@ class UInteractionDetectorComponent;
 class UInteractionPromptWidget;
 class UTPInputConfig;
 class UTPHealthBarWidget;
+class UUserWidget;
 struct FInputActionValue;
 struct FOnAttributeChangeData;
 
@@ -132,6 +133,12 @@ private:
 
 	UPROPERTY()
 	TObjectPtr<UTPHealthBarWidget> PlayerHealthWidget;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI", meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<UUserWidget> PlayerDeathScreenWidgetClass;
+
+	UPROPERTY()
+	TObjectPtr<UUserWidget> PlayerDeathScreenWidget;
 
 	UFUNCTION()
 	void HandleFocusedInteractableChanged(AActor* NewFocusedActor);
