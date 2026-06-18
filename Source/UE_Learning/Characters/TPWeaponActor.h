@@ -6,6 +6,7 @@
 
 class USceneComponent;
 class UStaticMeshComponent;
+class UTPWeaponDefinition;
 
 UCLASS()
 class UE_LEARNING_API ATPWeaponActor : public AActor
@@ -26,11 +27,22 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Weapon|Debug")
 	void DrawDebugMuzzleDirection() const;
 	
-	UFUNCTION(BlueprintCallable, Category = "Weapon|Debug")
-	bool DebugFireOnce(AActor* TargetActor);
+	UFUNCTION(BlueprintCallable, Category = "Weapon|Fire")
+	bool TryFireOnce(AActor* TargetActor);
+	
+	UFUNCTION(BlueprintCallable, Category = "Weapon|Fire")
+	bool TryFireAtLocation(const FVector& TargetLocation);
+	
+	void InitializeFromDefinition(UTPWeaponDefinition* NewWeaponDefinition);
+
+	UFUNCTION(BlueprintPure, Category = "Weapon")
+	UTPWeaponDefinition* GetWeaponDefinition() const;
 	
 protected:
 	virtual void BeginPlay() override;
+	
+	UFUNCTION(BlueprintImplementableEvent, Category = "Weapon|VFX")
+	void OnWeaponFired();
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
 	TObjectPtr<USceneComponent> WeaponRoot;
@@ -50,4 +62,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|Debug",
 		meta = (ClampMin = "0.0"))
 	float DebugMuzzleDirectionLength = 1000.0f;
+	
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Weapon")
+	TObjectPtr<UTPWeaponDefinition> WeaponDefinition;
+	
+	float LastShotTime = -1000.0f;
 };

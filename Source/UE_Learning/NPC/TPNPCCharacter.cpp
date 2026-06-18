@@ -1,10 +1,18 @@
 ﻿#include "TPNPCCharacter.h"
 
+#include "AbilitySystemComponent.h"
+#include "AIController.h"
+#include "Characters/TPAttributeSet.h"
+#include "Components/CapsuleComponent.h"
+#include "Components/SkeletalMeshComponent.h"
+#include "Components/WidgetComponent.h"
+#include "Components/StateTreeAIComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "NPC/TPNPCDefinition.h"
 #include "NPC/TPNPCAIController.h"
-#include "AIController.h"
+#include "UI/TPHealthBarWidget.h"
 #include "Weapon/TPWeaponEquipmentComponent.h"
+
 
 ATPNPCCharacter::ATPNPCCharacter()
 {
@@ -22,6 +30,15 @@ ATPNPCCharacter::ATPNPCCharacter()
 		MovementComponent->bOrientRotationToMovement = true;
 		MovementComponent->RotationRate = FRotator(0.0f, 420.0f, 0.0f);
 	}
+	
+	HealthBarWidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("HealthBarWidget"));
+
+	HealthBarWidgetComponent->SetupAttachment(RootComponent);
+	HealthBarWidgetComponent->SetWidgetSpace(EWidgetSpace::Screen);
+	HealthBarWidgetComponent->SetDrawSize(FVector2D(120.0f, 16.0f));
+	HealthBarWidgetComponent->SetRelativeLocation(FVector(0.0f, 0.0f, 120.0f));
+	HealthBarWidgetComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	HealthBarWidgetComponent->SetHiddenInGame(false);
 }
 
 void ATPNPCCharacter::BeginPlay()
@@ -29,6 +46,47 @@ void ATPNPCCharacter::BeginPlay()
 	Super::BeginPlay();
 
 	ApplyNPCDefinition();
+	InitializeHealthBar();
+}
+
+void ATPNPCCharacter::HandleDeath()
+{
+	if (IsDead())
+	{
+		return;
+	}
+
+	if (ATPNPCAIController* NPCController =
+		Cast<ATPNPCAIController>(GetController()))
+	{
+		NPCController->StopAIForDeath();
+	}
+
+	Super::HandleDeath();
+	
+	if (HealthBarWidgetComponent)
+	{
+		HealthBarWidgetComponent->SetHiddenInGame(true);
+	}
+
+	DetachFromControllerPendingDestroy();
+
+	if (UCapsuleComponent* Capsule = GetCapsuleComponent())
+	{
+		Capsule->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	}
+
+	if (USkeletalMeshComponent* CharacterMesh = GetMesh())
+	{
+		CharacterMesh->SetCollisionProfileName(TEXT("Ragdoll"));
+		CharacterMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		CharacterMesh->SetAllBodiesSimulatePhysics(true);
+		CharacterMesh->SetSimulatePhysics(true);
+		CharacterMesh->WakeAllRigidBodies();
+		CharacterMesh->bBlendPhysics = true;
+	}
+
+	SetLifeSpan(10.0f);
 }
 
 void ATPNPCCharacter::ApplyNPCDefinition()
@@ -162,4 +220,76 @@ FGameplayTag ATPNPCCharacter::GetNPCId() const
 bool ATPNPCCharacter::HasNPCTag(FGameplayTag Tag) const
 {
 	return NPCDefinition && NPCDefinition->NPCTags.HasTag(Tag);
+}
+
+void ATPNPCCharacter::InitializeHealthBar()
+{
+	if (!HealthBarWidgetComponent)
+	{
+		return;
+	}
+
+	HealthBarWidgetComponent->InitWidget();
+
+	if (!AbilitySystemComponent || !AttributeSet)
+	{
+		return;
+	}
+
+	AbilitySystemComponent
+		->GetGameplayAttributeValueChangeDelegate(
+			UTPAttributeSet::GetHealthAttribute()
+		)
+		.AddUObject(
+			this,
+			&ATPNPCCharacter::HandleHealthChanged
+		);
+
+	AbilitySystemComponent
+		->GetGameplayAttributeValueChangeDelegate(
+			UTPAttributeSet::GetMaxHealthAttribute()
+		)
+		.AddUObject(
+			this,
+			&ATPNPCCharacter::HandleMaxHealthChanged
+		);
+
+	RefreshHealthBar();
+}
+
+void ATPNPCCharacter::RefreshHealthBar()
+{
+	if (!HealthBarWidgetComponent || !AttributeSet)
+	{
+		return;
+	}
+
+	UTPHealthBarWidget* HealthBarWidget =
+		Cast<UTPHealthBarWidget>(
+			HealthBarWidgetComponent->GetUserWidgetObject()
+		);
+
+	if (!HealthBarWidget)
+	{
+		return;
+	}
+
+	HealthBarWidget->SetHealthValues(
+		AttributeSet->GetHealth(),
+		AttributeSet->GetMaxHealth()
+	);
+}
+
+void ATPNPCCharacter::HandleHealthChanged(
+	const FOnAttributeChangeData& Data
+)
+{
+	RefreshHealthBar();
+}
+
+void ATPNPCCharacter::HandleMaxHealthChanged(
+	const FOnAttributeChangeData& Data
+)
+{
+	RefreshHealthBar();
 }

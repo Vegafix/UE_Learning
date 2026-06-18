@@ -12,6 +12,12 @@ class UGameplayAbility;
 class UGameplayEffect;
 class UTPWeaponEquipmentComponent;
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(
+	FTPCharacterDeathSignature,
+	AActor*,
+	DeadActor
+);
+
 UCLASS()
 class UE_LEARNING_API ATPBaseCharacter : public ACharacter, public IAbilitySystemInterface, public IGenericTeamAgentInterface
 {
@@ -25,6 +31,18 @@ public:
 
 	UFUNCTION(BlueprintPure, Category = "Weapon")
 	UTPWeaponEquipmentComponent* GetWeaponEquipmentComponent() const;
+	
+	UFUNCTION(BlueprintPure, Category = "Character|State")
+	bool IsDead() const;
+
+	UFUNCTION(BlueprintCallable, Category = "Character|State")
+	virtual void HandleDeath();
+	
+	UPROPERTY(BlueprintAssignable, Category = "Character|State")
+	FTPCharacterDeathSignature OnCharacterDeath;
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Character|State")
+	void OnDeath();
 	
 protected:
 	virtual void BeginPlay() override;
@@ -49,4 +67,8 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Team")
 	FGenericTeamId TeamId;
+	
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Character|State")
+	bool bIsDead = false;
+	
 };

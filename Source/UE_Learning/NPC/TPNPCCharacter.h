@@ -9,6 +9,8 @@
 
 class UTPNPCDefinition;
 class ATPNPCCharacter;
+class UWidgetComponent;
+struct FOnAttributeChangeData;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(
 	FTPNPCInteractedSignature,
@@ -51,10 +53,20 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+	virtual void HandleDeath() override;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "NPC")
 	TObjectPtr<UTPNPCDefinition> NPCDefinition;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "NPC|UI")
+	TObjectPtr<UWidgetComponent> HealthBarWidgetComponent;
+
 private:
 	void ApplyNPCDefinition();
+
+	void InitializeHealthBar();
+	void RefreshHealthBar();
+
+	void HandleHealthChanged(const FOnAttributeChangeData& Data);
+	void HandleMaxHealthChanged(const FOnAttributeChangeData& Data);
 };

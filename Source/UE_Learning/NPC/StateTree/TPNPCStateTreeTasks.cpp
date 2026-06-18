@@ -112,9 +112,9 @@ EStateTreeRunStatus FTPSTTask_DebugFireAtTarget::EnterState(
 		return EStateTreeRunStatus::Failed;
 	}
 
-	CurrentWeapon->DebugFireOnce(
-		InstanceData.TargetActor
-	);
+	CurrentWeapon->TryFireOnce(
+	InstanceData.TargetActor
+);
 
 	return EStateTreeRunStatus::Running;
 }

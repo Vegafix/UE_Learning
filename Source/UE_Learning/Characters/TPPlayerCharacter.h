@@ -17,7 +17,9 @@ class AHW3PluginActor;
 class UInteractionDetectorComponent;
 class UInteractionPromptWidget;
 class UTPInputConfig;
+class UTPHealthBarWidget;
 struct FInputActionValue;
+struct FOnAttributeChangeData;
 
 
 UENUM(BlueprintType)
@@ -59,6 +61,7 @@ protected:
 	virtual void BeginPlay() override;
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 	virtual void Landed(const FHitResult& Hit) override;
+	virtual void HandleDeath() override;
 
 private:
 	void Move(const FInputActionValue& Value);
@@ -123,6 +126,12 @@ private:
 	
 	UPROPERTY()
 	TObjectPtr<UInteractionPromptWidget> InteractionPromptWidget;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI", meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<UTPHealthBarWidget> PlayerHealthWidgetClass;
+
+	UPROPERTY()
+	TObjectPtr<UTPHealthBarWidget> PlayerHealthWidget;
 
 	UFUNCTION()
 	void HandleFocusedInteractableChanged(AActor* NewFocusedActor);
@@ -133,7 +142,12 @@ private:
 	FText GetInputKeyTextForTag(const FGameplayTag& InputTag) const;
 	
 	void Interact();
+	void Fire();
 	void Dash();
+	void InitializePlayerHealthWidget();
+	void RefreshPlayerHealthWidget();
+	void HandleHealthChanged(const FOnAttributeChangeData& Data);
+	void HandleMaxHealthChanged(const FOnAttributeChangeData& Data);
 	void ToggleCrouch();
 	void SpawnDefaultWeapon();
 	void SpawnModuleActor();

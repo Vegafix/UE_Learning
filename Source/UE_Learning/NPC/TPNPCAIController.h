@@ -20,9 +20,7 @@ public:
 
 	virtual void OnPossess(APawn* InPawn) override;
 	virtual void OnUnPossess() override;
-	virtual ETeamAttitude::Type GetTeamAttitudeTowards(
-	const AActor& Other
-) const override;
+	virtual ETeamAttitude::Type GetTeamAttitudeTowards(	const AActor& Other) const override;
 
 	UFUNCTION(BlueprintPure, Category = "NPC|AI")
 	AActor* GetCurrentTarget() const;
@@ -32,6 +30,8 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "NPC|AI")
 	void ClearCurrentTarget();
+	
+	void StopAIForDeath();
 
 	UFUNCTION(BlueprintPure, Category = "NPC|AI")
 	ATPNPCCharacter* GetNPCCharacter() const;
@@ -82,4 +82,7 @@ private:
 	void ConfigureSight();
 	void ConfigureStateTree();
 	bool ShouldTrackActor(AActor* Actor) const;
+	
+	UFUNCTION()
+	void HandleCurrentTargetDeath(AActor* DeadActor);
 };

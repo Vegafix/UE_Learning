@@ -22,6 +22,8 @@
 #include "InputMappingContext.h"
 #include "InputAction.h"
 #include "Weapon/TPWeaponEquipmentComponent.h"
+#include "Characters/TPAttributeSet.h"
+#include "UI/TPHealthBarWidget.h"
 
 
 
@@ -96,6 +98,18 @@ void ATPPlayerCharacter::BeginPlay()
 	
 	UpdateMovementSpeed();
 	UpdateRotationMode();
+	InitializePlayerHealthWidget();
+}
+
+void ATPPlayerCharacter::HandleDeath()
+{
+	Super::HandleDeath();
+
+	if (PlayerHealthWidget)
+	{
+		PlayerHealthWidget->RemoveFromParent();
+		PlayerHealthWidget = nullptr;
+	}
 }
 
 void ATPPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -137,6 +151,7 @@ void ATPPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 	BindActionByTag(TAG_Input_Jump, ETriggerEvent::Completed, &ACharacter::StopJumping);
 
 	BindActionByTag(TAG_Input_Interact, ETriggerEvent::Started, &ATPPlayerCharacter::Interact);
+	BindActionByTag(TAG_Input_Fire, ETriggerEvent::Started, &ATPPlayerCharacter::Fire);
 	BindActionByTag(TAG_Input_Dash, ETriggerEvent::Started, &ATPPlayerCharacter::Dash);
 	BindActionByTag(TAG_Input_Crouch, ETriggerEvent::Started, &ATPPlayerCharacter::ToggleCrouch);
 
@@ -261,6 +276,53 @@ void ATPPlayerCharacter::Interact()
 	IInteractable::Execute_Interact(FocusedActor, this);
 
 	InteractionDetector->RefreshFocusNow();
+}
+
+void ATPPlayerCharacter::Fire()
+{
+	if (IsDead())
+	{
+		return;
+	}
+
+	ATPWeaponActor* CurrentWeapon = GetCurrentWeapon();
+
+	if (!CurrentWeapon || !FollowCamera)
+	{
+		return;
+	}
+
+	UWorld* World = GetWorld();
+
+	if (!World)
+	{
+		return;
+	}
+
+	const FVector TraceStart =
+		FollowCamera->GetComponentLocation();
+
+	const FVector TraceEnd =
+		TraceStart + FollowCamera->GetForwardVector() * 10000.0f;
+
+	FCollisionQueryParams QueryParams;
+	QueryParams.AddIgnoredActor(this);
+	QueryParams.AddIgnoredActor(CurrentWeapon);
+
+	FHitResult HitResult;
+
+	const bool bHit = World->LineTraceSingleByChannel(
+		HitResult,
+		TraceStart,
+		TraceEnd,
+		ECC_GameTraceChannel1,
+		QueryParams
+	);
+
+	const FVector TargetLocation =
+		bHit ? HitResult.ImpactPoint : TraceEnd;
+
+	CurrentWeapon->TryFireAtLocation(TargetLocation);
 }
 
 void ATPPlayerCharacter::Dash()
@@ -518,5 +580,77 @@ ATPWeaponActor* ATPPlayerCharacter::GetCurrentWeapon() const
 	return WeaponEquipmentComponent
 		? WeaponEquipmentComponent->GetCurrentWeapon()
 		: nullptr;
+}
+
+void ATPPlayerCharacter::InitializePlayerHealthWidget()
+{
+	if (!PlayerHealthWidgetClass)
+	{
+		return;
+	}
+
+	PlayerHealthWidget = CreateWidget<UTPHealthBarWidget>(
+		GetWorld(),
+		PlayerHealthWidgetClass
+	);
+
+	if (!PlayerHealthWidget)
+	{
+		return;
+	}
+
+	PlayerHealthWidget->AddToViewport();
+
+	if (!AbilitySystemComponent || !AttributeSet)
+	{
+		return;
+	}
+
+	AbilitySystemComponent
+		->GetGameplayAttributeValueChangeDelegate(
+			UTPAttributeSet::GetHealthAttribute()
+		)
+		.AddUObject(
+			this,
+			&ATPPlayerCharacter::HandleHealthChanged
+		);
+
+	AbilitySystemComponent
+		->GetGameplayAttributeValueChangeDelegate(
+			UTPAttributeSet::GetMaxHealthAttribute()
+		)
+		.AddUObject(
+			this,
+			&ATPPlayerCharacter::HandleMaxHealthChanged
+		);
+
+	RefreshPlayerHealthWidget();
+}
+
+void ATPPlayerCharacter::RefreshPlayerHealthWidget()
+{
+	if (!PlayerHealthWidget || !AttributeSet)
+	{
+		return;
+	}
+
+	PlayerHealthWidget->SetHealthValues(
+		AttributeSet->GetHealth(),
+		AttributeSet->GetMaxHealth()
+	);
+}
+
+void ATPPlayerCharacter::HandleHealthChanged(
+	const FOnAttributeChangeData& Data
+)
+{
+	RefreshPlayerHealthWidget();
+}
+
+void ATPPlayerCharacter::HandleMaxHealthChanged(
+	const FOnAttributeChangeData& Data
+)
+{
+	RefreshPlayerHealthWidget();
 }
 

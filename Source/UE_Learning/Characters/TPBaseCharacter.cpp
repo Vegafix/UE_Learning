@@ -5,6 +5,8 @@
 #include "TPAttributeSet.h"
 #include "GameplayEffect.h"
 #include "Weapon/TPWeaponEquipmentComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "Components/CapsuleComponent.h"
 
 ATPBaseCharacter::ATPBaseCharacter()
 {
@@ -89,4 +91,47 @@ UTPWeaponEquipmentComponent*
 ATPBaseCharacter::GetWeaponEquipmentComponent() const
 {
 	return WeaponEquipmentComponent;
+}
+
+bool ATPBaseCharacter::IsDead() const
+{
+	return bIsDead;
+}
+
+void ATPBaseCharacter::HandleDeath()
+{
+	if (bIsDead)
+	{
+		return;
+	}
+
+	bIsDead = true;
+
+	if (AbilitySystemComponent)
+	{
+		AbilitySystemComponent->CancelAllAbilities();
+	}
+
+	if (UCharacterMovementComponent* MovementComponent =
+		GetCharacterMovement())
+	{
+		MovementComponent->StopMovementImmediately();
+		MovementComponent->DisableMovement();
+	}
+
+	if (AController* CurrentController = GetController())
+	{
+		CurrentController->StopMovement();
+	}
+
+	UE_LOG(
+	LogTemp,
+	Display,
+	TEXT("Character died: %s"),
+	*GetNameSafe(this)
+);
+
+	OnCharacterDeath.Broadcast(this);
+
+	OnDeath();
 }

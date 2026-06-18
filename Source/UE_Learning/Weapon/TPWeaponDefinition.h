@@ -5,6 +5,8 @@
 #include "TPWeaponDefinition.generated.h"
 
 class ATPWeaponActor;
+class UGameplayEffect;
+class ATPBlasterProjectile;
 
 UCLASS(BlueprintType)
 class UE_LEARNING_API UTPWeaponDefinition : public UPrimaryDataAsset
@@ -17,10 +19,29 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|Attachment")
 	FName AttachSocketName = TEXT("weapon_r_socket");
-
-	/*
-	 * Понадобится на следующем этапе при настройке trace выстрела.
-	 */
+	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|Attachment")
 	FName MuzzleSocketName = TEXT("Muzzle");
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|Fire",
+	meta = (ClampMin = "0.01"))
+	float ShotInterval = 0.7f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|Fire",
+		meta = (ClampMin = "0.0"))
+	float Damage = 20.0f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|Fire",
+		meta = (ClampMin = "0.0"))
+	float MaxTraceDistance = 5000.0f;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|Fire")
+	TSubclassOf<UGameplayEffect> DamageEffect;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|Fire")
+	TSubclassOf<ATPBlasterProjectile> ProjectileClass;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|Fire",
+		meta = (ClampMin = "0.0"))
+	float ProjectileSpeed = 3500.0f;
 };

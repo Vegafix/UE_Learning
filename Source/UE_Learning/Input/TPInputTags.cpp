@@ -9,5 +9,6 @@ UE_DEFINE_GAMEPLAY_TAG(TAG_Input_Crouch, "Input.Crouch");
 UE_DEFINE_GAMEPLAY_TAG(TAG_Input_Walk, "Input.Walk");
 UE_DEFINE_GAMEPLAY_TAG(TAG_Input_Sprint, "Input.Sprint");
 UE_DEFINE_GAMEPLAY_TAG(TAG_Input_Aim, "Input.Aim");
+UE_DEFINE_GAMEPLAY_TAG(TAG_Input_Fire, "Input.Fire");
 UE_DEFINE_GAMEPLAY_TAG(TAG_Input_Spawn_ModuleActor, "Input.Spawn.ModuleActor");
 UE_DEFINE_GAMEPLAY_TAG(TAG_Input_Spawn_PluginActor, "Input.Spawn.PluginActor");

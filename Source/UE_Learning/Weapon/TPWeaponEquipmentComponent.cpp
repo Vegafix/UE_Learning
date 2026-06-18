@@ -95,6 +95,10 @@ bool UTPWeaponEquipmentComponent::EquipWeapon(
 	{
 		return false;
 	}
+	
+	CurrentWeapon->InitializeFromDefinition(
+		NewWeaponDefinition
+	);
 
 	const bool bAttached = CurrentWeapon->AttachToComponent(
 		CharacterMesh,

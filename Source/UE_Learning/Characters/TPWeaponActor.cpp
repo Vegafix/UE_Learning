@@ -5,6 +5,13 @@
 #include "Components/StaticMeshComponent.h"
 #include "DrawDebugHelpers.h"
 #include "Engine/World.h"
+#include "Weapon/TPWeaponDefinition.h"
+#include "AbilitySystemBlueprintLibrary.h"
+#include "AbilitySystemComponent.h"
+#include "GameplayEffect.h"
+#include "GameplayTagContainer.h"
+#include "Weapon/TPBlasterProjectile.h"
+#include "Characters/TPBaseCharacter.h"
 
 namespace
 {
@@ -119,9 +126,40 @@ void ATPWeaponActor::DrawDebugMuzzleDirection() const
 	);
 }
 
-bool ATPWeaponActor::DebugFireOnce(AActor* TargetActor)
+bool ATPWeaponActor::TryFireOnce(AActor* TargetActor)
 {
-	if (!MuzzlePoint || !TargetActor)
+	if (!TargetActor)
+	{
+		return false;
+	}
+
+	if (const ATPBaseCharacter* TargetCharacter =
+		Cast<ATPBaseCharacter>(TargetActor))
+	{
+		if (TargetCharacter->IsDead())
+		{
+			return false;
+		}
+	}
+
+	const FVector TargetLocation =
+		TargetActor->GetActorLocation() + FVector(0.0f, 0.0f, 60.0f);
+
+	return TryFireAtLocation(TargetLocation);
+}
+
+bool ATPWeaponActor::TryFireAtLocation(const FVector& TargetLocation)
+{
+	if (const ATPBaseCharacter* OwnerCharacter =
+	Cast<ATPBaseCharacter>(GetOwner()))
+	{
+		if (OwnerCharacter->IsDead())
+		{
+			return false;
+		}
+	}
+	
+	if (!MuzzlePoint)
 	{
 		return false;
 	}
@@ -133,63 +171,90 @@ bool ATPWeaponActor::DebugFireOnce(AActor* TargetActor)
 		return false;
 	}
 
+	if (!WeaponDefinition)
+	{
+		return false;
+	}
+
+	if (!WeaponDefinition->ProjectileClass)
+	{
+		return false;
+	}
+
+	const float CurrentTime =
+		World->GetTimeSeconds();
+
+	if (
+		CurrentTime - LastShotTime
+		< WeaponDefinition->ShotInterval
+	)
+	{
+		return false;
+	}
+
 	const FVector Start =
 		MuzzlePoint->GetComponentLocation();
 
-	const FVector End =
-		TargetActor->GetActorLocation();
+	const FVector Direction =
+		(TargetLocation - Start).GetSafeNormal();
 
-	FCollisionQueryParams QueryParams;
-	QueryParams.AddIgnoredActor(this);
-	QueryParams.AddIgnoredActor(GetOwner());
+	if (Direction.IsNearlyZero())
+	{
+		return false;
+	}
 
-	FHitResult HitResult;
+	LastShotTime = CurrentTime;
 
-	const bool bHit = World->LineTraceSingleByChannel(
-		HitResult,
-		Start,
-		End,
-		WeaponTraceChannel,
-		QueryParams
+	const FRotator SpawnRotation =
+		Direction.Rotation();
+
+	FActorSpawnParameters SpawnParameters;
+	SpawnParameters.Owner = GetOwner();
+	SpawnParameters.Instigator = GetInstigator();
+
+	ATPBlasterProjectile* Projectile =
+		World->SpawnActor<ATPBlasterProjectile>(
+			WeaponDefinition->ProjectileClass,
+			Start,
+			SpawnRotation,
+			SpawnParameters
+		);
+
+	if (!Projectile)
+	{
+		return false;
+	}
+
+	Projectile->InitializeProjectile(
+		GetOwner(),
+		WeaponDefinition->DamageEffect,
+		WeaponDefinition->Damage,
+		WeaponDefinition->ProjectileSpeed
 	);
 
-	const FVector DebugEnd =
-		bHit
-			? HitResult.ImpactPoint
-			: End;
-
-	DrawDebugLine(
-		World,
-		Start,
-		DebugEnd,
-		bHit ? FColor::Red : FColor::Green,
-		false,
-		1.0f,
-		0,
-		2.0f
-	);
-
-	DrawDebugSphere(
-		World,
-		DebugEnd,
-		6.0f,
-		12,
-		bHit ? FColor::Red : FColor::Green,
-		false,
-		1.0f
-	);
+	OnWeaponFired();
 
 	UE_LOG(
 		LogTemp,
 		Display,
-		TEXT(
-			"Weapon debug shot: Weapon=%s Target=%s Hit=%s HitActor=%s"
-		),
+		TEXT("Weapon blaster shot: Weapon=%s TargetLocation=%s Projectile=%s"),
 		*GetNameSafe(this),
-		*GetNameSafe(TargetActor),
-		bHit ? TEXT("true") : TEXT("false"),
-		*GetNameSafe(HitResult.GetActor())
+		*TargetLocation.ToString(),
+		*GetNameSafe(Projectile)
 	);
 
-	return bHit;
+	return true;
+}
+
+void ATPWeaponActor::InitializeFromDefinition(
+	UTPWeaponDefinition* NewWeaponDefinition
+)
+{
+	WeaponDefinition = NewWeaponDefinition;
+}
+
+UTPWeaponDefinition*
+ATPWeaponActor::GetWeaponDefinition() const
+{
+	return WeaponDefinition;
 }

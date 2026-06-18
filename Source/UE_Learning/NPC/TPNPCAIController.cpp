@@ -1,5 +1,6 @@
 ﻿#include "TPNPCAIController.h"
 
+#include "Characters/TPBaseCharacter.h"
 #include "Components/StateTreeAIComponent.h"
 #include "NPC/TPNPCCharacter.h"
 #include "NPC/TPNPCDefinition.h"
@@ -189,6 +190,11 @@ void ATPNPCAIController::HandleTargetPerceptionUpdated(
 	FAIStimulus Stimulus
 )
 {
+	if (!ControlledNPC || ControlledNPC->IsDead())
+	{
+		return;
+	}
+	
 	if (!ShouldTrackActor(Actor))
 	{
 		return;
@@ -213,7 +219,7 @@ void ATPNPCAIController::HandleTargetPerceptionUpdated(
 
 void ATPNPCAIController::RefreshCurrentTargetFromPerception()
 {
-	if (!AIPerceptionComponent || !ControlledNPC)
+	if (!AIPerceptionComponent || !ControlledNPC || ControlledNPC->IsDead())
 	{
 		SetCurrentTarget(nullptr);
 		return;
@@ -264,9 +270,23 @@ void ATPNPCAIController::RefreshCurrentTargetFromPerception()
 
 bool ATPNPCAIController::ShouldTrackActor(AActor* Actor) const
 {
+	if (!ControlledNPC || ControlledNPC->IsDead())
+	{
+		return false;
+	}
+	
 	if (!Actor || Actor == ControlledNPC)
 	{
 		return false;
+	}
+
+	if (const ATPBaseCharacter* BaseCharacter =
+		Cast<ATPBaseCharacter>(Actor))
+	{
+		if (BaseCharacter->IsDead())
+		{
+			return false;
+		}
 	}
 
 	return GetTeamAttitudeTowards(*Actor) == ETeamAttitude::Hostile;
@@ -274,18 +294,62 @@ bool ATPNPCAIController::ShouldTrackActor(AActor* Actor) const
 
 AActor* ATPNPCAIController::GetCurrentTarget() const
 {
+	if (!ShouldTrackActor(CurrentTarget))
+	{
+		return nullptr;
+	}
+
 	return CurrentTarget;
 }
 
 bool ATPNPCAIController::HasCurrentTarget() const
 {
-	return IsValid(CurrentTarget);
+	return GetCurrentTarget() != nullptr;
 }
 
 void ATPNPCAIController::ClearCurrentTarget()
 {
 	GetWorldTimerManager().ClearTimer(TargetForgetTimerHandle);
 	SetCurrentTarget(nullptr);
+}
+
+void ATPNPCAIController::StopAIForDeath()
+{
+	GetWorldTimerManager().ClearTimer(TargetForgetTimerHandle);
+
+	SetCurrentTarget(nullptr);
+
+	StopMovement();
+
+	if (StateTreeComponent && StateTreeComponent->IsRunning())
+	{
+		StateTreeComponent->StopLogic(TEXT("Controlled NPC died"));
+	}
+
+	if (AIPerceptionComponent)
+	{
+		AIPerceptionComponent->OnTargetPerceptionUpdated.RemoveDynamic(
+			this,
+			&ATPNPCAIController::HandleTargetPerceptionUpdated
+		);
+
+		AIPerceptionComponent->SetSenseEnabled(
+			UAISense_Sight::StaticClass(),
+			false
+		);
+
+		AIPerceptionComponent->ForgetAll();
+		AIPerceptionComponent->Deactivate();
+		AIPerceptionComponent->SetComponentTickEnabled(false);
+	}
+
+	UE_LOG(
+		LogTemp,
+		Display,
+		TEXT("[%.2f] %s stopped AI because controlled NPC died"),
+		GetWorld() ? GetWorld()->GetTimeSeconds() : -1.0f,
+		*GetName()
+	);
 }
 
 ATPNPCCharacter* ATPNPCAIController::GetNPCCharacter() const
@@ -352,9 +416,23 @@ bool ATPNPCAIController::TryFindRandomPatrolPoint(FVector& OutLocation) const
 
 void ATPNPCAIController::SetCurrentTarget(AActor* NewTarget)
 {
+	if (NewTarget && !ShouldTrackActor(NewTarget))
+	{
+		NewTarget = nullptr;
+	}
+
 	if (CurrentTarget == NewTarget)
 	{
 		return;
+	}
+
+	if (ATPBaseCharacter* OldTargetCharacter =
+		Cast<ATPBaseCharacter>(CurrentTarget))
+	{
+		OldTargetCharacter->OnCharacterDeath.RemoveDynamic(
+			this,
+			&ATPNPCAIController::HandleCurrentTargetDeath
+		);
 	}
 
 	UE_LOG(
@@ -368,6 +446,15 @@ void ATPNPCAIController::SetCurrentTarget(AActor* NewTarget)
 	);
 
 	CurrentTarget = NewTarget;
+
+	if (ATPBaseCharacter* NewTargetCharacter =
+		Cast<ATPBaseCharacter>(CurrentTarget))
+	{
+		NewTargetCharacter->OnCharacterDeath.AddUniqueDynamic(
+			this,
+			&ATPNPCAIController::HandleCurrentTargetDeath
+		);
+	}
 }
 
 
@@ -439,4 +526,27 @@ bool ATPNPCAIController::IsActorCurrentlyPerceived(AActor* Actor) const
 	);
 
 	return PerceivedActors.Contains(Actor);
+}
+
+void ATPNPCAIController::HandleCurrentTargetDeath(AActor* DeadActor)
+{
+	if (!DeadActor || DeadActor != CurrentTarget)
+	{
+		return;
+	}
+
+	GetWorldTimerManager().ClearTimer(TargetForgetTimerHandle);
+
+	StopMovement();
+
+	UE_LOG(
+		LogTemp,
+		Display,
+		TEXT("[%.2f] %s cleared dead target: %s"),
+		GetWorld() ? GetWorld()->GetTimeSeconds() : -1.0f,
+		*GetName(),
+		*GetNameSafe(DeadActor)
+	);
+
+	SetCurrentTarget(nullptr);
 }
