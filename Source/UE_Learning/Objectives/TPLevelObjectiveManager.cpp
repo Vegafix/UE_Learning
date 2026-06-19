@@ -3,6 +3,7 @@
 #include "Blueprint/UserWidget.h"
 #include "GameFramework/PlayerController.h"
 #include "NPC/TPNPCCharacter.h"
+#include "UI/TPObjectiveWidget.h"
 
 ATPLevelObjectiveManager::ATPLevelObjectiveManager()
 {
@@ -13,27 +14,24 @@ void ATPLevelObjectiveManager::BeginPlay()
 {
 	Super::BeginPlay();
 
-	AliveTargetsCount = 0;
-
-	for (ATPNPCCharacter* TargetNPC : TargetNPCs)
+	if (bStartOnBeginPlay)
 	{
-		if (!IsValid(TargetNPC))
-		{
-			continue;
-		}
-
-		if (TargetNPC->IsDead())
-		{
-			continue;
-		}
-
-		++AliveTargetsCount;
-
-		TargetNPC->OnCharacterDeath.AddDynamic(
-			this,
-			&ATPLevelObjectiveManager::HandleTargetDeath
-		);
+		StartObjective();
 	}
+}
+
+void ATPLevelObjectiveManager::StartObjective()
+{
+	if (bObjectiveActive || bObjectiveCompleted)
+	{
+		return;
+	}
+
+	bObjectiveActive = true;
+
+	InitializeObjectiveTargets();
+	CreateObjectiveWidget();
+	UpdateObjectiveWidget();
 
 	if (AliveTargetsCount <= 0)
 	{
@@ -42,12 +40,68 @@ void ATPLevelObjectiveManager::BeginPlay()
 			Warning,
 			TEXT("Level objective manager has no alive target NPCs")
 		);
+
+		CompleteObjective();
+	}
+}
+
+bool ATPLevelObjectiveManager::IsObjectiveActive() const
+{
+	return bObjectiveActive;
+}
+
+bool ATPLevelObjectiveManager::IsObjectiveCompleted() const
+{
+	return bObjectiveCompleted;
+}
+
+void ATPLevelObjectiveManager::InitializeObjectiveTargets()
+{
+	AliveTargetsCount = 0;
+	TotalTargetsCount = 0;
+
+	for (ATPNPCCharacter* TargetNPC : TargetNPCs)
+	{
+		if (!IsValid(TargetNPC))
+		{
+			continue;
+		}
+
+		++TotalTargetsCount;
+
+		if (TargetNPC->IsDead())
+		{
+			continue;
+		}
+
+		++AliveTargetsCount;
+
+		TargetNPC->OnCharacterDeath.AddUniqueDynamic(
+			this,
+			&ATPLevelObjectiveManager::HandleTargetDeath
+		);
+	}
+}
+
+void ATPLevelObjectiveManager::UnbindObjectiveTargets()
+{
+	for (ATPNPCCharacter* TargetNPC : TargetNPCs)
+	{
+		if (!IsValid(TargetNPC))
+		{
+			continue;
+		}
+
+		TargetNPC->OnCharacterDeath.RemoveDynamic(
+			this,
+			&ATPLevelObjectiveManager::HandleTargetDeath
+		);
 	}
 }
 
 void ATPLevelObjectiveManager::HandleTargetDeath(AActor* DeadActor)
 {
-	if (bObjectiveCompleted)
+	if (!bObjectiveActive || bObjectiveCompleted)
 	{
 		return;
 	}
@@ -65,12 +119,49 @@ void ATPLevelObjectiveManager::HandleTargetDeath(AActor* DeadActor)
 		return;
 	}
 
-	--AliveTargetsCount;
+	AliveTargetsCount = FMath::Max(AliveTargetsCount - 1, 0);
+
+	UpdateObjectiveWidget();
 
 	if (AliveTargetsCount <= 0)
 	{
 		CompleteObjective();
 	}
+}
+
+void ATPLevelObjectiveManager::CreateObjectiveWidget()
+{
+	if (!ObjectiveWidgetClass)
+	{
+		return;
+	}
+
+	ObjectiveWidget = CreateWidget<UTPObjectiveWidget>(
+		GetWorld(),
+		ObjectiveWidgetClass
+	);
+
+	if (!ObjectiveWidget)
+	{
+		return;
+	}
+
+	ObjectiveWidget->AddToViewport(ObjectiveWidgetZOrder);
+}
+
+void ATPLevelObjectiveManager::UpdateObjectiveWidget()
+{
+	if (!ObjectiveWidget)
+	{
+		return;
+	}
+
+	ObjectiveWidget->SetObjectiveState(
+		ObjectiveTitle,
+		AliveTargetsCount,
+		TotalTargetsCount,
+		bObjectiveCompleted
+	);
 }
 
 void ATPLevelObjectiveManager::CompleteObjective()
@@ -81,7 +172,17 @@ void ATPLevelObjectiveManager::CompleteObjective()
 	}
 
 	bObjectiveCompleted = true;
+	bObjectiveActive = false;
 
+	UpdateObjectiveWidget();
+
+	if (ObjectiveWidget)
+	{
+		ObjectiveWidget->RemoveFromParent();
+		ObjectiveWidget = nullptr;
+	}
+
+	UnbindObjectiveTargets();
 	ShowCompletionWidget();
 }
 
