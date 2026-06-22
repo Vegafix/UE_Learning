@@ -183,6 +183,9 @@ void ATPLevelObjectiveManager::CompleteObjective()
 	}
 
 	UnbindObjectiveTargets();
+
+	OnObjectiveCompleted.Broadcast();
+
 	ShowCompletionWidget();
 }
 

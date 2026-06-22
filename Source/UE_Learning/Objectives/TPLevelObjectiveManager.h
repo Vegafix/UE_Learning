@@ -8,6 +8,8 @@ class ATPNPCCharacter;
 class UUserWidget;
 class UTPObjectiveWidget;
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnObjectiveCompletedSignature);
+
 UCLASS()
 class UE_LEARNING_API ATPLevelObjectiveManager : public AActor
 {
@@ -15,6 +17,9 @@ class UE_LEARNING_API ATPLevelObjectiveManager : public AActor
 
 public:
 	ATPLevelObjectiveManager();
+	
+	UPROPERTY(BlueprintAssignable, Category = "Objective")
+	FOnObjectiveCompletedSignature OnObjectiveCompleted;
 	
 	UFUNCTION(BlueprintCallable, Category = "Objective")
 	void StartObjective();
