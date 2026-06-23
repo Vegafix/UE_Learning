@@ -3,6 +3,7 @@
 #include "Blueprint/UserWidget.h"
 #include "GameFramework/PlayerController.h"
 #include "Interaction/InteractionDetectorComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "NPC/TPNPCCharacter.h"
 #include "Objectives/TPLevelObjectiveManager.h"
 #include "UI/TPQuestOfferWidget.h"
@@ -204,6 +205,12 @@ void UTPQuestGiverComponent::ShowQuestOfferWidget()
 	);
 
 	ActiveQuestOfferWidget->AddToViewport(QuestOfferWidgetZOrder);
+	
+	if (bPauseGameWhileOfferOpen && !UGameplayStatics::IsGamePaused(World))
+	{
+		UGameplayStatics::SetGamePaused(World, true);
+		bGamePausedByQuestOffer = true;
+	}
 
 	APlayerController* PlayerController = World->GetFirstPlayerController();
 	if (!PlayerController)
@@ -242,6 +249,12 @@ void UTPQuestGiverComponent::CloseQuestOfferWidget()
 	if (!World)
 	{
 		return;
+	}
+	
+	if (bGamePausedByQuestOffer)
+	{
+		UGameplayStatics::SetGamePaused(World, false);
+		bGamePausedByQuestOffer = false;
 	}
 
 	APlayerController* PlayerController = World->GetFirstPlayerController();

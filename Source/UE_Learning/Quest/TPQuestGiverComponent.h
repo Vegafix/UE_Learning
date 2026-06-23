@@ -61,6 +61,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Quest|Offer")
 	int32 QuestOfferWidgetZOrder = 90;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Quest|Offer")
+	bool bPauseGameWhileOfferOpen = true;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Quest|Offer")
 	FText QuestOfferTitle = NSLOCTEXT(
@@ -122,4 +125,5 @@ private:
 
 	bool bQuestGiven = false;
 	bool bQuestCompleted = false;
+	bool bGamePausedByQuestOffer = false;
 };
