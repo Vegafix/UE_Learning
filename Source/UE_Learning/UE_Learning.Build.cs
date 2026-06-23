@@ -21,6 +21,7 @@ public class UE_Learning : ModuleRules
 			"UMG",
 			"CommonUI",
 			"Slate",
+			"SlateCore",
 			"AnimGraphRuntime",
 			"GameplayAbilities",
 			"GameplayTags",

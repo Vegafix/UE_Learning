@@ -6,6 +6,7 @@
 
 class ATPNPCCharacter;
 class ATPLevelObjectiveManager;
+class UTPQuestOfferWidget;
 
 UCLASS(ClassGroup=(Quest), meta=(BlueprintSpawnableComponent))
 class UE_LEARNING_API UTPQuestGiverComponent : public UActorComponent
@@ -52,6 +53,43 @@ protected:
 		"Спасибо, задание выполнено"
 	);
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Quest|Offer")
+	bool bShowOfferWidgetBeforeStart = true;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Quest|Offer")
+	TSubclassOf<UTPQuestOfferWidget> QuestOfferWidgetClass;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Quest|Offer")
+	int32 QuestOfferWidgetZOrder = 90;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Quest|Offer")
+	FText QuestOfferTitle = NSLOCTEXT(
+		"Quest",
+		"DefaultQuestOfferTitle",
+		"Задание"
+	);
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Quest|Offer")
+	FText QuestOfferDescription = NSLOCTEXT(
+		"Quest",
+		"DefaultQuestOfferDescription",
+		"Нужно обезвредить бандита."
+	);
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Quest|Offer")
+	FText AcceptButtonText = NSLOCTEXT(
+		"Quest",
+		"DefaultAcceptQuestText",
+		"Принять"
+	);
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Quest|Offer")
+	FText DeclineButtonText = NSLOCTEXT(
+		"Quest",
+		"DefaultDeclineQuestText",
+		"Позже"
+	);
+
 private:
 	UFUNCTION()
 	void HandleNPCInteracted(
@@ -62,8 +100,25 @@ private:
 	UFUNCTION()
 	void HandleObjectiveCompleted();
 
+	UFUNCTION()
+	void HandleQuestOfferAccepted();
+
+	UFUNCTION()
+	void HandleQuestOfferDeclined();
+
+	void StartQuest();
+	void ShowQuestOfferWidget();
+	void CloseQuestOfferWidget();
+	void RefreshInteractionPromptForPendingInstigator() const;
+
 	UPROPERTY()
 	TObjectPtr<ATPNPCCharacter> OwnerNPC;
+	
+	UPROPERTY()
+	TObjectPtr<AActor> PendingInstigatorActor;
+
+	UPROPERTY()
+	TObjectPtr<UTPQuestOfferWidget> ActiveQuestOfferWidget;
 
 	bool bQuestGiven = false;
 	bool bQuestCompleted = false;

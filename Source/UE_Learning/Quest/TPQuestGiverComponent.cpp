@@ -1,7 +1,11 @@
 ﻿#include "Quest/TPQuestGiverComponent.h"
 
+#include "Blueprint/UserWidget.h"
+#include "GameFramework/PlayerController.h"
+#include "Interaction/InteractionDetectorComponent.h"
 #include "NPC/TPNPCCharacter.h"
 #include "Objectives/TPLevelObjectiveManager.h"
+#include "UI/TPQuestOfferWidget.h"
 
 UTPQuestGiverComponent::UTPQuestGiverComponent()
 {
@@ -49,6 +53,8 @@ void UTPQuestGiverComponent::EndPlay(
 	const EEndPlayReason::Type EndPlayReason
 )
 {
+	CloseQuestOfferWidget();
+
 	if (OwnerNPC)
 	{
 		OwnerNPC->OnNPCInteracted.RemoveDynamic(
@@ -98,6 +104,47 @@ void UTPQuestGiverComponent::HandleNPCInteracted(
 	AActor* InstigatorActor
 )
 {
+	if (!ObjectiveManager || bQuestGiven || bQuestCompleted)
+	{
+		return;
+	}
+
+	if (ActiveQuestOfferWidget)
+	{
+		return;
+	}
+	
+	PendingInstigatorActor = InstigatorActor;
+
+	if (bShowOfferWidgetBeforeStart && QuestOfferWidgetClass)
+	{
+		ShowQuestOfferWidget();
+		return;
+	}
+
+	StartQuest();
+}
+
+void UTPQuestGiverComponent::HandleObjectiveCompleted()
+{
+	bQuestGiven = true;
+	bQuestCompleted = true;
+}
+
+void UTPQuestGiverComponent::HandleQuestOfferAccepted()
+{
+	CloseQuestOfferWidget();
+	StartQuest();
+}
+
+void UTPQuestGiverComponent::HandleQuestOfferDeclined()
+{
+	CloseQuestOfferWidget();
+	PendingInstigatorActor = nullptr;
+}
+
+void UTPQuestGiverComponent::StartQuest()
+{
 	if (!ObjectiveManager || bQuestCompleted)
 	{
 		return;
@@ -111,10 +158,118 @@ void UTPQuestGiverComponent::HandleNPCInteracted(
 	{
 		bQuestCompleted = true;
 	}
+	
+	RefreshInteractionPromptForPendingInstigator();
+	PendingInstigatorActor = nullptr;
 }
 
-void UTPQuestGiverComponent::HandleObjectiveCompleted()
+void UTPQuestGiverComponent::ShowQuestOfferWidget()
 {
-	bQuestGiven = true;
-	bQuestCompleted = true;
+	if (!QuestOfferWidgetClass)
+	{
+		return;
+	}
+
+	UWorld* World = GetWorld();
+	if (!World)
+	{
+		return;
+	}
+
+	ActiveQuestOfferWidget = CreateWidget<UTPQuestOfferWidget>(
+		World,
+		QuestOfferWidgetClass
+	);
+
+	if (!ActiveQuestOfferWidget)
+	{
+		return;
+	}
+
+	ActiveQuestOfferWidget->SetQuestOfferText(
+		QuestOfferTitle,
+		QuestOfferDescription,
+		AcceptButtonText,
+		DeclineButtonText
+	);
+
+	ActiveQuestOfferWidget->OnQuestOfferAccepted.AddUniqueDynamic(
+		this,
+		&UTPQuestGiverComponent::HandleQuestOfferAccepted
+	);
+
+	ActiveQuestOfferWidget->OnQuestOfferDeclined.AddUniqueDynamic(
+		this,
+		&UTPQuestGiverComponent::HandleQuestOfferDeclined
+	);
+
+	ActiveQuestOfferWidget->AddToViewport(QuestOfferWidgetZOrder);
+
+	APlayerController* PlayerController = World->GetFirstPlayerController();
+	if (!PlayerController)
+	{
+		return;
+	}
+
+	PlayerController->bShowMouseCursor = true;
+
+	FInputModeUIOnly InputMode;
+	InputMode.SetWidgetToFocus(ActiveQuestOfferWidget->TakeWidget());
+	InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+
+	PlayerController->SetInputMode(InputMode);
+}
+
+void UTPQuestGiverComponent::CloseQuestOfferWidget()
+{
+	if (ActiveQuestOfferWidget)
+	{
+		ActiveQuestOfferWidget->OnQuestOfferAccepted.RemoveDynamic(
+			this,
+			&UTPQuestGiverComponent::HandleQuestOfferAccepted
+		);
+
+		ActiveQuestOfferWidget->OnQuestOfferDeclined.RemoveDynamic(
+			this,
+			&UTPQuestGiverComponent::HandleQuestOfferDeclined
+		);
+
+		ActiveQuestOfferWidget->RemoveFromParent();
+		ActiveQuestOfferWidget = nullptr;
+	}
+
+	UWorld* World = GetWorld();
+	if (!World)
+	{
+		return;
+	}
+
+	APlayerController* PlayerController = World->GetFirstPlayerController();
+	if (!PlayerController)
+	{
+		return;
+	}
+
+	PlayerController->bShowMouseCursor = false;
+
+	FInputModeGameOnly InputMode;
+	PlayerController->SetInputMode(InputMode);
+}
+
+void UTPQuestGiverComponent::RefreshInteractionPromptForPendingInstigator() const
+{
+	if (!PendingInstigatorActor)
+	{
+		return;
+	}
+
+	UInteractionDetectorComponent* InteractionDetector =
+		PendingInstigatorActor->FindComponentByClass<UInteractionDetectorComponent>();
+
+	if (!InteractionDetector)
+	{
+		return;
+	}
+
+	InteractionDetector->RefreshFocusNow();
 }
