@@ -4,6 +4,7 @@
 #include "GameFramework/PlayerController.h"
 #include "Kismet/GameplayStatics.h"
 #include "NPC/TPNPCCharacter.h"
+#include "NPC/TPNPCAIController.h"
 #include "Quest/TPQuestItemActor.h"
 #include "UI/TPObjectiveWidget.h"
 
@@ -90,6 +91,34 @@ void ATPLevelObjectiveManager::RegisterQuestItemCollectedById(FName CollectedIte
 	}
 
 	TryCompleteObjective();
+}
+
+void ATPLevelObjectiveManager::StopAllTargetNPCsAI(const FString& Reason)
+{
+	for (ATPNPCCharacter* TargetNPC : TargetNPCs)
+	{
+		if (!IsValid(TargetNPC) || TargetNPC->IsDead())
+		{
+			continue;
+		}
+
+		ATPNPCAIController* NPCController =
+			Cast<ATPNPCAIController>(TargetNPC->GetController());
+
+		if (!NPCController)
+		{
+			continue;
+		}
+
+		NPCController->StopAI(Reason);
+	}
+
+	UE_LOG(
+		LogTemp,
+		Display,
+		TEXT("Stopped all target NPC AI. Reason: %s"),
+		*Reason
+	);
 }
 
 bool ATPLevelObjectiveManager::IsQuestItemCollected() const
@@ -339,11 +368,17 @@ void ATPLevelObjectiveManager::UpdateObjectiveWidget()
 		return;
 	}
 
+	const FText CurrentObjectiveText =
+		bQuestItemCollected
+			? ObjectiveTextAfterArtifact
+			: ObjectiveTextBeforeArtifact;
+	
 	ObjectiveWidget->SetObjectiveState(
-		ObjectiveTitle,
+		CurrentObjectiveText,
 		AliveTargetsCount,
 		TotalTargetsCount,
-		bObjectiveCompleted
+		bObjectiveCompleted,
+		CompletionMode == ETPObjectiveCompletionMode::KillAllTargets
 	);
 }
 

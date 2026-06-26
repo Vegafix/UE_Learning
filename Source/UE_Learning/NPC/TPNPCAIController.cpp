@@ -313,7 +313,7 @@ void ATPNPCAIController::ClearCurrentTarget()
 	SetCurrentTarget(nullptr);
 }
 
-void ATPNPCAIController::StopAIForDeath()
+void ATPNPCAIController::StopAI(const FString& Reason)
 {
 	GetWorldTimerManager().ClearTimer(TargetForgetTimerHandle);
 
@@ -323,7 +323,7 @@ void ATPNPCAIController::StopAIForDeath()
 
 	if (StateTreeComponent && StateTreeComponent->IsRunning())
 	{
-		StateTreeComponent->StopLogic(TEXT("Controlled NPC died"));
+		StateTreeComponent->StopLogic(Reason);
 	}
 
 	if (AIPerceptionComponent)
@@ -346,10 +346,16 @@ void ATPNPCAIController::StopAIForDeath()
 	UE_LOG(
 		LogTemp,
 		Display,
-		TEXT("[%.2f] %s stopped AI because controlled NPC died"),
+		TEXT("[%.2f] %s stopped AI. Reason: %s"),
 		GetWorld() ? GetWorld()->GetTimeSeconds() : -1.0f,
-		*GetName()
+		*GetName(),
+		*Reason
 	);
+}
+
+void ATPNPCAIController::StopAIForDeath()
+{
+	StopAI(TEXT("Controlled NPC died"));
 }
 
 ATPNPCCharacter* ATPNPCAIController::GetNPCCharacter() const
@@ -446,6 +452,20 @@ void ATPNPCAIController::SetCurrentTarget(AActor* NewTarget)
 	);
 
 	CurrentTarget = NewTarget;
+	
+	if (ControlledNPC)
+	{
+		ControlledNPC->SetCombatRotationMode(CurrentTarget != nullptr);
+	}
+
+	if (CurrentTarget)
+	{
+		SetFocus(CurrentTarget, EAIFocusPriority::Gameplay);
+	}
+	else
+	{
+		ClearFocus(EAIFocusPriority::Gameplay);
+	}
 
 	if (ATPBaseCharacter* NewTargetCharacter =
 		Cast<ATPBaseCharacter>(CurrentTarget))

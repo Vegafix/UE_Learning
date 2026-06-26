@@ -67,4 +67,5 @@ protected:
 	TObjectPtr<UTPWeaponDefinition> WeaponDefinition;
 	
 	float LastShotTime = -1000.0f;
+	FVector GetBestTargetLocation(AActor* TargetActor) const;
 };

@@ -293,3 +293,21 @@ void ATPNPCCharacter::HandleMaxHealthChanged(
 {
 	RefreshHealthBar();
 }
+
+void ATPNPCCharacter::SetCombatRotationMode(bool bEnableCombatRotation)
+{
+	bCombatRotationMode = bEnableCombatRotation;
+
+	bUseControllerRotationYaw = bEnableCombatRotation;
+
+	if (UCharacterMovementComponent* MovementComponent = GetCharacterMovement())
+	{
+		MovementComponent->bOrientRotationToMovement = !bEnableCombatRotation;
+		MovementComponent->bUseControllerDesiredRotation = bEnableCombatRotation;
+	}
+}
+
+bool ATPNPCCharacter::IsCombatRotationModeEnabled() const
+{
+	return bCombatRotationMode;
+}

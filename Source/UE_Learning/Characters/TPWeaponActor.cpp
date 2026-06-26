@@ -143,9 +143,41 @@ bool ATPWeaponActor::TryFireOnce(AActor* TargetActor)
 	}
 
 	const FVector TargetLocation =
-		TargetActor->GetActorLocation() + FVector(0.0f, 0.0f, 60.0f);
+		GetBestTargetLocation(TargetActor);
 
 	return TryFireAtLocation(TargetLocation);
+}
+
+FVector ATPWeaponActor::GetBestTargetLocation(AActor* TargetActor) const
+{
+	if (!TargetActor)
+	{
+		return FVector::ZeroVector;
+	}
+
+	FVector BoundsOrigin = FVector::ZeroVector;
+	FVector BoundsExtent = FVector::ZeroVector;
+
+	TargetActor->GetActorBounds(
+		true,
+		BoundsOrigin,
+		BoundsExtent
+	);
+
+	if (!BoundsExtent.IsNearlyZero())
+	{
+		return BoundsOrigin + FVector(
+			0.0f,
+			0.0f,
+			BoundsExtent.Z * 0.25f
+		);
+	}
+
+	return TargetActor->GetActorLocation() + FVector(
+		0.0f,
+		0.0f,
+		60.0f
+	);
 }
 
 bool ATPWeaponActor::TryFireAtLocation(const FVector& TargetLocation)

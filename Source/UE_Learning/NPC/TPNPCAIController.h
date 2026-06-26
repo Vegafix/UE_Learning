@@ -30,8 +30,11 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "NPC|AI")
 	void ClearCurrentTarget();
-	
-	void StopAIForDeath();
+
+	UFUNCTION(BlueprintCallable, Category = "NPC|AI")
+	void StopAI(const FString& Reason);
+
+	void StopAIForDeath();;
 
 	UFUNCTION(BlueprintPure, Category = "NPC|AI")
 	ATPNPCCharacter* GetNPCCharacter() const;

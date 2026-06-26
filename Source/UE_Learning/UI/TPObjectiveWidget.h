@@ -17,7 +17,8 @@ public:
 		const FText& ObjectiveTitle,
 		int32 RemainingTargets,
 		int32 TotalTargets,
-		bool bCompleted
+		bool bCompleted,
+		bool bShowProgress = true
 	);
 
 protected:

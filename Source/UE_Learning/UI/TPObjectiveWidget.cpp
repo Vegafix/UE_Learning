@@ -6,7 +6,8 @@ void UTPObjectiveWidget::SetObjectiveState(
 	const FText& ObjectiveTitle,
 	int32 RemainingTargets,
 	int32 TotalTargets,
-	bool bCompleted
+	bool bCompleted,
+	bool bShowProgress
 )
 {
 	if (ObjectiveTitleText)
@@ -15,6 +16,15 @@ void UTPObjectiveWidget::SetObjectiveState(
 	}
 
 	if (!ObjectiveProgressText)
+	{
+		return;
+	}
+	
+	ObjectiveProgressText->SetVisibility(
+	bShowProgress ? ESlateVisibility::Visible : ESlateVisibility::Collapsed
+	);
+
+	if (!bShowProgress)
 	{
 		return;
 	}

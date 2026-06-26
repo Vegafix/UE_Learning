@@ -50,6 +50,12 @@ public:
 	
 	UFUNCTION(BlueprintCallable, Category = "NPC|Movement")
 	void ApplyMovementSpeedMode(ETPNPCMovementSpeedMode SpeedMode);
+	
+	UFUNCTION(BlueprintCallable, Category = "NPC|Combat")
+	void SetCombatRotationMode(bool bEnableCombatRotation);
+
+	UFUNCTION(BlueprintPure, Category = "NPC|Combat")
+	bool IsCombatRotationModeEnabled() const;
 
 protected:
 	virtual void BeginPlay() override;
@@ -69,4 +75,8 @@ private:
 
 	void HandleHealthChanged(const FOnAttributeChangeData& Data);
 	void HandleMaxHealthChanged(const FOnAttributeChangeData& Data);
+	
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "NPC|Combat",
+		meta = (AllowPrivateAccess = "true"))
+	bool bCombatRotationMode = false;
 };

@@ -31,6 +31,7 @@
 
 ATPPlayerCharacter::ATPPlayerCharacter()
 {
+	PrimaryActorTick.bCanEverTick = true;
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw = false;
 	bUseControllerRotationRoll = false;
@@ -46,6 +47,12 @@ ATPPlayerCharacter::ATPPlayerCharacter()
 	CameraBoom->SetupAttachment(RootComponent);
 	CameraBoom->TargetArmLength = CameraBoomLength;
 	CameraBoom->bUsePawnControlRotation = true;
+	CameraBoom->SocketOffset = DefaultCameraSocketOffset;
+
+	CameraBoom->bEnableCameraLag = true;
+	CameraBoom->CameraLagSpeed = 14.0f;
+	CameraBoom->bEnableCameraRotationLag = true;
+	CameraBoom->CameraRotationLagSpeed = 18.0f;
 
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
@@ -56,6 +63,11 @@ ATPPlayerCharacter::ATPPlayerCharacter()
 void ATPPlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+	
+	DefaultCameraBoomLength = CameraBoom ? CameraBoom->TargetArmLength : 0.0f;
+	DefaultCameraSocketOffset = CameraBoom ? CameraBoom->SocketOffset : FVector::ZeroVector;
+	DefaultCameraTargetOffset = CameraBoom ? CameraBoom->TargetOffset : FVector::ZeroVector;
+	DefaultCameraFOV = FollowCamera ? FollowCamera->FieldOfView : 90.0f;
 	
 	SpawnDefaultWeapon();
 
@@ -90,6 +102,20 @@ void ATPPlayerCharacter::BeginPlay()
 		}
 	}
 	
+	if (CrosshairWidgetClass)
+	{
+		CrosshairWidget = CreateWidget<UUserWidget>(
+			GetWorld(),
+			CrosshairWidgetClass
+		);
+
+		if (CrosshairWidget)
+		{
+			CrosshairWidget->AddToViewport(5);
+			CrosshairWidget->SetVisibility(ESlateVisibility::Hidden);
+		}
+	}
+	
 	if (InteractionDetector)
 	{
 		InteractionDetector->OnFocusedInteractableChanged.AddDynamic(
@@ -111,14 +137,64 @@ void ATPPlayerCharacter::BeginPlay()
 	}
 }
 
+void ATPPlayerCharacter::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+
+	if (!CameraBoom || !FollowCamera)
+	{
+		return;
+	}
+
+	const float TargetBoomLength =
+		bWantsAimCamera ? AimCameraBoomLength : DefaultCameraBoomLength;
+
+	const FVector TargetSocketOffset =
+		bWantsAimCamera ? AimCameraSocketOffset : DefaultCameraSocketOffset;
+
+	const float TargetFOV =
+		bWantsAimCamera ? AimCameraFOV : DefaultCameraFOV;
+
+	CameraBoom->TargetArmLength = FMath::FInterpTo(
+		CameraBoom->TargetArmLength,
+		TargetBoomLength,
+		DeltaSeconds,
+		AimCameraInterpolationSpeed
+	);
+
+	CameraBoom->SocketOffset = FMath::VInterpTo(
+		CameraBoom->SocketOffset,
+		TargetSocketOffset,
+		DeltaSeconds,
+		AimCameraInterpolationSpeed
+	);
+
+	FollowCamera->SetFieldOfView(
+		FMath::FInterpTo(
+			FollowCamera->FieldOfView,
+			TargetFOV,
+			DeltaSeconds,
+			AimCameraInterpolationSpeed
+		)
+	);
+}
+
 void ATPPlayerCharacter::HandleDeath()
 {
 	Super::HandleDeath();
+	
+	ApplyAimCamera(false);
+	UpdateAimView();
 
 	if (PlayerHealthWidget)
 	{
 		PlayerHealthWidget->RemoveFromParent();
 		PlayerHealthWidget = nullptr;
+	}
+	
+	if (CrosshairWidget)
+	{
+		CrosshairWidget->SetVisibility(ESlateVisibility::Hidden);
 	}
 
 	if (!PlayerDeathScreenWidgetClass)
@@ -327,6 +403,11 @@ void ATPPlayerCharacter::Fire()
 	{
 		return;
 	}
+	
+	if (!IsAimingState())
+	{
+		return;
+	}
 
 	ATPWeaponActor* CurrentWeapon = GetCurrentWeapon();
 
@@ -383,6 +464,11 @@ void ATPPlayerCharacter::Dash()
 
 void ATPPlayerCharacter::ToggleCrouch()
 {
+	if (GetCharacterMovement() && GetCharacterMovement()->IsFalling())
+	{
+		return;
+	}
+	
 	if (bIsCrouched)
 	{
 		UnCrouch();
@@ -452,7 +538,14 @@ void ATPPlayerCharacter::StopSprint()
 
 void ATPPlayerCharacter::StartAim()
 {
+	if (bIsCrouched)
+	{
+		UnCrouch();
+	}
+
 	SetMovementState(ETPMovementState::Aiming);
+	ApplyAimCamera(true);
+	UpdateAimView();
 }
 
 void ATPPlayerCharacter::StopAim()
@@ -461,6 +554,9 @@ void ATPPlayerCharacter::StopAim()
 	{
 		SetMovementState(ETPMovementState::Running);
 	}
+	
+	ApplyAimCamera(false);
+	UpdateAimView();
 }
 
 void ATPPlayerCharacter::UpdateMovementSpeed()
@@ -509,6 +605,20 @@ void ATPPlayerCharacter::UpdateRotationMode()
 
 	bUseControllerRotationYaw = bShouldUseAimRotation;
 	GetCharacterMovement()->bOrientRotationToMovement = !bShouldUseAimRotation;
+}
+
+void ATPPlayerCharacter::UpdateAimView()
+{
+	if (!CrosshairWidget)
+	{
+		return;
+	}
+
+	CrosshairWidget->SetVisibility(
+		IsAimingState()
+			? ESlateVisibility::HitTestInvisible
+			: ESlateVisibility::Hidden
+	);
 }
 
 void ATPPlayerCharacter::Landed(const FHitResult& Hit)
@@ -697,3 +807,7 @@ void ATPPlayerCharacter::HandleMaxHealthChanged(
 	RefreshPlayerHealthWidget();
 }
 
+void ATPPlayerCharacter::ApplyAimCamera(bool bEnableAim)
+{
+	bWantsAimCamera = bEnableAim;
+}

@@ -4,6 +4,7 @@
 #include "GameFramework/PlayerController.h"
 #include "Kismet/GameplayStatics.h"
 #include "NPC/TPNPCCharacter.h"
+#include "NPC/TPNPCAIController.h"
 #include "Objectives/TPLevelObjectiveManager.h"
 #include "UI/TPQuestOfferWidget.h"
 
@@ -200,6 +201,7 @@ void UTPEnemyNegotiationComponent::HandleNegotiationAccepted()
 	bNegotiationCompleted = true;
 
 	ObjectiveManager->RegisterQuestItemCollectedById(QuestItemId);
+	ObjectiveManager->StopAllTargetNPCsAI(TEXT("Quest item obtained peacefully"));
 
 	UE_LOG(
 		LogTemp,

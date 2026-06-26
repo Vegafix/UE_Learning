@@ -41,6 +41,9 @@ public:
 	
 	UFUNCTION(BlueprintCallable, Category = "Objective|Quest Item")
 	void RegisterQuestItemCollectedById(FName CollectedItemId);
+	
+	UFUNCTION(BlueprintCallable, Category = "Objective|NPC")
+	void StopAllTargetNPCsAI(const FString& Reason);
 
 	UFUNCTION(BlueprintPure, Category = "Objective|Quest Item")
 	bool IsQuestItemCollected() const;
@@ -84,6 +87,12 @@ protected:
 		"DefaultKillBanditsObjective",
 		"Цель: уничтожить бандитов"
 	);
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Objective")
+	FText ObjectiveTextBeforeArtifact = FText::FromString(TEXT("Получите артефакт у бандитов"));
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Objective")
+	FText ObjectiveTextAfterArtifact = FText::FromString(TEXT("Вернитесь к исследователю"));
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Objective|UI")
 	TSubclassOf<UTPObjectiveWidget> ObjectiveWidgetClass;

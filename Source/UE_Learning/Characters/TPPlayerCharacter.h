@@ -60,6 +60,7 @@ public:
 	
 protected:
 	virtual void BeginPlay() override;
+	virtual void Tick(float DeltaSeconds) override;
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 	virtual void Landed(const FHitResult& Hit) override;
 	virtual void HandleDeath() override;
@@ -73,6 +74,27 @@ private:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UCameraComponent> FollowCamera;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Camera|Aim", meta = (AllowPrivateAccess = "true"))
+	float AimCameraBoomLength = 300.0f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Camera|Aim", meta = (AllowPrivateAccess = "true"))
+	FVector AimCameraSocketOffset = FVector(0.0f, 95.0f, 35.0f);
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Camera|Aim", meta = (AllowPrivateAccess = "true"))
+	FVector AimCameraTargetOffset = FVector(0.0f, 0.0f, 45.0f);
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Camera|Aim", meta = (AllowPrivateAccess = "true"))
+	float AimCameraFOV = 72.0f;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Camera|Aim", meta = (AllowPrivateAccess = "true", ClampMin = "1.0"))
+	float AimCameraInterpolationSpeed = 10.0f;
+
+	float DefaultCameraBoomLength = 0.0f;
+	FVector DefaultCameraSocketOffset = FVector::ZeroVector;
+	FVector DefaultCameraTargetOffset = FVector::ZeroVector;
+	float DefaultCameraFOV = 0.0f;
+	bool bWantsAimCamera = false;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UInputMappingContext> DefaultMappingContext;
@@ -97,7 +119,7 @@ private:
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = "true"))
 	float CameraBoomLength = 400.0f;
-
+	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Interaction", meta = (AllowPrivateAccess = "true"))
 	float InteractionTraceDistance = 500.0f;
 
@@ -139,6 +161,12 @@ private:
 
 	UPROPERTY()
 	TObjectPtr<UUserWidget> PlayerDeathScreenWidget;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI|Aim", meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<UUserWidget> CrosshairWidgetClass;
+
+	UPROPERTY()
+	TObjectPtr<UUserWidget> CrosshairWidget;
 
 	UFUNCTION()
 	void HandleFocusedInteractableChanged(AActor* NewFocusedActor);
@@ -167,5 +195,7 @@ private:
 	void StopAim();
 	void UpdateMovementSpeed();
 	void UpdateRotationMode();
+	void UpdateAimView();
 	void SetMovementState(ETPMovementState NewMovementState);
+	void ApplyAimCamera(bool bEnableAim);
 };
