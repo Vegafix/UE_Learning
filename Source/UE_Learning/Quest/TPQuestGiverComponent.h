@@ -45,6 +45,13 @@ protected:
 		"QuestActivePrompt",
 		"Задание уже получено"
 	);
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Quest|Prompt")
+	FText TurnInPrompt = NSLOCTEXT(
+		"Quest",
+		"QuestTurnInPrompt",
+		"Вернуться с артефактом"
+	);
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Quest|Prompt")
 	FText CompletedPrompt = NSLOCTEXT(

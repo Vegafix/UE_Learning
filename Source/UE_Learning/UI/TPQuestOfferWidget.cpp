@@ -35,6 +35,12 @@ FReply UTPQuestOfferWidget::NativeOnKeyDown(
 		OnQuestOfferDeclined.Broadcast();
 		return FReply::Handled();
 	}
+	
+	if (InKeyEvent.GetKey() == EKeys::Enter)
+	{
+		OnQuestOfferAccepted.Broadcast();
+		return FReply::Handled();
+	}
 
 	return Super::NativeOnKeyDown(InGeometry, InKeyEvent);
 }

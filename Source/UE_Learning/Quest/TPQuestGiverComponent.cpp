@@ -84,6 +84,11 @@ FText UTPQuestGiverComponent::GetCurrentPrompt() const
 
 	if (bQuestGiven)
 	{
+		if (ObjectiveManager && ObjectiveManager->CanTurnInObjective())
+		{
+			return TurnInPrompt;
+		}
+
 		return ActivePrompt;
 	}
 
@@ -105,6 +110,19 @@ void UTPQuestGiverComponent::HandleNPCInteracted(
 	AActor* InstigatorActor
 )
 {
+	PendingInstigatorActor = InstigatorActor;
+
+	if (ObjectiveManager
+		&& bQuestGiven
+		&& !bQuestCompleted
+		&& ObjectiveManager->CanTurnInObjective())
+	{
+		ObjectiveManager->TurnInObjective();
+		RefreshInteractionPromptForPendingInstigator();
+		PendingInstigatorActor = nullptr;
+		return;
+	}
+	
 	if (!ObjectiveManager || bQuestGiven || bQuestCompleted)
 	{
 		return;
@@ -114,8 +132,6 @@ void UTPQuestGiverComponent::HandleNPCInteracted(
 	{
 		return;
 	}
-	
-	PendingInstigatorActor = InstigatorActor;
 
 	if (bShowOfferWidgetBeforeStart && QuestOfferWidgetClass)
 	{

@@ -37,6 +37,7 @@ void UInteractionDetectorComponent::BeginPlay()
 	DetectionSphere->SetCollisionResponseToAllChannels(ECR_Ignore);
 	DetectionSphere->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Overlap);
 	DetectionSphere->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
+	DetectionSphere->SetCollisionResponseToChannel(ECC_PhysicsBody, ECR_Overlap);
 	DetectionSphere->SetGenerateOverlapEvents(true);
 
 	DetectionSphere->OnComponentBeginOverlap.AddDynamic(
