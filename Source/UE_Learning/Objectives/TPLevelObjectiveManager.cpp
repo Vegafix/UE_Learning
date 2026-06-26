@@ -333,12 +333,13 @@ void ATPLevelObjectiveManager::TryCompleteObjective()
 		return;
 	}
 
-	CompleteObjective();
-	
 	if (bRequireReturnToQuestGiver)
 	{
+		UpdateObjectiveWidget();
 		return;
 	}
+
+	CompleteObjective();
 }
 
 void ATPLevelObjectiveManager::CreateObjectiveWidget()

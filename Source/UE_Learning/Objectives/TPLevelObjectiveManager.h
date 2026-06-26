@@ -79,13 +79,13 @@ protected:
 	bool bRequireReturnToQuestGiver = true;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Objective")
-	bool bStartOnBeginPlay = true;
+	bool bStartOnBeginPlay = false;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Objective")
 	FText ObjectiveTitle = NSLOCTEXT(
 		"Objective",
 		"DefaultKillBanditsObjective",
-		"Цель: уничтожить бандитов"
+		"Цель задания"
 	);
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Objective")

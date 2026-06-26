@@ -27,7 +27,6 @@ void ATPQuestItemActor::BeginPlay()
 	MeshComponent->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
 
 	MeshComponent->SetGenerateOverlapEvents(true);
-	MeshComponent->SetGenerateOverlapEvents(true);
 	
 	MeshComponent->SetSimulatePhysics(bSimulatePhysicsOnSpawn);
 	MeshComponent->SetEnableGravity(bSimulatePhysicsOnSpawn);

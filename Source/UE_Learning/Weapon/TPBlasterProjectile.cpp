@@ -149,11 +149,6 @@ void ATPBlasterProjectile::OnProjectileHit(
 			return;
 		}
 	}
-	
-	if (!OtherActor || OtherActor == this || OtherActor == SourceActor)
-	{
-		return;
-	}
 
 	if (const ATPBaseCharacter* HitCharacter =
 	Cast<ATPBaseCharacter>(OtherActor))
