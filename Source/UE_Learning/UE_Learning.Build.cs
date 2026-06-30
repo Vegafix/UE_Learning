@@ -14,6 +14,7 @@ public class UE_Learning : ModuleRules
 			"Engine",
 			"InputCore",
 			"EnhancedInput",
+			"Niagara",
 			"AIModule",
 			"NavigationSystem",
 			"StateTreeModule",

@@ -8,6 +8,9 @@
 #include "Weapon/TPWeaponDefinition.h"
 #include "Weapon/TPBlasterProjectile.h"
 #include "Characters/TPBaseCharacter.h"
+#include "Kismet/GameplayStatics.h"
+#include "Sound/SoundBase.h"
+#include "Sound/SoundAttenuation.h"
 
 ATPWeaponActor::ATPWeaponActor()
 {
@@ -113,6 +116,25 @@ void ATPWeaponActor::DrawDebugMuzzleDirection() const
 		FColor::Yellow,
 		false,
 		0.0f
+	);
+}
+
+void ATPWeaponActor::PlayShotSound() const
+{
+	if (!ShotSound || !MuzzlePoint)
+	{
+		return;
+	}
+
+	UGameplayStatics::PlaySoundAtLocation(
+		this,
+		ShotSound,
+		MuzzlePoint->GetComponentLocation(),
+		MuzzlePoint->GetComponentRotation(),
+		ShotSoundVolume,
+		1.0f,
+		0.0f,
+		ShotSoundAttenuation
 	);
 }
 
@@ -254,6 +276,7 @@ bool ATPWeaponActor::TryFireAtLocation(const FVector& TargetLocation)
 		WeaponDefinition->ProjectileSpeed
 	);
 
+	PlayShotSound();
 	OnWeaponFired();
 
 	UE_LOG(

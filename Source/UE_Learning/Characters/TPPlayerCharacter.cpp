@@ -25,6 +25,7 @@
 #include "UI/TPHealthBarWidget.h"
 #include "GameFramework/PlayerController.h"
 #include "DrawDebugHelpers.h"
+#include "Audio/TPCharacterAudioComponent.h"
 
 
 ATPPlayerCharacter::ATPPlayerCharacter()
@@ -805,6 +806,7 @@ void ATPPlayerCharacter::InitializePlayerHealthWidget()
 		);
 
 	RefreshPlayerHealthWidget();
+	UpdateLowHealthAudio();
 }
 
 void ATPPlayerCharacter::RefreshPlayerHealthWidget()
@@ -825,6 +827,7 @@ void ATPPlayerCharacter::HandleHealthChanged(
 )
 {
 	RefreshPlayerHealthWidget();
+	UpdateLowHealthAudio();
 }
 
 void ATPPlayerCharacter::HandleMaxHealthChanged(
@@ -832,6 +835,28 @@ void ATPPlayerCharacter::HandleMaxHealthChanged(
 )
 {
 	RefreshPlayerHealthWidget();
+	UpdateLowHealthAudio();
+}
+
+void ATPPlayerCharacter::UpdateLowHealthAudio()
+{
+	if (!CharacterAudioComponent || !AttributeSet)
+	{
+		return;
+	}
+
+	const float MaxHealth = AttributeSet->GetMaxHealth();
+
+	if (MaxHealth <= 0.0f)
+	{
+		CharacterAudioComponent->StopLowHealthHeartbeat();
+		return;
+	}
+
+	const float HealthRatio =
+		AttributeSet->GetHealth() / MaxHealth;
+
+	CharacterAudioComponent->SetHealthRatio(HealthRatio);
 }
 
 void ATPPlayerCharacter::ApplyAimCamera(bool bEnableAim)

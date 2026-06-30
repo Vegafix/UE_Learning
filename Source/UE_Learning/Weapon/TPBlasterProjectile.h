@@ -8,6 +8,8 @@ class USphereComponent;
 class UStaticMeshComponent;
 class UProjectileMovementComponent;
 class UGameplayEffect;
+class USoundBase;
+class USoundAttenuation;
 
 UCLASS()
 class UE_LEARNING_API ATPBlasterProjectile : public AActor
@@ -59,4 +61,29 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Projectile")
 	float LifeSeconds = 3.0f;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Projectile|Audio")
+	TObjectPtr<USoundBase> BodyImpactSound;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Projectile|Audio")
+	TObjectPtr<USoundBase> HeadImpactSound;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Projectile|Audio")
+	TObjectPtr<USoundAttenuation> ImpactSoundAttenuation;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Projectile|Audio", meta = (ClampMin = "0.0"))
+	float ImpactSoundVolume = 1.0f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Projectile|Audio|Headshot")
+	FName HeadSocketName = TEXT("head");
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Projectile|Audio|Headshot", meta = (ClampMin = "0.0"))
+	float HeadshotRadius = 45.0f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Projectile|Audio|Headshot")
+	bool bDrawDebugHeadshotCheck = false;
+	
+private:
+	bool IsHeadshotHit(const FHitResult& Hit) const;
+	void PlayImpactSound(const FHitResult& Hit, bool bHeadshot) const;
 };

@@ -8,6 +8,13 @@
 #include "GameplayEffect.h"
 #include "GameplayTagContainer.h"
 #include "Characters/TPBaseCharacter.h"
+#include "GameFramework/Character.h"
+#include "Components/SkeletalMeshComponent.h"
+#include "DrawDebugHelpers.h"
+#include "GameFramework/Character.h"
+#include "Kismet/GameplayStatics.h"
+#include "Sound/SoundBase.h"
+#include "Sound/SoundAttenuation.h"
 
 ATPBlasterProjectile::ATPBlasterProjectile()
 {
@@ -113,6 +120,107 @@ void ATPBlasterProjectile::InitializeProjectile(
 	}
 }
 
+bool ATPBlasterProjectile::IsHeadshotHit(
+	const FHitResult& Hit
+) const
+{
+	const FString BoneNameString =
+		Hit.BoneName.ToString();
+
+	if (BoneNameString.Contains(TEXT("head"), ESearchCase::IgnoreCase))
+	{
+		return true;
+	}
+
+	const ACharacter* HitCharacter =
+		Cast<ACharacter>(Hit.GetActor());
+
+	if (!HitCharacter)
+	{
+		return false;
+	}
+
+	const USkeletalMeshComponent* CharacterMesh =
+		HitCharacter->GetMesh();
+
+	if (!CharacterMesh)
+	{
+		return false;
+	}
+
+	if (!CharacterMesh->DoesSocketExist(HeadSocketName))
+	{
+		return false;
+	}
+
+	const FVector HeadLocation =
+		CharacterMesh->GetSocketLocation(HeadSocketName);
+
+	const bool bHeadshot =
+		FVector::DistSquared(
+			Hit.ImpactPoint,
+			HeadLocation
+		) <= FMath::Square(HeadshotRadius);
+
+	if (bDrawDebugHeadshotCheck)
+	{
+		UWorld* World = GetWorld();
+
+		if (World)
+		{
+			DrawDebugSphere(
+				World,
+				HeadLocation,
+				HeadshotRadius,
+				16,
+				bHeadshot ? FColor::Green : FColor::Red,
+				false,
+				2.0f,
+				0,
+				1.5f
+			);
+
+			DrawDebugLine(
+				World,
+				Hit.ImpactPoint,
+				HeadLocation,
+				bHeadshot ? FColor::Green : FColor::Red,
+				false,
+				2.0f,
+				0,
+				1.5f
+			);
+		}
+	}
+
+	return bHeadshot;
+}
+
+void ATPBlasterProjectile::PlayImpactSound(
+	const FHitResult& Hit,
+	bool bHeadshot
+) const
+{
+	USoundBase* SoundToPlay =
+		bHeadshot ? HeadImpactSound : BodyImpactSound;
+
+	if (!SoundToPlay)
+	{
+		return;
+	}
+
+	UGameplayStatics::PlaySoundAtLocation(
+		this,
+		SoundToPlay,
+		Hit.ImpactPoint,
+		GetActorRotation(),
+		ImpactSoundVolume,
+		1.0f,
+		0.0f,
+		ImpactSoundAttenuation
+	);
+}
+
 void ATPBlasterProjectile::OnProjectileHit(
 	UPrimitiveComponent* HitComponent,
 	AActor* OtherActor,
@@ -159,6 +267,9 @@ void ATPBlasterProjectile::OnProjectileHit(
 			return;
 		}
 	}
+	
+	const bool bHeadshot =
+	IsHeadshotHit(Hit);
 	
 	if (DamageEffect && Damage > 0.0f)
 	{
@@ -215,6 +326,8 @@ void ATPBlasterProjectile::OnProjectileHit(
 			}
 		}
 	}
+	
+	PlayImpactSound(Hit, bHeadshot);
 	
 	OnProjectileImpact(Hit);
 	

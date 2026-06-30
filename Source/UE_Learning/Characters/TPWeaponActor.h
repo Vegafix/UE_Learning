@@ -7,6 +7,8 @@
 class USceneComponent;
 class UStaticMeshComponent;
 class UTPWeaponDefinition;
+class USoundBase;
+class USoundAttenuation;
 
 UCLASS()
 class UE_LEARNING_API ATPWeaponActor : public AActor
@@ -55,6 +57,15 @@ protected:
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
 	TObjectPtr<USceneComponent> MuzzlePoint;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|Audio")
+	TObjectPtr<USoundBase> ShotSound;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|Audio")
+	TObjectPtr<USoundAttenuation> ShotSoundAttenuation;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|Audio", meta = (ClampMin = "0.0"))
+	float ShotSoundVolume = 1.0f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|Debug")
 	bool bDrawDebugMuzzleDirection = false;
@@ -66,6 +77,7 @@ protected:
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Weapon")
 	TObjectPtr<UTPWeaponDefinition> WeaponDefinition;
 	
+	void PlayShotSound() const;
 	float LastShotTime = -1000.0f;
 	FVector GetBestTargetLocation(AActor* TargetActor) const;
 };

@@ -185,6 +185,7 @@ private:
 	void RefreshPlayerHealthWidget();
 	void HandleHealthChanged(const FOnAttributeChangeData& Data);
 	void HandleMaxHealthChanged(const FOnAttributeChangeData& Data);
+	void UpdateLowHealthAudio();
 	void ToggleCrouch();
 	void SpawnDefaultWeapon();
 	void SpawnModuleActor();

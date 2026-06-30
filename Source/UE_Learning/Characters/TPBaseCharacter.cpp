@@ -7,6 +7,7 @@
 #include "Weapon/TPWeaponEquipmentComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "Audio/TPCharacterAudioComponent.h"
 
 ATPBaseCharacter::ATPBaseCharacter()
 {
@@ -18,6 +19,11 @@ ATPBaseCharacter::ATPBaseCharacter()
 	WeaponEquipmentComponent =
 	CreateDefaultSubobject<UTPWeaponEquipmentComponent>(
 		TEXT("WeaponEquipmentComponent")
+	);
+	
+	CharacterAudioComponent =
+	CreateDefaultSubobject<UTPCharacterAudioComponent>(
+		TEXT("CharacterAudioComponent")
 	);
 }
 

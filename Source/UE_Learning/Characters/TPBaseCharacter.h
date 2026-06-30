@@ -11,6 +11,7 @@ class UTPAttributeSet;
 class UGameplayAbility;
 class UGameplayEffect;
 class UTPWeaponEquipmentComponent;
+class UTPCharacterAudioComponent;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(
 	FTPCharacterDeathSignature,
@@ -52,6 +53,9 @@ protected:
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
 	TObjectPtr<UTPWeaponEquipmentComponent> WeaponEquipmentComponent;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Audio")
+	TObjectPtr<UTPCharacterAudioComponent> CharacterAudioComponent;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GAS")
 	TObjectPtr<UAbilitySystemComponent> AbilitySystemComponent;

@@ -10,6 +10,8 @@
 class UTPNPCDefinition;
 class ATPNPCCharacter;
 class UWidgetComponent;
+class USoundBase;
+class USoundAttenuation;
 struct FOnAttributeChangeData;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(
@@ -66,6 +68,15 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "NPC|UI")
 	TObjectPtr<UWidgetComponent> HealthBarWidgetComponent;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "NPC|Audio")
+	TObjectPtr<USoundBase> DeadBodyFallSound;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "NPC|Audio")
+	TObjectPtr<USoundAttenuation> DeathSoundAttenuation;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "NPC|Audio", meta = (ClampMin = "0.0"))
+	float DeadBodyFallVolume = 1.0f;
 
 private:
 	void ApplyNPCDefinition();
@@ -75,6 +86,8 @@ private:
 
 	void HandleHealthChanged(const FOnAttributeChangeData& Data);
 	void HandleMaxHealthChanged(const FOnAttributeChangeData& Data);
+	
+	void PlayDeathSound() const;
 	
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "NPC|Combat",
 		meta = (AllowPrivateAccess = "true"))

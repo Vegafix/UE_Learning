@@ -12,6 +12,9 @@
 #include "NPC/TPNPCAIController.h"
 #include "UI/TPHealthBarWidget.h"
 #include "Weapon/TPWeaponEquipmentComponent.h"
+#include "Kismet/GameplayStatics.h"
+#include "Sound/SoundBase.h"
+#include "Sound/SoundAttenuation.h"
 
 
 ATPNPCCharacter::ATPNPCCharacter()
@@ -49,6 +52,25 @@ void ATPNPCCharacter::BeginPlay()
 	InitializeHealthBar();
 }
 
+void ATPNPCCharacter::PlayDeathSound() const
+{
+	if (!DeadBodyFallSound)
+	{
+		return;
+	}
+
+	UGameplayStatics::PlaySoundAtLocation(
+		this,
+		DeadBodyFallSound,
+		GetActorLocation(),
+		GetActorRotation(),
+		DeadBodyFallVolume,
+		1.0f,
+		0.0f,
+		DeathSoundAttenuation
+	);
+}
+
 void ATPNPCCharacter::HandleDeath()
 {
 	if (IsDead())
@@ -63,6 +85,8 @@ void ATPNPCCharacter::HandleDeath()
 	}
 
 	Super::HandleDeath();
+	
+	PlayDeathSound();
 	
 	if (HealthBarWidgetComponent)
 	{
