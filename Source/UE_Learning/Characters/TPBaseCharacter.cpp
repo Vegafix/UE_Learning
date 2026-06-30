@@ -35,6 +35,14 @@ void ATPBaseCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
+	if (UCapsuleComponent* Capsule = GetCapsuleComponent())
+	{
+		Capsule->SetCollisionResponseToChannel(
+			ECC_Visibility,
+			ECR_Block
+		);
+	}
+
 	if (AbilitySystemComponent)
 	{
 		AbilitySystemComponent->InitAbilityActorInfo(this, this);

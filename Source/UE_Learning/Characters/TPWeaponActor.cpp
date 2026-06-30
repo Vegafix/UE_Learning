@@ -6,18 +6,8 @@
 #include "DrawDebugHelpers.h"
 #include "Engine/World.h"
 #include "Weapon/TPWeaponDefinition.h"
-#include "AbilitySystemBlueprintLibrary.h"
-#include "AbilitySystemComponent.h"
-#include "GameplayEffect.h"
-#include "GameplayTagContainer.h"
 #include "Weapon/TPBlasterProjectile.h"
 #include "Characters/TPBaseCharacter.h"
-
-namespace
-{
-	constexpr ECollisionChannel WeaponTraceChannel =
-		ECC_GameTraceChannel1;
-}
 
 ATPWeaponActor::ATPWeaponActor()
 {

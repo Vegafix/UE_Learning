@@ -13,7 +13,6 @@
 #include "TPWeaponActor.h"
 #include "HW3ModuleActor.h"
 #include "HW3PluginActor.h"
-#include "Components/CapsuleComponent.h"
 #include "UI/InteractionPromptWidget.h"
 #include "Blueprint/UserWidget.h"
 #include "Animation/TPCharacterAnimInstance.h"
@@ -24,7 +23,6 @@
 #include "Weapon/TPWeaponEquipmentComponent.h"
 #include "Characters/TPAttributeSet.h"
 #include "UI/TPHealthBarWidget.h"
-#include "Blueprint/UserWidget.h"
 #include "GameFramework/PlayerController.h"
 #include "DrawDebugHelpers.h"
 
@@ -66,7 +64,6 @@ void ATPPlayerCharacter::BeginPlay()
 	
 	DefaultCameraBoomLength = CameraBoom ? CameraBoom->TargetArmLength : 0.0f;
 	DefaultCameraSocketOffset = CameraBoom ? CameraBoom->SocketOffset : FVector::ZeroVector;
-	DefaultCameraTargetOffset = CameraBoom ? CameraBoom->TargetOffset : FVector::ZeroVector;
 	DefaultCameraFOV = FollowCamera ? FollowCamera->FieldOfView : 90.0f;
 	
 	SpawnDefaultWeapon();

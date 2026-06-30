@@ -82,13 +82,6 @@ protected:
 	bool bStartOnBeginPlay = false;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Objective")
-	FText ObjectiveTitle = NSLOCTEXT(
-		"Objective",
-		"DefaultKillBanditsObjective",
-		"Цель задания"
-	);
-	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Objective")
 	FText ObjectiveTextBeforeArtifact = FText::FromString(TEXT("Получите артефакт у бандитов"));
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Objective")

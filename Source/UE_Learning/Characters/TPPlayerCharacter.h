@@ -82,9 +82,6 @@ private:
 	FVector AimCameraSocketOffset = FVector(0.0f, 95.0f, 35.0f);
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Camera|Aim", meta = (AllowPrivateAccess = "true"))
-	FVector AimCameraTargetOffset = FVector(0.0f, 0.0f, 45.0f);
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Camera|Aim", meta = (AllowPrivateAccess = "true"))
 	float AimCameraFOV = 72.0f;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Camera|Aim", meta = (AllowPrivateAccess = "true", ClampMin = "1.0"))
@@ -92,7 +89,6 @@ private:
 
 	float DefaultCameraBoomLength = 0.0f;
 	FVector DefaultCameraSocketOffset = FVector::ZeroVector;
-	FVector DefaultCameraTargetOffset = FVector::ZeroVector;
 	float DefaultCameraFOV = 0.0f;
 	bool bWantsAimCamera = false;
 
@@ -119,9 +115,6 @@ private:
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = "true"))
 	float CameraBoomLength = 400.0f;
-	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Interaction", meta = (AllowPrivateAccess = "true"))
-	float InteractionTraceDistance = 500.0f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Spawn", meta = (AllowPrivateAccess = "true"))
 	float ModuleActorSpawnDistance = 300.0f;
