@@ -165,6 +165,15 @@ private:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI|Aim", meta = (AllowPrivateAccess = "true"))
 	TSubclassOf<UUserWidget> CrosshairWidgetClass;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|Aim", meta = (AllowPrivateAccess = "true"))
+	TEnumAsByte<ECollisionChannel> AimTraceChannel = ECC_Visibility;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|Aim", meta = (AllowPrivateAccess = "true", ClampMin = "1000.0"))
+	float AimTraceDistance = 10000.0f;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|Aim|Debug", meta = (AllowPrivateAccess = "true"))
+	bool bDrawDebugAimTrace = false;
+	
 	UPROPERTY()
 	TObjectPtr<UUserWidget> CrosshairWidget;
 

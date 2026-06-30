@@ -26,7 +26,7 @@
 #include "UI/TPHealthBarWidget.h"
 #include "Blueprint/UserWidget.h"
 #include "GameFramework/PlayerController.h"
-
+#include "DrawDebugHelpers.h"
 
 
 ATPPlayerCharacter::ATPPlayerCharacter()
@@ -427,7 +427,7 @@ void ATPPlayerCharacter::Fire()
 		FollowCamera->GetComponentLocation();
 
 	const FVector TraceEnd =
-		TraceStart + FollowCamera->GetForwardVector() * 10000.0f;
+	TraceStart + FollowCamera->GetForwardVector() * AimTraceDistance;
 
 	FCollisionQueryParams QueryParams;
 	QueryParams.AddIgnoredActor(this);
@@ -439,10 +439,40 @@ void ATPPlayerCharacter::Fire()
 		HitResult,
 		TraceStart,
 		TraceEnd,
-		ECC_GameTraceChannel1,
+		AimTraceChannel,
 		QueryParams
 	);
+	
+	if (bDrawDebugAimTrace)
+	{
+		const FVector DebugEnd =
+			bHit ? HitResult.ImpactPoint : TraceEnd;
 
+		const FColor DebugColor =
+			bHit ? FColor::Green : FColor::Red;
+
+		DrawDebugLine(
+			World,
+			TraceStart,
+			DebugEnd,
+			DebugColor,
+			false,
+			2.0f,
+			0,
+			2.0f
+		);
+
+		DrawDebugSphere(
+			World,
+			DebugEnd,
+			12.0f,
+			12,
+			DebugColor,
+			false,
+			2.0f
+		);
+	}
+	
 	const FVector TargetLocation =
 		bHit ? HitResult.ImpactPoint : TraceEnd;
 
