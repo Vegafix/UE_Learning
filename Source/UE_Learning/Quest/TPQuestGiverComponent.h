@@ -79,7 +79,8 @@ protected:
 		"ЗАДАНИЕ"
 	);
 
-		FText QuestOfferDescription = NSLOCTEXT(
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Quest|Offer", meta = (MultiLine = "true"))
+	FText QuestOfferDescription = NSLOCTEXT(
 		"Quest",
 		"DefaultQuestOfferDescription",
 		"НУЖНО ПОЛУЧИТЬ АРТЕФАКТ, КОТОРЫЙ НАХОДИТСЯ У БАНДИТОВ"

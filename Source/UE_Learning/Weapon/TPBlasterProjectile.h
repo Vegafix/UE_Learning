@@ -78,7 +78,7 @@ protected:
 	FName HeadSocketName = TEXT("head");
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Projectile|Audio|Headshot", meta = (ClampMin = "0.0"))
-	float HeadshotRadius = 45.0f;
+	float HeadshotRadius = 35.0f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Projectile|Audio|Headshot")
 	bool bDrawDebugHeadshotCheck = false;

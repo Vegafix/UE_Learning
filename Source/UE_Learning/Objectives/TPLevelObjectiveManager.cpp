@@ -190,6 +190,7 @@ void ATPLevelObjectiveManager::ProcessObjectiveStartAsync()
 	}
 
 	const bool bShouldSelectRandomDropper = bSelectRandomQuestItemDropper;
+	const bool bShouldLogAsyncProcessing = bLogAsyncProcessing;
 	const int32 RandomSeed = FMath::Rand();
 
 	TWeakObjectPtr<ATPLevelObjectiveManager> WeakThis(this);
@@ -200,16 +201,20 @@ void ATPLevelObjectiveManager::ProcessObjectiveStartAsync()
 			WeakThis,
 			TargetSnapshots = MoveTemp(TargetSnapshots),
 			bShouldSelectRandomDropper,
+			bShouldLogAsyncProcessing,
 			RandomSeed
 		]() mutable
 		{
-			UE_LOG(
-				LogTemp,
-				Display,
-				TEXT("[AsyncObjective] Worker started. IsInGameThread=%s ThreadId=%u"),
-				IsInGameThread() ? TEXT("true") : TEXT("false"),
-				FPlatformTLS::GetCurrentThreadId()
-			);
+			if (bShouldLogAsyncProcessing)
+			{
+				UE_LOG(
+					LogTemp,
+					Display,
+					TEXT("[AsyncObjective] Worker started. IsInGameThread=%s ThreadId=%u"),
+					IsInGameThread() ? TEXT("true") : TEXT("false"),
+					FPlatformTLS::GetCurrentThreadId()
+				);
+			}
 			FTPObjectiveProcessingResult Result;
 
 			TArray<int32> AliveTargetIndexes;
@@ -262,16 +267,19 @@ void ATPLevelObjectiveManager::ApplyObjectiveProcessingResult(
 	const FTPObjectiveProcessingResult& Result
 )
 {
-	UE_LOG(
-		LogTemp,
-		Display,
-		TEXT("[AsyncObjective] Apply result. IsInGameThread=%s ThreadId=%u Total=%d Alive=%d DropperIndex=%d"),
-		IsInGameThread() ? TEXT("true") : TEXT("false"),
-		FPlatformTLS::GetCurrentThreadId(),
-		Result.TotalTargetsCount,
-		Result.AliveTargetsCount,
-		Result.SelectedQuestItemDropperIndex
-	);
+	if (bLogAsyncProcessing)
+	{
+		UE_LOG(
+			LogTemp,
+			Display,
+			TEXT("[AsyncObjective] Apply result. IsInGameThread=%s ThreadId=%u Total=%d Alive=%d DropperIndex=%d"),
+			IsInGameThread() ? TEXT("true") : TEXT("false"),
+			FPlatformTLS::GetCurrentThreadId(),
+			Result.TotalTargetsCount,
+			Result.AliveTargetsCount,
+			Result.SelectedQuestItemDropperIndex
+		);
+	}
 	
 	if (!bObjectiveActive || bObjectiveCompleted)
 	{

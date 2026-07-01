@@ -95,6 +95,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Objective")
 	bool bStartOnBeginPlay = false;
 	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Objective|Debug")
+	bool bLogAsyncProcessing = true;
+	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Objective")
 	FText ObjectiveTextBeforeArtifact = NSLOCTEXT(
 		"Objective",

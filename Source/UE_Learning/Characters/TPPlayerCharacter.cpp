@@ -219,8 +219,6 @@ void ATPPlayerCharacter::HandleDeath()
 
 	PlayerDeathScreenWidget->AddToViewport(100);
 
-	PlayerDeathScreenWidget->AddToViewport(100);
-
 	APlayerController* PlayerController =
 		Cast<APlayerController>(GetController());
 
