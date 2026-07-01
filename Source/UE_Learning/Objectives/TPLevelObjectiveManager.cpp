@@ -1,5 +1,7 @@
 ﻿#include "Objectives/TPLevelObjectiveManager.h"
 
+#include "Async/Async.h"
+#include "HAL/PlatformTLS.h"
 #include "Blueprint/UserWidget.h"
 #include "GameFramework/PlayerController.h"
 #include "Kismet/GameplayStatics.h"
@@ -7,6 +9,7 @@
 #include "NPC/TPNPCAIController.h"
 #include "Quest/TPQuestItemActor.h"
 #include "UI/TPObjectiveWidget.h"
+#include "UI/TPMessageScreenWidget.h"
 
 ATPLevelObjectiveManager::ATPLevelObjectiveManager()
 {
@@ -34,22 +37,10 @@ void ATPLevelObjectiveManager::StartObjective()
 	bQuestItemCollected = false;
 	bQuestItemDropped = false;
 	SelectedQuestItemDropper = nullptr;
+	TotalTargetsCount = 0;
+	AliveTargetsCount = 0;
 
-	InitializeObjectiveTargets();
-	SelectQuestItemDropper();
-	CreateObjectiveWidget();
-	UpdateObjectiveWidget();
-
-	if (AliveTargetsCount <= 0)
-	{
-		UE_LOG(
-			LogTemp,
-			Warning,
-			TEXT("Level objective manager has no alive target NPCs")
-		);
-
-		TryCompleteObjective();
-	}
+	ProcessObjectiveStartAsync();
 }
 
 bool ATPLevelObjectiveManager::IsObjectiveActive() const
@@ -181,26 +172,173 @@ void ATPLevelObjectiveManager::NotifyQuestItemDroppedFrom(AActor* SourceActor)
 	);
 }
 
-void ATPLevelObjectiveManager::InitializeObjectiveTargets()
+void ATPLevelObjectiveManager::ProcessObjectiveStartAsync()
 {
-	AliveTargetsCount = 0;
-	TotalTargetsCount = 0;
+	TArray<FTPObjectiveTargetSnapshot> TargetSnapshots;
+	TargetSnapshots.Reserve(TargetNPCs.Num());
 
+	for (int32 TargetIndex = 0; TargetIndex < TargetNPCs.Num(); ++TargetIndex)
+	{
+		ATPNPCCharacter* TargetNPC = TargetNPCs[TargetIndex];
+
+		FTPObjectiveTargetSnapshot Snapshot;
+		Snapshot.TargetIndex = TargetIndex;
+		Snapshot.bIsValid = IsValid(TargetNPC);
+		Snapshot.bIsDead = Snapshot.bIsValid ? TargetNPC->IsDead() : true;
+
+		TargetSnapshots.Add(Snapshot);
+	}
+
+	const bool bShouldSelectRandomDropper = bSelectRandomQuestItemDropper;
+	const int32 RandomSeed = FMath::Rand();
+
+	TWeakObjectPtr<ATPLevelObjectiveManager> WeakThis(this);
+
+	AsyncTask(
+		ENamedThreads::AnyBackgroundThreadNormalTask,
+		[
+			WeakThis,
+			TargetSnapshots = MoveTemp(TargetSnapshots),
+			bShouldSelectRandomDropper,
+			RandomSeed
+		]() mutable
+		{
+			UE_LOG(
+				LogTemp,
+				Display,
+				TEXT("[AsyncObjective] Worker started. IsInGameThread=%s ThreadId=%u"),
+				IsInGameThread() ? TEXT("true") : TEXT("false"),
+				FPlatformTLS::GetCurrentThreadId()
+			);
+			FTPObjectiveProcessingResult Result;
+
+			TArray<int32> AliveTargetIndexes;
+
+			for (const FTPObjectiveTargetSnapshot& Snapshot : TargetSnapshots)
+			{
+				if (!Snapshot.bIsValid)
+				{
+					continue;
+				}
+
+				++Result.TotalTargetsCount;
+
+				if (Snapshot.bIsDead)
+				{
+					continue;
+				}
+
+				++Result.AliveTargetsCount;
+				AliveTargetIndexes.Add(Snapshot.TargetIndex);
+			}
+
+			if (bShouldSelectRandomDropper && !AliveTargetIndexes.IsEmpty())
+			{
+				FRandomStream RandomStream(RandomSeed);
+				const int32 RandomAliveIndex = RandomStream.RandRange(
+					0,
+					AliveTargetIndexes.Num() - 1
+				);
+
+				Result.SelectedQuestItemDropperIndex =
+					AliveTargetIndexes[RandomAliveIndex];
+			}
+
+			AsyncTask(
+				ENamedThreads::GameThread,
+				[WeakThis, Result]()
+				{
+					if (ATPLevelObjectiveManager* StrongThis = WeakThis.Get())
+					{
+						StrongThis->ApplyObjectiveProcessingResult(Result);
+					}
+				}
+			);
+		}
+	);
+}
+
+void ATPLevelObjectiveManager::ApplyObjectiveProcessingResult(
+	const FTPObjectiveProcessingResult& Result
+)
+{
+	UE_LOG(
+		LogTemp,
+		Display,
+		TEXT("[AsyncObjective] Apply result. IsInGameThread=%s ThreadId=%u Total=%d Alive=%d DropperIndex=%d"),
+		IsInGameThread() ? TEXT("true") : TEXT("false"),
+		FPlatformTLS::GetCurrentThreadId(),
+		Result.TotalTargetsCount,
+		Result.AliveTargetsCount,
+		Result.SelectedQuestItemDropperIndex
+	);
+	
+	if (!bObjectiveActive || bObjectiveCompleted)
+	{
+		return;
+	}
+
+	TotalTargetsCount = Result.TotalTargetsCount;
+	AliveTargetsCount = Result.AliveTargetsCount;
+	SelectedQuestItemDropper = nullptr;
+
+	if (bSelectRandomQuestItemDropper
+		&& TargetNPCs.IsValidIndex(Result.SelectedQuestItemDropperIndex))
+	{
+		ATPNPCCharacter* SelectedNPC =
+			TargetNPCs[Result.SelectedQuestItemDropperIndex];
+
+		if (IsValid(SelectedNPC) && !SelectedNPC->IsDead())
+		{
+			SelectedQuestItemDropper = SelectedNPC;
+		}
+	}
+
+	if (bSelectRandomQuestItemDropper && !SelectedQuestItemDropper)
+	{
+		for (ATPNPCCharacter* TargetNPC : TargetNPCs)
+		{
+			if (IsValid(TargetNPC) && !TargetNPC->IsDead())
+			{
+				SelectedQuestItemDropper = TargetNPC;
+				break;
+			}
+		}
+	}
+
+	BindObjectiveTargets();
+	CreateObjectiveWidget();
+	UpdateObjectiveWidget();
+
+	UE_LOG(
+		LogTemp,
+		Display,
+		TEXT("Objective targets processed async. Total: %d, Alive: %d, Dropper: %s"),
+		TotalTargetsCount,
+		AliveTargetsCount,
+		*GetNameSafe(SelectedQuestItemDropper)
+	);
+
+	if (AliveTargetsCount <= 0)
+	{
+		UE_LOG(
+			LogTemp,
+			Warning,
+			TEXT("Level objective manager has no alive target NPCs")
+		);
+
+		TryCompleteObjective();
+	}
+}
+
+void ATPLevelObjectiveManager::BindObjectiveTargets()
+{
 	for (ATPNPCCharacter* TargetNPC : TargetNPCs)
 	{
-		if (!IsValid(TargetNPC))
+		if (!IsValid(TargetNPC) || TargetNPC->IsDead())
 		{
 			continue;
 		}
-
-		++TotalTargetsCount;
-
-		if (TargetNPC->IsDead())
-		{
-			continue;
-		}
-
-		++AliveTargetsCount;
 
 		TargetNPC->OnCharacterDeath.AddUniqueDynamic(
 			this,
@@ -253,45 +391,6 @@ void ATPLevelObjectiveManager::HandleTargetDeath(AActor* DeadActor)
 	{
 		TryCompleteObjective();
 	}
-}
-
-void ATPLevelObjectiveManager::SelectQuestItemDropper()
-{
-	SelectedQuestItemDropper = nullptr;
-
-	if (!bSelectRandomQuestItemDropper)
-	{
-		return;
-	}
-
-	TArray<ATPNPCCharacter*> ValidDropCandidates;
-
-	for (ATPNPCCharacter* TargetNPC : TargetNPCs)
-	{
-		if (!IsValid(TargetNPC) || TargetNPC->IsDead())
-		{
-			continue;
-		}
-
-		ValidDropCandidates.Add(TargetNPC);
-	}
-
-	if (ValidDropCandidates.IsEmpty())
-	{
-		return;
-	}
-
-	const int32 RandomIndex =
-		FMath::RandRange(0, ValidDropCandidates.Num() - 1);
-
-	SelectedQuestItemDropper = ValidDropCandidates[RandomIndex];
-
-	UE_LOG(
-		LogTemp,
-		Display,
-		TEXT("Selected quest item dropper: %s"),
-		*GetNameSafe(SelectedQuestItemDropper)
-	);
 }
 
 void ATPLevelObjectiveManager::HandleQuestItemCollected(
@@ -415,15 +514,20 @@ void ATPLevelObjectiveManager::ShowCompletionWidget()
 		return;
 	}
 
-	CompletionWidget = CreateWidget<UUserWidget>(
+	CompletionWidget = CreateWidget<UTPMessageScreenWidget>(
 		GetWorld(),
 		CompletionWidgetClass
-	);
+);
 
 	if (!CompletionWidget)
 	{
 		return;
 	}
+
+	CompletionWidget->SetMessageText(
+		CompletionTitle,
+		CompletionDescription
+	);
 
 	CompletionWidget->AddToViewport(CompletionWidgetZOrder);
 

@@ -5,7 +5,11 @@
 ATPQuestItemActor::ATPQuestItemActor()
 {
 	InteractionCategory = EInteractionCategory::Pickup;
-	InteractionPrompt = FText::FromString(TEXT("Забрать артефакт"));
+	InteractionPrompt = NSLOCTEXT(
+	"QuestItem",
+	"PickUpArtifactPrompt",
+	"ЗАБРАТЬ АРТЕФАКТ"
+	);
 	bUseHighlight = true;
 	FocusedStencilValue = 2;
 }

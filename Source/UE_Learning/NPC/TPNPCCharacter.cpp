@@ -15,6 +15,8 @@
 #include "Kismet/GameplayStatics.h"
 #include "Sound/SoundBase.h"
 #include "Sound/SoundAttenuation.h"
+#include "Quest/TPEnemyNegotiationComponent.h"
+#include "Quest/TPQuestGiverComponent.h"
 
 
 ATPNPCCharacter::ATPNPCCharacter()
@@ -214,6 +216,24 @@ bool ATPNPCCharacter::CanInteract_Implementation(AActor* InstigatorActor) const
 
 FText ATPNPCCharacter::GetInteractionPrompt_Implementation() const
 {
+	if (const UTPQuestGiverComponent* QuestGiverComponent =
+		FindComponentByClass<UTPQuestGiverComponent>())
+	{
+		return QuestGiverComponent->GetCurrentPrompt();
+	}
+
+	if (const UTPEnemyNegotiationComponent* EnemyNegotiationComponent =
+		FindComponentByClass<UTPEnemyNegotiationComponent>())
+	{
+		const FText NegotiationPrompt =
+			EnemyNegotiationComponent->GetCurrentPrompt();
+
+		if (!NegotiationPrompt.IsEmpty())
+		{
+			return NegotiationPrompt;
+		}
+	}
+
 	if (!NPCDefinition)
 	{
 		return FText::GetEmpty();

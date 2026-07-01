@@ -1,0 +1,196 @@
+# Game English translation.
+# Fill out your copyright notice in the Description page of Project Settings.
+# 
+msgid ""
+msgstr ""
+"Project-Id-Version: Game\n"
+"POT-Creation-Date: 2026-07-01 14:13\n"
+"PO-Revision-Date: 2026-07-01 14:13\n"
+"Language-Team: \n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#. Key:	ObjectiveAfterArtifact
+#. SourceLocation:	Source/UE_Learning/Objectives/TPLevelObjectiveManager.h
+#: Source/UE_Learning/Objectives/TPLevelObjectiveManager.h
+msgctxt "Objective,ObjectiveAfterArtifact"
+msgid "ВЕРНИТЕСЬ К ИССЛЕДОВАТЕЛЮ"
+msgstr "RETURN TO THE RESEARCHER"
+
+#. Key:	ObjectiveBeforeArtifact
+#. SourceLocation:	Source/UE_Learning/Objectives/TPLevelObjectiveManager.h
+#: Source/UE_Learning/Objectives/TPLevelObjectiveManager.h
+msgctxt "Objective,ObjectiveBeforeArtifact"
+msgid "ПОЛУЧИТЕ АРТЕФАКТ У БАНДИТОВ"
+msgstr "GET THE ARTIFACT FROM THE BANDITS"
+
+#. Key:	LevelCompletedTitle
+#. SourceLocation:	Source/UE_Learning/Objectives/TPLevelObjectiveManager.h
+#: Source/UE_Learning/Objectives/TPLevelObjectiveManager.h
+msgctxt "Objective,LevelCompletedTitle"
+msgid "УРОВЕНЬ ЗАВЕРШЁН"
+msgstr "LEVEL COMPLETED"
+
+#. Key:	LevelCompletedDescription
+#. SourceLocation:	Source/UE_Learning/Objectives/TPLevelObjectiveManager.h
+#: Source/UE_Learning/Objectives/TPLevelObjectiveManager.h
+msgctxt "Objective,LevelCompletedDescription"
+msgid "ПЕРЕЗАПУСК"
+msgstr "RESTART"
+
+#. Key:	QuestAvailablePrompt
+#. SourceLocation:	Source/UE_Learning/Quest/TPQuestGiverComponent.h
+#: Source/UE_Learning/Quest/TPQuestGiverComponent.h
+msgctxt "Quest,QuestAvailablePrompt"
+msgid "ПОГОВОРИТЬ"
+msgstr "TALK"
+
+#. Key:	QuestActivePrompt
+#. SourceLocation:	Source/UE_Learning/Quest/TPQuestGiverComponent.h
+#: Source/UE_Learning/Quest/TPQuestGiverComponent.h
+msgctxt "Quest,QuestActivePrompt"
+msgid "ЗАДАНИЕ УЖЕ ПОЛУЧЕНО"
+msgstr "QUEST ALREADY ACCEPTED"
+
+#. Key:	QuestTurnInPrompt
+#. SourceLocation:	Source/UE_Learning/Quest/TPQuestGiverComponent.h
+#: Source/UE_Learning/Quest/TPQuestGiverComponent.h
+msgctxt "Quest,QuestTurnInPrompt"
+msgid "ВЕРНУТЬСЯ С АРТЕФАКТОМ"
+msgstr "RETURN WITH THE ARTIFACT"
+
+#. Key:	QuestCompletedPrompt
+#. SourceLocation:	Source/UE_Learning/Quest/TPQuestGiverComponent.h
+#: Source/UE_Learning/Quest/TPQuestGiverComponent.h
+msgctxt "Quest,QuestCompletedPrompt"
+msgid "СПАСИБО, ЗАДАНИЕ ВЫПОЛНЕНО"
+msgstr "THANK YOU, QUEST COMPLETED"
+
+#. Key:	DefaultQuestOfferTitle
+#. SourceLocation:	Source/UE_Learning/Quest/TPQuestGiverComponent.h
+#: Source/UE_Learning/Quest/TPQuestGiverComponent.h
+msgctxt "Quest,DefaultQuestOfferTitle"
+msgid "ЗАДАНИЕ"
+msgstr "QUEST"
+
+#. Key:	DefaultQuestOfferDescription
+#. SourceLocation:	Source/UE_Learning/Quest/TPQuestGiverComponent.h
+#: Source/UE_Learning/Quest/TPQuestGiverComponent.h
+msgctxt "Quest,DefaultQuestOfferDescription"
+msgid "НУЖНО ПОЛУЧИТЬ АРТЕФАКТ, КОТОРЫЙ НАХОДИТСЯ У БАНДИТОВ"
+msgstr "GET THE ARTIFACT HELD BY THE BANDITS"
+
+#. Key:	DefaultAcceptQuestText
+#. SourceLocation:	Source/UE_Learning/Quest/TPQuestGiverComponent.h
+#: Source/UE_Learning/Quest/TPQuestGiverComponent.h
+msgctxt "Quest,DefaultAcceptQuestText"
+msgid "ПРИНЯТЬ"
+msgstr "ACCEPT"
+
+#. Key:	DefaultDeclineQuestText
+#. SourceLocation:	Source/UE_Learning/Quest/TPQuestGiverComponent.h
+#: Source/UE_Learning/Quest/TPQuestGiverComponent.h
+msgctxt "Quest,DefaultDeclineQuestText"
+msgid "ПОЗЖЕ"
+msgstr "LATER"
+
+#. Key:	EnemyNegotiationTitle
+#. SourceLocation:	Source/UE_Learning/Quest/TPEnemyNegotiationComponent.h
+#: Source/UE_Learning/Quest/TPEnemyNegotiationComponent.h
+msgctxt "Quest,EnemyNegotiationTitle"
+msgid "ПЕРЕГОВОРЫ С БАНДИТОМ"
+msgstr "NEGOTIATION WITH THE BANDIT"
+
+#. Key:	EnemyNegotiationDescription
+#. SourceLocation:	Source/UE_Learning/Quest/TPEnemyNegotiationComponent.h
+#: Source/UE_Learning/Quest/TPEnemyNegotiationComponent.h
+msgctxt "Quest,EnemyNegotiationDescription"
+msgid "ВЕЖЛИВО ПОПРОСИТЬ БАНДИТА ОТДАТЬ АРТЕФАКТ"
+msgstr "POLITELY ASK THE BANDIT TO GIVE UP THE ARTIFACT"
+
+#. Key:	EnemyNegotiationAcceptText
+#. SourceLocation:	Source/UE_Learning/Quest/TPEnemyNegotiationComponent.h
+#: Source/UE_Learning/Quest/TPEnemyNegotiationComponent.h
+msgctxt "Quest,EnemyNegotiationAcceptText"
+msgid "ЗАБРАТЬ АРТЕФАКТ"
+msgstr "TAKE THE ARTIFACT"
+
+#. Key:	EnemyNegotiationDeclineText
+#. SourceLocation:	Source/UE_Learning/Quest/TPEnemyNegotiationComponent.h
+#: Source/UE_Learning/Quest/TPEnemyNegotiationComponent.h
+msgctxt "Quest,EnemyNegotiationDeclineText"
+msgid "СРАЖАТЬСЯ"
+msgstr "FIGHT"
+
+#. Key:	EnemyNegotiationPrompt
+#. SourceLocation:	Source/UE_Learning/Quest/TPEnemyNegotiationComponent.h
+#: Source/UE_Learning/Quest/TPEnemyNegotiationComponent.h
+msgctxt "Quest,EnemyNegotiationPrompt"
+msgid "ПЕРЕГОВОРИТЬ"
+msgstr "NEGOTIATE"
+
+#. Key:	EnemyNegotiationUnavailablePrompt
+#. SourceLocation:	Source/UE_Learning/Quest/TPEnemyNegotiationComponent.h
+#: Source/UE_Learning/Quest/TPEnemyNegotiationComponent.h
+msgctxt "Quest,EnemyNegotiationUnavailablePrompt"
+msgid "ПЕРЕГОВОРЫ НЕДОСТУПНЫ"
+msgstr "NEGOTIATION UNAVAILABLE"
+
+#. Key:	PickUpArtifactPrompt
+#. SourceLocation:	Source/UE_Learning/Quest/TPQuestItemActor.cpp
+#: Source/UE_Learning/Quest/TPQuestItemActor.cpp
+msgctxt "QuestItem,PickUpArtifactPrompt"
+msgid "ЗАБРАТЬ АРТЕФАКТ"
+msgstr "PICK UP THE ARTIFACT"
+
+#. Key:	BanditArtifactDisplayName
+#. SourceLocation:	Source/UE_Learning/Quest/TPQuestItemActor.h
+#: Source/UE_Learning/Quest/TPQuestItemActor.h
+msgctxt "QuestItem,BanditArtifactDisplayName"
+msgid "АРТЕФАКТ БАНДИТА"
+msgstr "BANDIT ARTIFACT"
+
+#. Key:	PromptFormat
+#. SourceLocation:	Source/UE_Learning/UI/InteractionPromptWidget.cpp
+#: Source/UE_Learning/UI/InteractionPromptWidget.cpp
+msgctxt "Interaction,PromptFormat"
+msgid "[{0}] {1}"
+msgstr "[{0}] {1}"
+
+#. Key:	HealthFormat
+#. SourceLocation:	Source/UE_Learning/UI/TPHealthBarWidget.cpp
+#: Source/UE_Learning/UI/TPHealthBarWidget.cpp
+msgctxt "Health,HealthFormat"
+msgid "{0} / {1}"
+msgstr "{0} / {1}"
+
+#. Key:	ObjectiveCompleted
+#. SourceLocation:	Source/UE_Learning/UI/TPObjectiveWidget.cpp
+#: Source/UE_Learning/UI/TPObjectiveWidget.cpp
+msgctxt "Objective,ObjectiveCompleted"
+msgid "ЦЕЛЬ ВЫПОЛНЕНА"
+msgstr "OBJECTIVE COMPLETED"
+
+#. Key:	TargetsRemainingFormat
+#. SourceLocation:	Source/UE_Learning/UI/TPObjectiveWidget.cpp
+#: Source/UE_Learning/UI/TPObjectiveWidget.cpp
+msgctxt "Objective,TargetsRemainingFormat"
+msgid "ОСТАЛОСЬ: {0} / {1}"
+msgstr "REMAINING: {0} / {1}"
+
+#. Key:	DeathScreenTitle
+#. SourceLocation:	Source/UE_Learning/Characters/TPPlayerCharacter.h
+#: Source/UE_Learning/Characters/TPPlayerCharacter.h
+msgctxt "Player,DeathScreenTitle"
+msgid "ВЫ ПОГИБЛИ"
+msgstr "YOU DIED"
+
+#. Key:	DeathScreenDescription
+#. SourceLocation:	Source/UE_Learning/Characters/TPPlayerCharacter.h
+#: Source/UE_Learning/Characters/TPPlayerCharacter.h
+msgctxt "Player,DeathScreenDescription"
+msgid "ПЕРЕЗАПУСК"
+msgstr "RESTART"

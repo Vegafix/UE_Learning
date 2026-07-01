@@ -23,9 +23,11 @@
 #include "Weapon/TPWeaponEquipmentComponent.h"
 #include "Characters/TPAttributeSet.h"
 #include "UI/TPHealthBarWidget.h"
+#include "UI/TPMessageScreenWidget.h"
 #include "GameFramework/PlayerController.h"
 #include "DrawDebugHelpers.h"
 #include "Audio/TPCharacterAudioComponent.h"
+#include "UE_LearningPlayerController.h"
 
 
 ATPPlayerCharacter::ATPPlayerCharacter()
@@ -200,15 +202,22 @@ void ATPPlayerCharacter::HandleDeath()
 		return;
 	}
 
-	PlayerDeathScreenWidget = CreateWidget<UUserWidget>(
-		GetWorld(),
-		PlayerDeathScreenWidgetClass
+	PlayerDeathScreenWidget = CreateWidget<UTPMessageScreenWidget>(
+	GetWorld(),
+	PlayerDeathScreenWidgetClass
 	);
 
 	if (!PlayerDeathScreenWidget)
 	{
 		return;
 	}
+
+	PlayerDeathScreenWidget->SetMessageText(
+		DeathScreenTitle,
+		DeathScreenDescription
+	);
+
+	PlayerDeathScreenWidget->AddToViewport(100);
 
 	PlayerDeathScreenWidget->AddToViewport(100);
 
@@ -283,6 +292,7 @@ void ATPPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 
 	BindActionByTag(TAG_Input_Spawn_ModuleActor, ETriggerEvent::Started, &ATPPlayerCharacter::SpawnModuleActor);
 	BindActionByTag(TAG_Input_Spawn_PluginActor, ETriggerEvent::Started, &ATPPlayerCharacter::SpawnPluginActor);
+	BindActionByTag(TAG_Input_ToggleLanguage, ETriggerEvent::Started, &ATPPlayerCharacter::ToggleGameLanguage);
 }
 
 void ATPPlayerCharacter::SpawnModuleActor()
@@ -337,6 +347,32 @@ void ATPPlayerCharacter::SpawnPluginActor()
 		SpawnRotation,
 		SpawnParams
 	);
+}
+
+void ATPPlayerCharacter::ToggleGameLanguage()
+{
+	AUE_LearningPlayerController* LearningPlayerController =
+		Cast<AUE_LearningPlayerController>(GetController());
+
+	if (!LearningPlayerController)
+	{
+		return;
+	}
+
+	static bool bUseEnglishLanguage = false;
+	bUseEnglishLanguage = !bUseEnglishLanguage;
+
+	const FString TargetCulture =
+		bUseEnglishLanguage
+			? TEXT("en")
+			: TEXT("ru");
+
+	LearningPlayerController->SetGameLanguage(TargetCulture);
+
+	if (InteractionDetector)
+	{
+		InteractionDetector->RefreshFocusNow();
+	}
 }
 
 void ATPPlayerCharacter::Move(const FInputActionValue& Value)

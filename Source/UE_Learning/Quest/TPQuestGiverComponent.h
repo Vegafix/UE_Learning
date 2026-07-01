@@ -36,28 +36,28 @@ protected:
 	FText AvailablePrompt = NSLOCTEXT(
 		"Quest",
 		"QuestAvailablePrompt",
-		"Поговорить"
+		"ПОГОВОРИТЬ"
 	);
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Quest|Prompt")
 	FText ActivePrompt = NSLOCTEXT(
 		"Quest",
 		"QuestActivePrompt",
-		"Задание уже получено"
+		"ЗАДАНИЕ УЖЕ ПОЛУЧЕНО"
 	);
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Quest|Prompt")
 	FText TurnInPrompt = NSLOCTEXT(
 		"Quest",
 		"QuestTurnInPrompt",
-		"Вернуться с артефактом"
+		"ВЕРНУТЬСЯ С АРТЕФАКТОМ"
 	);
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Quest|Prompt")
 	FText CompletedPrompt = NSLOCTEXT(
 		"Quest",
 		"QuestCompletedPrompt",
-		"Спасибо, задание выполнено"
+		"СПАСИБО, ЗАДАНИЕ ВЫПОЛНЕНО"
 	);
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Quest|Offer")
@@ -76,28 +76,27 @@ protected:
 	FText QuestOfferTitle = NSLOCTEXT(
 		"Quest",
 		"DefaultQuestOfferTitle",
-		"Задание"
+		"ЗАДАНИЕ"
 	);
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Quest|Offer")
-	FText QuestOfferDescription = NSLOCTEXT(
+		FText QuestOfferDescription = NSLOCTEXT(
 		"Quest",
 		"DefaultQuestOfferDescription",
-		"Нужно обезвредить бандита."
+		"НУЖНО ПОЛУЧИТЬ АРТЕФАКТ, КОТОРЫЙ НАХОДИТСЯ У БАНДИТОВ"
 	);
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Quest|Offer")
 	FText AcceptButtonText = NSLOCTEXT(
 		"Quest",
 		"DefaultAcceptQuestText",
-		"Принять"
+		"ПРИНЯТЬ"
 	);
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Quest|Offer")
 	FText DeclineButtonText = NSLOCTEXT(
 		"Quest",
 		"DefaultDeclineQuestText",
-		"Позже"
+		"ПОЗЖЕ"
 	);
 
 private:

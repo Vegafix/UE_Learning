@@ -18,6 +18,7 @@ class UInteractionDetectorComponent;
 class UInteractionPromptWidget;
 class UTPInputConfig;
 class UTPHealthBarWidget;
+class UTPMessageScreenWidget;
 class UUserWidget;
 struct FInputActionValue;
 struct FOnAttributeChangeData;
@@ -150,10 +151,24 @@ private:
 	TObjectPtr<UTPHealthBarWidget> PlayerHealthWidget;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI", meta = (AllowPrivateAccess = "true"))
-	TSubclassOf<UUserWidget> PlayerDeathScreenWidgetClass;
+	TSubclassOf<UTPMessageScreenWidget> PlayerDeathScreenWidgetClass;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI|Death", meta = (AllowPrivateAccess = "true"))
+	FText DeathScreenTitle = NSLOCTEXT(
+		"Player",
+		"DeathScreenTitle",
+		"ВЫ ПОГИБЛИ"
+	);
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI|Death", meta = (AllowPrivateAccess = "true", MultiLine = "true"))
+	FText DeathScreenDescription = NSLOCTEXT(
+		"Player",
+		"DeathScreenDescription",
+		"ПЕРЕЗАПУСК"
+	);
 
 	UPROPERTY()
-	TObjectPtr<UUserWidget> PlayerDeathScreenWidget;
+	TObjectPtr<UTPMessageScreenWidget> PlayerDeathScreenWidget;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI|Aim", meta = (AllowPrivateAccess = "true"))
 	TSubclassOf<UUserWidget> CrosshairWidgetClass;
@@ -190,6 +205,7 @@ private:
 	void SpawnDefaultWeapon();
 	void SpawnModuleActor();
 	void SpawnPluginActor();
+	void ToggleGameLanguage();
 	void StartWalk();
 	void StopWalk();
 	void StartSprint();

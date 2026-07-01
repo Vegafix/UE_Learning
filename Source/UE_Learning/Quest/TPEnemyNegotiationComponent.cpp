@@ -54,37 +54,59 @@ void UTPEnemyNegotiationComponent::EndPlay(
 	Super::EndPlay(EndPlayReason);
 }
 
+bool UTPEnemyNegotiationComponent::CanStartNegotiation() const
+{
+	if (bNegotiationCompleted)
+	{
+		return false;
+	}
+
+	if (!ObjectiveManager)
+	{
+		return false;
+	}
+
+	if (!ObjectiveManager->IsObjectiveActive())
+	{
+		return false;
+	}
+
+	if (ObjectiveManager->IsObjectiveCompleted())
+	{
+		return false;
+	}
+
+	if (ObjectiveManager->IsQuestItemCollected())
+	{
+		return false;
+	}
+
+	if (OwnerNPC && OwnerNPC->IsDead())
+	{
+		return false;
+	}
+
+	return true;
+}
+
+FText UTPEnemyNegotiationComponent::GetCurrentPrompt() const
+{
+	if (OwnerNPC && OwnerNPC->IsDead())
+	{
+		return FText::GetEmpty();
+	}
+
+	return CanStartNegotiation()
+		? NegotiationPrompt
+		: NegotiationUnavailablePrompt;
+}
+
 void UTPEnemyNegotiationComponent::HandleNPCInteracted(
 	ATPNPCCharacter* NPC,
 	AActor* InstigatorActor
 )
 {
-	if (bNegotiationCompleted)
-	{
-		return;
-	}
-
-	if (!ObjectiveManager)
-	{
-		return;
-	}
-
-	if (!ObjectiveManager->IsObjectiveActive())
-	{
-		return;
-	}
-
-	if (ObjectiveManager->IsObjectiveCompleted())
-	{
-		return;
-	}
-
-	if (ObjectiveManager->IsQuestItemCollected())
-	{
-		return;
-	}
-
-	if (OwnerNPC && OwnerNPC->IsDead())
+	if (!CanStartNegotiation())
 	{
 		return;
 	}

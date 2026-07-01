@@ -17,6 +17,13 @@ UCLASS(abstract)
 class AUE_LearningPlayerController : public APlayerController
 {
 	GENERATED_BODY()
+
+public:
+	UFUNCTION(Exec)
+	void SetGameLanguage(const FString& CultureName);
+
+	UFUNCTION(Exec)
+	void PrintGameLanguage() const;
 	
 protected:
 

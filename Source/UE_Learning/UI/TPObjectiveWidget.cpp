@@ -32,7 +32,7 @@ void UTPObjectiveWidget::SetObjectiveState(
 	if (bCompleted)
 	{
 		ObjectiveProgressText->SetText(
-			NSLOCTEXT("Objective", "ObjectiveCompleted", "Цель выполнена")
+		NSLOCTEXT("Objective", "ObjectiveCompleted", "ЦЕЛЬ ВЫПОЛНЕНА")
 		);
 
 		return;
@@ -40,7 +40,7 @@ void UTPObjectiveWidget::SetObjectiveState(
 
 	ObjectiveProgressText->SetText(
 		FText::Format(
-			NSLOCTEXT("Objective", "TargetsRemainingFormat", "Осталось: {0} / {1}"),
+			NSLOCTEXT("Objective", "TargetsRemainingFormat", "ОСТАЛОСЬ: {0} / {1}"),
 			FText::AsNumber(RemainingTargets),
 			FText::AsNumber(TotalTargets)
 		)

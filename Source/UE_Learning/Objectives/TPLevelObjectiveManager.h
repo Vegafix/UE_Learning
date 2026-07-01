@@ -6,7 +6,7 @@
 
 class ATPNPCCharacter;
 class ATPQuestItemActor;
-class UUserWidget;
+class UTPMessageScreenWidget;
 class UTPObjectiveWidget;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnObjectiveCompletedSignature);
@@ -17,6 +17,20 @@ enum class ETPObjectiveCompletionMode : uint8
 	KillAllTargets UMETA(DisplayName = "Kill All Targets"),
 	CollectQuestItem UMETA(DisplayName = "Collect Quest Item"),
 	KillTargetsAndCollectQuestItem UMETA(DisplayName = "Kill Targets And Collect Quest Item")
+};
+
+struct FTPObjectiveTargetSnapshot
+{
+	int32 TargetIndex = INDEX_NONE;
+	bool bIsValid = false;
+	bool bIsDead = false;
+};
+
+struct FTPObjectiveProcessingResult
+{
+	int32 TotalTargetsCount = 0;
+	int32 AliveTargetsCount = 0;
+	int32 SelectedQuestItemDropperIndex = INDEX_NONE;
 };
 
 UCLASS()
@@ -82,10 +96,18 @@ protected:
 	bool bStartOnBeginPlay = false;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Objective")
-	FText ObjectiveTextBeforeArtifact = FText::FromString(TEXT("Получите артефакт у бандитов"));
+	FText ObjectiveTextBeforeArtifact = NSLOCTEXT(
+		"Objective",
+		"ObjectiveBeforeArtifact",
+		"ПОЛУЧИТЕ АРТЕФАКТ У БАНДИТОВ"
+	);
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Objective")
-	FText ObjectiveTextAfterArtifact = FText::FromString(TEXT("Вернитесь к исследователю"));
+	FText ObjectiveTextAfterArtifact = NSLOCTEXT(
+		"Objective",
+		"ObjectiveAfterArtifact",
+		"ВЕРНИТЕСЬ К ИССЛЕДОВАТЕЛЮ"
+	);
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Objective|UI")
 	TSubclassOf<UTPObjectiveWidget> ObjectiveWidgetClass;
@@ -94,7 +116,21 @@ protected:
 	int32 ObjectiveWidgetZOrder = 10;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Objective|UI")
-	TSubclassOf<UUserWidget> CompletionWidgetClass;
+	TSubclassOf<UTPMessageScreenWidget> CompletionWidgetClass;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Objective|UI")
+	FText CompletionTitle = NSLOCTEXT(
+		"Objective",
+		"LevelCompletedTitle",
+		"УРОВЕНЬ ЗАВЕРШЁН"
+	);
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Objective|UI")
+	FText CompletionDescription = NSLOCTEXT(
+		"Objective",
+		"LevelCompletedDescription",
+		"ПЕРЕЗАПУСК"
+	);
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Objective|UI")
 	int32 CompletionWidgetZOrder = 100;
@@ -110,12 +146,13 @@ private:
 		FName CollectedItemId
 	);
 
-	void SelectQuestItemDropper();
+	void ProcessObjectiveStartAsync();
+	void ApplyObjectiveProcessingResult(const FTPObjectiveProcessingResult& Result);
+	void BindObjectiveTargets();
+	void UnbindObjectiveTargets();
+
 	bool AreCompletionConditionsMet() const;
 	void TryCompleteObjective();
-
-	void InitializeObjectiveTargets();
-	void UnbindObjectiveTargets();
 
 	void CreateObjectiveWidget();
 	void UpdateObjectiveWidget();
@@ -127,7 +164,7 @@ private:
 	TObjectPtr<UTPObjectiveWidget> ObjectiveWidget;
 	
 	UPROPERTY()
-	TObjectPtr<UUserWidget> CompletionWidget;
+	TObjectPtr<UTPMessageScreenWidget> CompletionWidget;
 
 	int32 TotalTargetsCount = 0;
 	int32 AliveTargetsCount = 0;

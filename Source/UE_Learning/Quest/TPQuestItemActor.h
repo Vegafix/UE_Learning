@@ -48,7 +48,11 @@ protected:
 	TObjectPtr<ATPLevelObjectiveManager> ObjectiveManager;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Quest Item")
-	FText ItemDisplayName = FText::FromString(TEXT("Артефакт разбойника"));
+	FText ItemDisplayName = NSLOCTEXT(
+		"QuestItem",
+		"BanditArtifactDisplayName",
+		"АРТЕФАКТ БАНДИТА"
+	);
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Quest Item|Physics")
 	bool bSimulatePhysicsOnSpawn = true;

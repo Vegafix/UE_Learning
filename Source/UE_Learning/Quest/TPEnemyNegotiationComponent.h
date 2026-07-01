@@ -16,6 +16,12 @@ class UE_LEARNING_API UTPEnemyNegotiationComponent : public UActorComponent
 public:
 	UTPEnemyNegotiationComponent();
 
+	UFUNCTION(BlueprintPure, Category = "Negotiation")
+	FText GetCurrentPrompt() const;
+
+	UFUNCTION(BlueprintPure, Category = "Negotiation")
+	bool CanStartNegotiation() const;
+
 protected:
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
@@ -33,18 +39,46 @@ protected:
 	int32 NegotiationWidgetZOrder = 90;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Negotiation|Text")
-	FText NegotiationTitle = FText::FromString(TEXT("Переговоры с разбойником"));
+	FText NegotiationTitle = NSLOCTEXT(
+		"Quest",
+		"EnemyNegotiationTitle",
+		"ПЕРЕГОВОРЫ С БАНДИТОМ"
+	);
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Negotiation|Text", meta = (MultiLine = "true"))
-	FText NegotiationDescription = FText::FromString(
-		TEXT("Разбойник готов отдать артефакт, если вы позволите ему уйти.")
+	FText NegotiationDescription = NSLOCTEXT(
+		"Quest",
+		"EnemyNegotiationDescription",
+		"ВЕЖЛИВО ПОПРОСИТЬ БАНДИТА ОТДАТЬ АРТЕФАКТ"
 	);
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Negotiation|Text")
-	FText AcceptText = FText::FromString(TEXT("Забрать артефакт"));
+	FText AcceptText = NSLOCTEXT(
+		"Quest",
+		"EnemyNegotiationAcceptText",
+		"ЗАБРАТЬ АРТЕФАКТ"
+	);
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Negotiation|Text")
-	FText DeclineText = FText::FromString(TEXT("Сражаться"));
+	FText DeclineText = NSLOCTEXT(
+		"Quest",
+		"EnemyNegotiationDeclineText",
+		"СРАЖАТЬСЯ"
+	);
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Negotiation|Text")
+	FText NegotiationPrompt = NSLOCTEXT(
+		"Quest",
+		"EnemyNegotiationPrompt",
+		"ПЕРЕГОВОРИТЬ"
+	);
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Negotiation|Text")
+	FText NegotiationUnavailablePrompt = NSLOCTEXT(
+		"Quest",
+		"EnemyNegotiationUnavailablePrompt",
+		"ПЕРЕГОВОРЫ НЕДОСТУПНЫ"
+	);
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Negotiation|Input")
 	bool bPauseGameWhileNegotiating = true;
