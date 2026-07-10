@@ -36,9 +36,15 @@ void ATPLevelObjectiveManager::StartObjective()
 	bObjectiveActive = true;
 	bQuestItemCollected = false;
 	bQuestItemDropped = false;
+	CollectedQuestItemCount = 0;
 	SelectedQuestItemDropper = nullptr;
 	TotalTargetsCount = 0;
 	AliveTargetsCount = 0;
+
+	for (FTPRequiredQuestItem& RequiredItem : RequiredQuestItems)
+	{
+		RequiredItem.CollectedCount = 0;
+	}
 
 	ProcessObjectiveStartAsync();
 }
@@ -60,21 +66,104 @@ void ATPLevelObjectiveManager::RegisterQuestItemCollectedById(FName CollectedIte
 		return;
 	}
 
+	if (HasRequiredQuestItemList())
+	{
+		bool bRegisteredItem = false;
+
+		for (FTPRequiredQuestItem& RequiredItem : RequiredQuestItems)
+		{
+			if (RequiredItem.ItemId != CollectedItemId)
+			{
+				continue;
+			}
+
+			const int32 SafeRequiredCount =
+				FMath::Max(RequiredItem.RequiredCount, 1);
+
+			if (RequiredItem.CollectedCount >= SafeRequiredCount)
+			{
+				return;
+			}
+
+			RequiredItem.CollectedCount = FMath::Clamp(
+				RequiredItem.CollectedCount + 1,
+				0,
+				SafeRequiredCount
+			);
+
+			bRegisteredItem = true;
+			break;
+		}
+
+		if (!bRegisteredItem)
+		{
+			return;
+		}
+
+		bQuestItemCollected = AreAllRequiredQuestItemsCollected();
+
+		UE_LOG(
+			LogTemp,
+			Display,
+			TEXT("Objective quest item collected: %s Count=%d / %d"),
+			*CollectedItemId.ToString(),
+			GetCollectedQuestItemTotalCount(),
+			GetRequiredQuestItemTotalCount()
+		);
+
+		UpdateObjectiveWidget();
+
+		if (!bQuestItemCollected)
+		{
+			return;
+		}
+
+		if (bRequireReturnToQuestGiver)
+		{
+			return;
+		}
+
+		TryCompleteObjective();
+		return;
+	}
+
 	if (CollectedItemId != RequiredQuestItemId)
 	{
 		return;
 	}
 
-	bQuestItemCollected = true;
+	if (bQuestItemCollected)
+	{
+		return;
+	}
+
+	const int32 SafeRequiredQuestItemCount =
+		FMath::Max(RequiredQuestItemCount, 1);
+
+	CollectedQuestItemCount = FMath::Clamp(
+		CollectedQuestItemCount + 1,
+		0,
+		SafeRequiredQuestItemCount
+	);
+
+	bQuestItemCollected =
+		CollectedQuestItemCount >= SafeRequiredQuestItemCount;
 
 	UE_LOG(
 		LogTemp,
 		Display,
-		TEXT("Objective quest item collected: %s"),
-		*CollectedItemId.ToString()
+		TEXT("Objective quest item collected: %s Count=%d / %d"),
+		*CollectedItemId.ToString(),
+		CollectedQuestItemCount,
+		SafeRequiredQuestItemCount
 	);
 
 	UpdateObjectiveWidget();
+
+	if (!bQuestItemCollected)
+	{
+		return;
+	}
 
 	if (bRequireReturnToQuestGiver)
 	{
@@ -117,6 +206,71 @@ bool ATPLevelObjectiveManager::IsQuestItemCollected() const
 	return bQuestItemCollected;
 }
 
+bool ATPLevelObjectiveManager::HasRequiredQuestItemList() const
+{
+	return !RequiredQuestItems.IsEmpty();
+}
+
+bool ATPLevelObjectiveManager::AreAllRequiredQuestItemsCollected() const
+{
+	if (!HasRequiredQuestItemList())
+	{
+		return bQuestItemCollected;
+	}
+
+	for (const FTPRequiredQuestItem& RequiredItem : RequiredQuestItems)
+	{
+		const int32 SafeRequiredCount = FMath::Max(RequiredItem.RequiredCount, 1);
+
+		if (RequiredItem.CollectedCount < SafeRequiredCount)
+		{
+			return false;
+		}
+	}
+
+	return true;
+}
+
+int32 ATPLevelObjectiveManager::GetRequiredQuestItemTotalCount() const
+{
+	if (!HasRequiredQuestItemList())
+	{
+		return FMath::Max(RequiredQuestItemCount, 1);
+	}
+
+	int32 TotalCount = 0;
+
+	for (const FTPRequiredQuestItem& RequiredItem : RequiredQuestItems)
+	{
+		TotalCount += FMath::Max(RequiredItem.RequiredCount, 1);
+	}
+
+	return TotalCount;
+}
+
+int32 ATPLevelObjectiveManager::GetCollectedQuestItemTotalCount() const
+{
+	if (!HasRequiredQuestItemList())
+	{
+		return CollectedQuestItemCount;
+	}
+
+	int32 TotalCount = 0;
+
+	for (const FTPRequiredQuestItem& RequiredItem : RequiredQuestItems)
+	{
+		const int32 SafeRequiredCount = FMath::Max(RequiredItem.RequiredCount, 1);
+
+		TotalCount += FMath::Clamp(
+			RequiredItem.CollectedCount,
+			0,
+			SafeRequiredCount
+		);
+	}
+
+	return TotalCount;
+}
+
 bool ATPLevelObjectiveManager::CanTurnInObjective() const
 {
 	return bObjectiveActive
@@ -137,7 +291,7 @@ void ATPLevelObjectiveManager::TurnInObjective()
 
 bool ATPLevelObjectiveManager::CanDropQuestItemFrom(AActor* SourceActor) const
 {
-	if (!bObjectiveActive || bObjectiveCompleted || bQuestItemDropped)
+	if (!bObjectiveActive || bObjectiveCompleted || bQuestItemDropped || bQuestItemCollected)
 	{
 		return false;
 	}
@@ -169,6 +323,71 @@ void ATPLevelObjectiveManager::NotifyQuestItemDroppedFrom(AActor* SourceActor)
 		Display,
 		TEXT("Quest item drop confirmed from: %s"),
 		*GetNameSafe(SourceActor)
+	);
+}
+
+void ATPLevelObjectiveManager::SpawnQuestItemDropFrom(AActor* SourceActor)
+{
+	if (!CanDropQuestItemFrom(SourceActor))
+	{
+		return;
+	}
+
+	if (!DroppedQuestItemClass)
+	{
+		UE_LOG(
+			LogTemp,
+			Warning,
+			TEXT("Quest item drop failed. DroppedQuestItemClass is not assigned.")
+		);
+
+		return;
+	}
+
+	UWorld* World = GetWorld();
+	if (!World)
+	{
+		return;
+	}
+
+	const FVector SpawnLocation =
+		SourceActor->GetActorLocation() + QuestItemDropOffset;
+
+	const FRotator SpawnRotation =
+		FRotator::ZeroRotator;
+
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.Owner = this;
+
+	ATPQuestItemActor* SpawnedQuestItem =
+		World->SpawnActor<ATPQuestItemActor>(
+			DroppedQuestItemClass,
+			SpawnLocation,
+			SpawnRotation,
+			SpawnParams
+		);
+
+	if (!SpawnedQuestItem)
+	{
+		UE_LOG(
+			LogTemp,
+			Warning,
+			TEXT("Quest item drop failed. SpawnActor returned nullptr.")
+		);
+
+		return;
+	}
+
+	SpawnedQuestItem->SetObjectiveManager(this);
+
+	NotifyQuestItemDroppedFrom(SourceActor);
+
+	UE_LOG(
+		LogTemp,
+		Display,
+		TEXT("Quest item dropped from: %s Item=%s"),
+		*GetNameSafe(SourceActor),
+		*GetNameSafe(SpawnedQuestItem)
 	);
 }
 
@@ -391,6 +610,8 @@ void ATPLevelObjectiveManager::HandleTargetDeath(AActor* DeadActor)
 		return;
 	}
 
+	SpawnQuestItemDropFrom(DeadNPC);
+
 	AliveTargetsCount = FMath::Max(AliveTargetsCount - 1, 0);
 
 	UpdateObjectiveWidget();
@@ -476,13 +697,48 @@ void ATPLevelObjectiveManager::UpdateObjectiveWidget()
 		return;
 	}
 
-	const FText CurrentObjectiveText =
-		bQuestItemCollected
-			? ObjectiveTextAfterArtifact
-			: ObjectiveTextBeforeArtifact;
-	
+	const bool bUsesQuestItem =
+		CompletionMode == ETPObjectiveCompletionMode::CollectQuestItem
+		|| CompletionMode == ETPObjectiveCompletionMode::KillTargetsAndCollectQuestItem;
+
+	if (bUsesQuestItem)
+	{
+		if (bQuestItemCollected)
+		{
+			ObjectiveWidget->SetObjectiveStateText(
+				ObjectiveTextAfterArtifact,
+				NSLOCTEXT(
+					"Objective",
+					"QuestItemsCollected",
+					"ПРЕДМЕТЫ СОБРАНЫ"
+				),
+				bObjectiveCompleted,
+				true
+			);
+
+			return;
+		}
+
+		ObjectiveWidget->SetObjectiveStateText(
+			ObjectiveTextBeforeArtifact,
+			FText::Format(
+				NSLOCTEXT(
+					"Objective",
+					"QuestItemsProgressFormat",
+					"ПРЕДМЕТЫ: {0} / {1}"
+				),
+				FText::AsNumber(GetCollectedQuestItemTotalCount()),
+				FText::AsNumber(GetRequiredQuestItemTotalCount())
+			),
+			bObjectiveCompleted,
+			true
+		);
+
+		return;
+	}
+
 	ObjectiveWidget->SetObjectiveState(
-		CurrentObjectiveText,
+		ObjectiveTextBeforeArtifact,
 		AliveTargetsCount,
 		TotalTargetsCount,
 		bObjectiveCompleted,
@@ -534,8 +790,10 @@ void ATPLevelObjectiveManager::ShowCompletionWidget()
 
 	CompletionWidget->SetMessageText(
 		CompletionTitle,
-		CompletionDescription
-	);
+		CompletionDescription,
+		CompletionMainMenuText,
+		CompletionQuitText
+);
 
 	CompletionWidget->AddToViewport(CompletionWidgetZOrder);
 

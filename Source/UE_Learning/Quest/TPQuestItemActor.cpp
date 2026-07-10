@@ -11,6 +11,7 @@ ATPQuestItemActor::ATPQuestItemActor()
 	"ЗАБРАТЬ АРТЕФАКТ"
 	);
 	bUseHighlight = true;
+	bAlwaysShowHighlight = true;
 	FocusedStencilValue = 2;
 }
 

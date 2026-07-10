@@ -20,6 +20,14 @@ public:
 		bool bCompleted,
 		bool bShowProgress = true
 	);
+	
+	UFUNCTION(BlueprintCallable, Category = "Objective")
+	void SetObjectiveStateText(
+		const FText& ObjectiveTitle,
+		const FText& ProgressText,
+		bool bCompleted,
+		bool bShowProgress = true
+	);
 
 protected:
 	UPROPERTY(BlueprintReadOnly, meta = (BindWidget))

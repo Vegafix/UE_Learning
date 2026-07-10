@@ -214,7 +214,9 @@ void ATPPlayerCharacter::HandleDeath()
 
 	PlayerDeathScreenWidget->SetMessageText(
 		DeathScreenTitle,
-		DeathScreenDescription
+		DeathScreenDescription,
+		DeathScreenMainMenuText,
+		DeathScreenQuitText
 	);
 
 	PlayerDeathScreenWidget->AddToViewport(100);

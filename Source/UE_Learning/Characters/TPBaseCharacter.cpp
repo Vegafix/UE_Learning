@@ -8,6 +8,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Audio/TPCharacterAudioComponent.h"
+#include "TimerManager.h"
 
 ATPBaseCharacter::ATPBaseCharacter()
 {
@@ -120,6 +121,8 @@ void ATPBaseCharacter::HandleDeath()
 	}
 
 	bIsDead = true;
+	
+	StopHealthRegeneration();
 
 	if (AbilitySystemComponent)
 	{
@@ -143,9 +146,102 @@ void ATPBaseCharacter::HandleDeath()
 	Display,
 	TEXT("Character died: %s"),
 	*GetNameSafe(this)
-);
+	);
 
 	OnCharacterDeath.Broadcast(this);
 
 	OnDeath();
+}
+
+void ATPBaseCharacter::NotifyDamageTakenForRegeneration()
+{
+	if (!bEnableHealthRegeneration || bIsDead || !AttributeSet)
+	{
+		return;
+	}
+
+	UWorld* World = GetWorld();
+	if (!World)
+	{
+		return;
+	}
+
+	World->GetTimerManager().ClearTimer(HealthRegenerationDelayTimerHandle);
+	World->GetTimerManager().ClearTimer(HealthRegenerationTickTimerHandle);
+
+	if (AttributeSet->GetHealth() <= 0.0f || AttributeSet->GetHealth() >= AttributeSet->GetMaxHealth())
+	{
+		return;
+	}
+
+	World->GetTimerManager().SetTimer(
+		HealthRegenerationDelayTimerHandle,
+		this,
+		&ATPBaseCharacter::StartHealthRegeneration,
+		HealthRegenerationDelay,
+		false
+	);
+}
+
+void ATPBaseCharacter::StartHealthRegeneration()
+{
+	if (!bEnableHealthRegeneration || bIsDead || !AttributeSet)
+	{
+		return;
+	}
+
+	UWorld* World = GetWorld();
+	if (!World)
+	{
+		return;
+	}
+
+	World->GetTimerManager().SetTimer(
+		HealthRegenerationTickTimerHandle,
+		this,
+		&ATPBaseCharacter::TickHealthRegeneration,
+		HealthRegenerationTickInterval,
+		true
+	);
+}
+
+void ATPBaseCharacter::StopHealthRegeneration()
+{
+	UWorld* World = GetWorld();
+	if (!World)
+	{
+		return;
+	}
+
+	World->GetTimerManager().ClearTimer(HealthRegenerationDelayTimerHandle);
+	World->GetTimerManager().ClearTimer(HealthRegenerationTickTimerHandle);
+}
+
+void ATPBaseCharacter::TickHealthRegeneration()
+{
+	if (!bEnableHealthRegeneration || bIsDead || !AttributeSet || !AbilitySystemComponent)
+	{
+		StopHealthRegeneration();
+		return;
+	}
+
+	const float CurrentHealth = AttributeSet->GetHealth();
+	const float MaxHealth = AttributeSet->GetMaxHealth();
+
+	if (CurrentHealth >= MaxHealth)
+	{
+		StopHealthRegeneration();
+		return;
+	}
+
+	const float NewHealth = FMath::Clamp(
+		CurrentHealth + HealthRegenerationRate * HealthRegenerationTickInterval,
+		0.0f,
+		MaxHealth
+	);
+
+	AbilitySystemComponent->SetNumericAttributeBase(
+		UTPAttributeSet::GetHealthAttribute(),
+		NewHealth
+	);
 }

@@ -46,3 +46,41 @@ void UTPObjectiveWidget::SetObjectiveState(
 		)
 	);
 }
+
+void UTPObjectiveWidget::SetObjectiveStateText(
+	const FText& ObjectiveTitle,
+	const FText& ProgressText,
+	bool bCompleted,
+	bool bShowProgress
+)
+{
+	if (ObjectiveTitleText)
+	{
+		ObjectiveTitleText->SetText(ObjectiveTitle);
+	}
+
+	if (!ObjectiveProgressText)
+	{
+		return;
+	}
+
+	ObjectiveProgressText->SetVisibility(
+		bShowProgress ? ESlateVisibility::Visible : ESlateVisibility::Collapsed
+	);
+
+	if (!bShowProgress)
+	{
+		return;
+	}
+
+	if (bCompleted)
+	{
+		ObjectiveProgressText->SetText(
+			NSLOCTEXT("Objective", "ObjectiveCompleted", "ЦЕЛЬ ВЫПОЛНЕНА")
+		);
+
+		return;
+	}
+
+	ObjectiveProgressText->SetText(ProgressText);
+}

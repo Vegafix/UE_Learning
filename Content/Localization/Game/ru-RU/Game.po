@@ -4,8 +4,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: Game\n"
-"POT-Creation-Date: 2026-07-01 17:01\n"
-"PO-Revision-Date: 2026-07-01 17:01\n"
+"POT-Creation-Date: 2026-07-10 15:29\n"
+"PO-Revision-Date: 2026-07-10 15:29\n"
 "Language-Team: \n"
 "Language: ru-RU\n"
 "MIME-Version: 1.0\n"
@@ -27,33 +27,75 @@ msgctxt "Player,DeathScreenDescription"
 msgid "ПЕРЕЗАПУСК"
 msgstr "ПЕРЕЗАПУСК"
 
+#. Key:	DeathScreenMainMenuText
+#. SourceLocation:	Source/UE_Learning/Characters/TPPlayerCharacter.h(176)
+#: Source/UE_Learning/Characters/TPPlayerCharacter.h(176)
+msgctxt "Player,DeathScreenMainMenuText"
+msgid "ГЛАВНОЕ МЕНЮ"
+msgstr "ГЛАВНОЕ МЕНЮ"
+
+#. Key:	DeathScreenQuitText
+#. SourceLocation:	Source/UE_Learning/Characters/TPPlayerCharacter.h(188)
+#: Source/UE_Learning/Characters/TPPlayerCharacter.h(188)
+msgctxt "Player,DeathScreenQuitText"
+msgid "ВЫХОД"
+msgstr "ВЫХОД"
+
+#. Key:	QuestItemsCollected
+#. SourceLocation:	Source/UE_Learning/Objectives/TPLevelObjectiveManager.cpp(710)
+#: Source/UE_Learning/Objectives/TPLevelObjectiveManager.cpp(710)
+msgctxt "Objective,QuestItemsCollected"
+msgid "ПРЕДМЕТЫ СОБРАНЫ"
+msgstr "ПРЕДМЕТЫ СОБРАНЫ"
+
+#. Key:	QuestItemsProgressFormat
+#. SourceLocation:	Source/UE_Learning/Objectives/TPLevelObjectiveManager.cpp(725)
+#: Source/UE_Learning/Objectives/TPLevelObjectiveManager.cpp(725)
+msgctxt "Objective,QuestItemsProgressFormat"
+msgid "ПРЕДМЕТЫ: {0} / {1}"
+msgstr "ПРЕДМЕТЫ: {0} / {1}"
+
+#. Key:	ObjectiveBeforeArtifact
+#. SourceLocation:	Source/UE_Learning/Objectives/TPLevelObjectiveManager.h(129)
+#: Source/UE_Learning/Objectives/TPLevelObjectiveManager.h(129)
+msgctxt "Objective,ObjectiveBeforeArtifact"
+msgid "ПОЛУЧИТЕ АРТЕФАКТ У БАНДИТОВ"
+msgstr "ПОЛУЧИТЕ АРТЕФАКТ У БАНДИТОВ"
+
 #. Key:	ObjectiveAfterArtifact
-#. SourceLocation:	Source/UE_Learning/Objectives/TPLevelObjectiveManager.h(106)
-#: Source/UE_Learning/Objectives/TPLevelObjectiveManager.h(106)
+#. SourceLocation:	Source/UE_Learning/Objectives/TPLevelObjectiveManager.h(136)
+#: Source/UE_Learning/Objectives/TPLevelObjectiveManager.h(136)
 msgctxt "Objective,ObjectiveAfterArtifact"
 msgid "ВЕРНИТЕСЬ К ИССЛЕДОВАТЕЛЮ"
 msgstr "ВЕРНИТЕСЬ К ИССЛЕДОВАТЕЛЮ"
 
 #. Key:	LevelCompletedTitle
-#. SourceLocation:	Source/UE_Learning/Objectives/TPLevelObjectiveManager.h(122)
-#: Source/UE_Learning/Objectives/TPLevelObjectiveManager.h(122)
+#. SourceLocation:	Source/UE_Learning/Objectives/TPLevelObjectiveManager.h(152)
+#: Source/UE_Learning/Objectives/TPLevelObjectiveManager.h(152)
 msgctxt "Objective,LevelCompletedTitle"
 msgid "УРОВЕНЬ ЗАВЕРШЁН"
 msgstr "УРОВЕНЬ ЗАВЕРШЁН"
 
 #. Key:	LevelCompletedDescription
-#. SourceLocation:	Source/UE_Learning/Objectives/TPLevelObjectiveManager.h(129)
-#: Source/UE_Learning/Objectives/TPLevelObjectiveManager.h(129)
+#. SourceLocation:	Source/UE_Learning/Objectives/TPLevelObjectiveManager.h(159)
+#: Source/UE_Learning/Objectives/TPLevelObjectiveManager.h(159)
 msgctxt "Objective,LevelCompletedDescription"
 msgid "ПЕРЕЗАПУСК"
 msgstr "ПЕРЕЗАПУСК"
 
-#. Key:	ObjectiveBeforeArtifact
-#. SourceLocation:	Source/UE_Learning/Objectives/TPLevelObjectiveManager.h(99)
-#: Source/UE_Learning/Objectives/TPLevelObjectiveManager.h(99)
-msgctxt "Objective,ObjectiveBeforeArtifact"
-msgid "ПОЛУЧИТЕ АРТЕФАКТ У БАНДИТОВ"
-msgstr "ПОЛУЧИТЕ АРТЕФАКТ У БАНДИТОВ"
+#. Key:	LevelCompletedMainMenuText
+#. SourceLocation:	Source/UE_Learning/Objectives/TPLevelObjectiveManager.h(166)
+#: Source/UE_Learning/Objectives/TPLevelObjectiveManager.h(166)
+msgctxt "Objective,LevelCompletedMainMenuText"
+msgid "ГЛАВНОЕ МЕНЮ"
+msgstr "ГЛАВНОЕ МЕНЮ"
+
+#. Key:	LevelCompletedQuitText
+#. SourceLocation:	Source/UE_Learning/Objectives/TPLevelObjectiveManager.h(173)
+#: Source/UE_Learning/Objectives/TPLevelObjectiveManager.h(173)
+msgctxt "Objective,LevelCompletedQuitText"
+msgid "ВЫХОД"
+msgstr "ВЫХОД"
 
 #. Key:	EnemyNegotiationTitle
 #. SourceLocation:	Source/UE_Learning/Quest/TPEnemyNegotiationComponent.h(42)
@@ -133,22 +175,22 @@ msgid "ЗАДАНИЕ"
 msgstr "ЗАДАНИЕ"
 
 #. Key:	DefaultQuestOfferDescription
-#. SourceLocation:	Source/UE_Learning/Quest/TPQuestGiverComponent.h(82)
-#: Source/UE_Learning/Quest/TPQuestGiverComponent.h(82)
+#. SourceLocation:	Source/UE_Learning/Quest/TPQuestGiverComponent.h(83)
+#: Source/UE_Learning/Quest/TPQuestGiverComponent.h(83)
 msgctxt "Quest,DefaultQuestOfferDescription"
 msgid "НУЖНО ПОЛУЧИТЬ АРТЕФАКТ, КОТОРЫЙ НАХОДИТСЯ У БАНДИТОВ"
 msgstr "НУЖНО ПОЛУЧИТЬ АРТЕФАКТ, КОТОРЫЙ НАХОДИТСЯ У БАНДИТОВ"
 
 #. Key:	DefaultAcceptQuestText
-#. SourceLocation:	Source/UE_Learning/Quest/TPQuestGiverComponent.h(89)
-#: Source/UE_Learning/Quest/TPQuestGiverComponent.h(89)
+#. SourceLocation:	Source/UE_Learning/Quest/TPQuestGiverComponent.h(90)
+#: Source/UE_Learning/Quest/TPQuestGiverComponent.h(90)
 msgctxt "Quest,DefaultAcceptQuestText"
 msgid "ПРИНЯТЬ"
 msgstr "ПРИНЯТЬ"
 
 #. Key:	DefaultDeclineQuestText
-#. SourceLocation:	Source/UE_Learning/Quest/TPQuestGiverComponent.h(96)
-#: Source/UE_Learning/Quest/TPQuestGiverComponent.h(96)
+#. SourceLocation:	Source/UE_Learning/Quest/TPQuestGiverComponent.h(97)
+#: Source/UE_Learning/Quest/TPQuestGiverComponent.h(97)
 msgctxt "Quest,DefaultDeclineQuestText"
 msgid "ПОЗЖЕ"
 msgstr "ПОЗЖЕ"

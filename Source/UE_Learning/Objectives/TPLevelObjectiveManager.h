@@ -33,6 +33,21 @@ struct FTPObjectiveProcessingResult
 	int32 SelectedQuestItemDropperIndex = INDEX_NONE;
 };
 
+USTRUCT(BlueprintType)
+struct FTPRequiredQuestItem
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Quest Item")
+	FName ItemId = NAME_None;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Quest Item", meta = (ClampMin = "1", UIMin = "1"))
+	int32 RequiredCount = 1;
+
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Quest Item")
+	int32 CollectedCount = 0;
+};
+
 UCLASS()
 class UE_LEARNING_API ATPLevelObjectiveManager : public AActor
 {
@@ -86,8 +101,20 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Objective|Quest Item")
 	FName RequiredQuestItemId = FName(TEXT("BanditArtifact"));
 	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Objective|Quest Item", meta = (ClampMin = "1", UIMin = "1"))
+	int32 RequiredQuestItemCount = 1;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Objective|Quest Item")
+	TArray<FTPRequiredQuestItem> RequiredQuestItems;
+	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Objective|Quest Item")
 	bool bSelectRandomQuestItemDropper = true;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Objective|Quest Item")
+	TSubclassOf<ATPQuestItemActor> DroppedQuestItemClass;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Objective|Quest Item")
+	FVector QuestItemDropOffset = FVector(0.0f, 0.0f, 60.0f);
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Objective|Turn In")
 	bool bRequireReturnToQuestGiver = true;
@@ -136,6 +163,20 @@ protected:
 	);
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Objective|UI")
+	FText CompletionMainMenuText = NSLOCTEXT(
+		"Objective",
+		"LevelCompletedMainMenuText",
+		"ГЛАВНОЕ МЕНЮ"
+	);
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Objective|UI")
+	FText CompletionQuitText = NSLOCTEXT(
+		"Objective",
+		"LevelCompletedQuitText",
+		"ВЫХОД"
+	);
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Objective|UI")
 	int32 CompletionWidgetZOrder = 100;
 
 private:
@@ -153,7 +194,13 @@ private:
 	void ApplyObjectiveProcessingResult(const FTPObjectiveProcessingResult& Result);
 	void BindObjectiveTargets();
 	void UnbindObjectiveTargets();
+	void SpawnQuestItemDropFrom(AActor* SourceActor);
 
+	bool HasRequiredQuestItemList() const;
+	bool AreAllRequiredQuestItemsCollected() const;
+	int32 GetRequiredQuestItemTotalCount() const;
+	int32 GetCollectedQuestItemTotalCount() const;
+	
 	bool AreCompletionConditionsMet() const;
 	void TryCompleteObjective();
 
@@ -175,6 +222,7 @@ private:
 	UPROPERTY()
 	TObjectPtr<AActor> SelectedQuestItemDropper;
 
+	int32 CollectedQuestItemCount = 0;
 	bool bQuestItemDropped = false;
 	bool bQuestItemCollected = false;
 	bool bObjectiveActive = false;

@@ -166,6 +166,30 @@ private:
 		"DeathScreenDescription",
 		"ПЕРЕЗАПУСК"
 	);
+	
+	UPROPERTY(
+	EditDefaultsOnly,
+	BlueprintReadOnly,
+	Category = "UI|Death",
+	meta = (AllowPrivateAccess = "true")
+)
+	FText DeathScreenMainMenuText = NSLOCTEXT(
+		"Player",
+		"DeathScreenMainMenuText",
+		"ГЛАВНОЕ МЕНЮ"
+	);
+
+	UPROPERTY(
+		EditDefaultsOnly,
+		BlueprintReadOnly,
+		Category = "UI|Death",
+		meta = (AllowPrivateAccess = "true")
+	)
+	FText DeathScreenQuitText = NSLOCTEXT(
+		"Player",
+		"DeathScreenQuitText",
+		"ВЫХОД"
+	);
 
 	UPROPERTY()
 	TObjectPtr<UTPMessageScreenWidget> PlayerDeathScreenWidget;

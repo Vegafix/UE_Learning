@@ -24,6 +24,16 @@ AInteractableActor::AInteractableActor()
 	MeshComponent->SetRenderCustomDepth(false);
 }
 
+void AInteractableActor::BeginPlay()
+{
+	Super::BeginPlay();
+
+	if (bAlwaysShowHighlight)
+	{
+		SetFocusedHighlight(true);
+	}
+}
+
 void AInteractableActor::Interact_Implementation(AActor* InstigatorActor)
 {
 	UE_LOG(
@@ -51,7 +61,7 @@ void AInteractableActor::OnFocused_Implementation(AActor* InstigatorActor)
 
 void AInteractableActor::OnUnfocused_Implementation(AActor* InstigatorActor)
 {
-	SetFocusedHighlight(false);
+	SetFocusedHighlight(bAlwaysShowHighlight);
 }
 
 void AInteractableActor::SetFocusedHighlight(bool bFocused)

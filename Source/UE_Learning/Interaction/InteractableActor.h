@@ -30,6 +30,8 @@ public:
 	virtual void OnUnfocused_Implementation(AActor* InstigatorActor) override;
 
 protected:
+	virtual void BeginPlay() override;
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Interaction")
 	TObjectPtr<UStaticMeshComponent> MeshComponent;
 
@@ -44,6 +46,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interaction|Highlight")
 	bool bUseHighlight = true;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interaction|Highlight")
+	bool bAlwaysShowHighlight = false;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interaction|Highlight",
 	meta = (ClampMin = "1", ClampMax = "255", UIMin = "1", UIMax = "255"))

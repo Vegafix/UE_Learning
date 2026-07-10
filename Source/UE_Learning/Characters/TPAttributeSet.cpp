@@ -34,6 +34,11 @@ void UTPAttributeSet::PostGameplayEffectExecute(
 			);
 
 			SetHealth(NewHealth);
+			
+			if (ATPBaseCharacter* TargetCharacter = Cast<ATPBaseCharacter>(GetOwningActor()))
+			{
+				TargetCharacter->NotifyDamageTakenForRegeneration();
+			}
 
 			UE_LOG(
 				LogTemp,

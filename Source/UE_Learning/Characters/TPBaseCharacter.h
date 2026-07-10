@@ -39,6 +39,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Character|State")
 	virtual void HandleDeath();
 	
+	UFUNCTION(BlueprintCallable, Category = "Character|Health")
+	void NotifyDamageTakenForRegeneration();
+	
 	UPROPERTY(BlueprintAssignable, Category = "Character|State")
 	FTPCharacterDeathSignature OnCharacterDeath;
 
@@ -72,7 +75,26 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Team")
 	FGenericTeamId TeamId;
 	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character|Health Regeneration")
+	bool bEnableHealthRegeneration = false;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character|Health Regeneration", meta = (ClampMin = "0.0", UIMin = "0.0"))
+	float HealthRegenerationDelay = 3.0f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character|Health Regeneration", meta = (ClampMin = "0.0", UIMin = "0.0"))
+	float HealthRegenerationRate = 12.0f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character|Health Regeneration", meta = (ClampMin = "0.01", UIMin = "0.01"))
+	float HealthRegenerationTickInterval = 0.1f;
+	
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Character|State")
 	bool bIsDead = false;
 	
+private:
+	void StartHealthRegeneration();
+	void StopHealthRegeneration();
+	void TickHealthRegeneration();
+
+	FTimerHandle HealthRegenerationDelayTimerHandle;
+	FTimerHandle HealthRegenerationTickTimerHandle;
 };

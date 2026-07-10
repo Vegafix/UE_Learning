@@ -15,7 +15,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Message")
 	void SetMessageText(
 		const FText& InTitle,
-		const FText& InDescription
+		const FText& InRestartText,
+		const FText& InMainMenuText,
+		const FText& InQuitText
 	);
 
 protected:
@@ -24,4 +26,10 @@ protected:
 
 	UPROPERTY(BlueprintReadOnly, meta = (BindWidgetOptional))
 	TObjectPtr<UTextBlock> DescriptionText;
+	
+	UPROPERTY(BlueprintReadOnly, meta = (BindWidgetOptional))
+	TObjectPtr<UTextBlock> MainMenuText;
+
+	UPROPERTY(BlueprintReadOnly, meta = (BindWidgetOptional))
+	TObjectPtr<UTextBlock> QuitText;
 };

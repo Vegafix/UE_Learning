@@ -4,7 +4,9 @@
 
 void UTPMessageScreenWidget::SetMessageText(
 	const FText& InTitle,
-	const FText& InDescription
+	const FText& InRestartText,
+	const FText& InMainMenuText,
+	const FText& InQuitText
 )
 {
 	if (TitleText)
@@ -14,6 +16,16 @@ void UTPMessageScreenWidget::SetMessageText(
 
 	if (DescriptionText)
 	{
-		DescriptionText->SetText(InDescription);
+		DescriptionText->SetText(InRestartText);
+	}
+
+	if (MainMenuText)
+	{
+		MainMenuText->SetText(InMainMenuText);
+	}
+
+	if (QuitText)
+	{
+		QuitText->SetText(InQuitText);
 	}
 }
