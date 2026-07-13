@@ -113,6 +113,11 @@ bool ATPBaseCharacter::IsDead() const
 	return bIsDead;
 }
 
+bool ATPBaseCharacter::CanReceiveGameplayDamage() const
+{
+	return bCanReceiveGameplayDamage && !bIsDead;
+}
+
 void ATPBaseCharacter::HandleDeath()
 {
 	if (bIsDead)

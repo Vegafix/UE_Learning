@@ -35,6 +35,9 @@ public:
 	
 	UFUNCTION(BlueprintPure, Category = "Character|State")
 	bool IsDead() const;
+	
+	UFUNCTION(BlueprintPure, Category = "Character|Damage")
+	bool CanReceiveGameplayDamage() const;
 
 	UFUNCTION(BlueprintCallable, Category = "Character|State")
 	virtual void HandleDeath();
@@ -74,6 +77,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Team")
 	FGenericTeamId TeamId;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character|Damage")
+	bool bCanReceiveGameplayDamage = true;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character|Health Regeneration")
 	bool bEnableHealthRegeneration = false;

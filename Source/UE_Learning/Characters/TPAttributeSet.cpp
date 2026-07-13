@@ -19,7 +19,7 @@ void UTPAttributeSet::PostGameplayEffectExecute(
 		if (const ATPBaseCharacter* TargetCharacter =
 			Cast<ATPBaseCharacter>(GetOwningActor()))
 		{
-			if (TargetCharacter->IsDead())
+			if (!TargetCharacter->CanReceiveGameplayDamage())
 			{
 				return;
 			}

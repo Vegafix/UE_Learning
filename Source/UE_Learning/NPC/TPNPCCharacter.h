@@ -69,6 +69,9 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "NPC|UI")
 	TObjectPtr<UWidgetComponent> HealthBarWidgetComponent;
 	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "NPC|UI")
+	bool bShowHealthBar = true;
+	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "NPC|Audio")
 	TObjectPtr<USoundBase> DeadBodyFallSound;
 

@@ -19,6 +19,7 @@ class UInteractionPromptWidget;
 class UTPInputConfig;
 class UTPHealthBarWidget;
 class UTPMessageScreenWidget;
+class UTPPauseMenuWidget;
 class UUserWidget;
 struct FInputActionValue;
 struct FOnAttributeChangeData;
@@ -194,6 +195,12 @@ private:
 	UPROPERTY()
 	TObjectPtr<UTPMessageScreenWidget> PlayerDeathScreenWidget;
 	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI|Pause", meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<UTPPauseMenuWidget> PauseMenuWidgetClass;
+
+	UPROPERTY()
+	TObjectPtr<UTPPauseMenuWidget> PauseMenuWidget;
+	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI|Aim", meta = (AllowPrivateAccess = "true"))
 	TSubclassOf<UUserWidget> CrosshairWidgetClass;
 
@@ -230,6 +237,7 @@ private:
 	void SpawnModuleActor();
 	void SpawnPluginActor();
 	void ToggleGameLanguage();
+	void TogglePauseMenu();
 	void StartWalk();
 	void StopWalk();
 	void StartSprint();

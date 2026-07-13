@@ -24,6 +24,8 @@
 #include "Characters/TPAttributeSet.h"
 #include "UI/TPHealthBarWidget.h"
 #include "UI/TPMessageScreenWidget.h"
+#include "UI/TPPauseMenuWidget.h"
+#include "Kismet/GameplayStatics.h"
 #include "GameFramework/PlayerController.h"
 #include "DrawDebugHelpers.h"
 #include "Audio/TPCharacterAudioComponent.h"
@@ -293,6 +295,7 @@ void ATPPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 	BindActionByTag(TAG_Input_Spawn_ModuleActor, ETriggerEvent::Started, &ATPPlayerCharacter::SpawnModuleActor);
 	BindActionByTag(TAG_Input_Spawn_PluginActor, ETriggerEvent::Started, &ATPPlayerCharacter::SpawnPluginActor);
 	BindActionByTag(TAG_Input_ToggleLanguage, ETriggerEvent::Started, &ATPPlayerCharacter::ToggleGameLanguage);
+	BindActionByTag(TAG_Input_PauseMenu, ETriggerEvent::Started, &ATPPlayerCharacter::TogglePauseMenu);
 }
 
 void ATPPlayerCharacter::SpawnModuleActor()
@@ -347,6 +350,77 @@ void ATPPlayerCharacter::SpawnPluginActor()
 		SpawnRotation,
 		SpawnParams
 	);
+}
+
+void ATPPlayerCharacter::TogglePauseMenu()
+{
+	if (IsDead())
+	{
+		return;
+	}
+
+	UWorld* World = GetWorld();
+
+	if (!World)
+	{
+		return;
+	}
+
+	if (UGameplayStatics::IsGamePaused(World)
+		&& (!PauseMenuWidget || !PauseMenuWidget->IsInViewport()))
+	{
+		return;
+	}
+
+	APlayerController* PlayerController =
+		Cast<APlayerController>(GetController());
+
+	if (!PlayerController)
+	{
+		return;
+	}
+
+	if (PauseMenuWidget && PauseMenuWidget->IsInViewport())
+	{
+		PauseMenuWidget->RemoveFromParent();
+		PauseMenuWidget = nullptr;
+
+		UGameplayStatics::SetGamePaused(World, false);
+
+		PlayerController->bShowMouseCursor = false;
+
+		FInputModeGameOnly InputMode;
+		PlayerController->SetInputMode(InputMode);
+
+		return;
+	}
+
+	if (!PauseMenuWidgetClass)
+	{
+		return;
+	}
+
+	PauseMenuWidget = CreateWidget<UTPPauseMenuWidget>(
+		PlayerController,
+		PauseMenuWidgetClass
+	);
+
+	if (!PauseMenuWidget)
+	{
+		return;
+	}
+
+	PauseMenuWidget->AddToViewport(200);
+
+	UGameplayStatics::SetGamePaused(World, true);
+
+	PlayerController->bShowMouseCursor = true;
+
+	FInputModeUIOnly InputMode;
+	InputMode.SetWidgetToFocus(PauseMenuWidget->TakeWidget());
+	InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+
+	PlayerController->SetInputMode(InputMode);
 }
 
 void ATPPlayerCharacter::ToggleGameLanguage()

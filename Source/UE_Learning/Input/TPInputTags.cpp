@@ -13,3 +13,4 @@ UE_DEFINE_GAMEPLAY_TAG(TAG_Input_Fire, "Input.Fire");
 UE_DEFINE_GAMEPLAY_TAG(TAG_Input_Spawn_ModuleActor, "Input.Spawn.ModuleActor");
 UE_DEFINE_GAMEPLAY_TAG(TAG_Input_Spawn_PluginActor, "Input.Spawn.PluginActor");
 UE_DEFINE_GAMEPLAY_TAG(TAG_Input_ToggleLanguage, "Input.ToggleLanguage");
+UE_DEFINE_GAMEPLAY_TAG(TAG_Input_PauseMenu, "Input.PauseMenu");

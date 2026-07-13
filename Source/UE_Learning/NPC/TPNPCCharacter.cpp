@@ -51,7 +51,16 @@ void ATPNPCCharacter::BeginPlay()
 	Super::BeginPlay();
 
 	ApplyNPCDefinition();
-	InitializeHealthBar();
+
+	if (bShowHealthBar)
+	{
+		InitializeHealthBar();
+	}
+	else if (HealthBarWidgetComponent)
+	{
+		HealthBarWidgetComponent->SetHiddenInGame(true);
+		HealthBarWidgetComponent->SetVisibility(false);
+	}
 }
 
 void ATPNPCCharacter::PlayDeathSound() const
@@ -268,7 +277,7 @@ bool ATPNPCCharacter::HasNPCTag(FGameplayTag Tag) const
 
 void ATPNPCCharacter::InitializeHealthBar()
 {
-	if (!HealthBarWidgetComponent)
+	if (!bShowHealthBar || !HealthBarWidgetComponent)
 	{
 		return;
 	}
@@ -303,7 +312,7 @@ void ATPNPCCharacter::InitializeHealthBar()
 
 void ATPNPCCharacter::RefreshHealthBar()
 {
-	if (!HealthBarWidgetComponent || !AttributeSet)
+	if (!bShowHealthBar || !HealthBarWidgetComponent || !AttributeSet)
 	{
 		return;
 	}
