@@ -30,6 +30,12 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "NPC|AI")
 	void ClearCurrentTarget();
+	
+	UFUNCTION(BlueprintCallable, Category = "NPC|AI")
+	void ReceiveAllyAlert(
+		AActor* TargetActor,
+		ATPNPCAIController* SourceController
+	);
 
 	UFUNCTION(BlueprintCallable, Category = "NPC|AI")
 	void StopAI(const FString& Reason);
@@ -72,6 +78,10 @@ private:
 	void HandleTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus);
 	
 	FTimerHandle TargetForgetTimerHandle;
+	FTimerHandle TargetValidationTimerHandle;
+
+	float CurrentTargetLastValidTime = 0.0f;
+	bool bSuppressAllyAlertPropagation = false;
 
 	FVector LastKnownTargetLocation = FVector::ZeroVector;
 	FVector HomeLocation = FVector::ZeroVector;
@@ -81,10 +91,17 @@ private:
 	void ScheduleTargetForget();
 	void ForgetCurrentTargetIfStillNotPerceived();
 	bool IsActorCurrentlyPerceived(AActor* Actor) const;
+	void StartTargetValidation();
+	void StopTargetValidation();
+	void ValidateCurrentTarget();
+	bool IsCurrentTargetWithinLoseSightRadius() const;
+	bool HasLineOfSightToCurrentTarget() const;
+	float GetTargetForgetDelay() const;
 	void ConfigureFromNPCDefinition();
 	void ConfigureSight();
 	void ConfigureStateTree();
 	bool ShouldTrackActor(AActor* Actor) const;
+	void AlertNearbyAllies(AActor* TargetActor);
 	
 	UFUNCTION()
 	void HandleCurrentTargetDeath(AActor* DeadActor);

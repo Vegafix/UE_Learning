@@ -10,6 +10,7 @@
 #include "NavigationSystem.h"
 #include "Teams/TPTeamAttitude.h"
 #include "TimerManager.h"
+#include "EngineUtils.h"
 
 ATPNPCAIController::ATPNPCAIController()
 {
@@ -93,6 +94,8 @@ void ATPNPCAIController::OnPossess(APawn* InPawn)
 
 void ATPNPCAIController::OnUnPossess()
 {
+	StopTargetValidation();
+	
 	if (StateTreeComponent && StateTreeComponent->IsRunning())
 	{
 		StateTreeComponent->StopLogic(TEXT("NPC unpossessed"));
@@ -315,6 +318,8 @@ void ATPNPCAIController::ClearCurrentTarget()
 
 void ATPNPCAIController::StopAI(const FString& Reason)
 {
+	StopTargetValidation();
+
 	GetWorldTimerManager().ClearTimer(TargetForgetTimerHandle);
 
 	SetCurrentTarget(nullptr);
@@ -429,6 +434,12 @@ void ATPNPCAIController::SetCurrentTarget(AActor* NewTarget)
 
 	if (CurrentTarget == NewTarget)
 	{
+		if (CurrentTarget && GetWorld())
+		{
+			CurrentTargetLastValidTime = GetWorld()->GetTimeSeconds();
+			StartTargetValidation();
+		}
+
 		return;
 	}
 
@@ -453,6 +464,16 @@ void ATPNPCAIController::SetCurrentTarget(AActor* NewTarget)
 
 	CurrentTarget = NewTarget;
 	
+	if (CurrentTarget && GetWorld())
+	{
+		CurrentTargetLastValidTime = GetWorld()->GetTimeSeconds();
+		StartTargetValidation();
+	}
+	else
+	{
+		StopTargetValidation();
+	}
+	
 	if (ControlledNPC)
 	{
 		ControlledNPC->SetCombatRotationMode(CurrentTarget != nullptr);
@@ -474,6 +495,11 @@ void ATPNPCAIController::SetCurrentTarget(AActor* NewTarget)
 			this,
 			&ATPNPCAIController::HandleCurrentTargetDeath
 		);
+	}
+	
+	if (CurrentTarget && !bSuppressAllyAlertPropagation)
+	{
+		AlertNearbyAllies(CurrentTarget);
 	}
 }
 
@@ -569,4 +595,239 @@ void ATPNPCAIController::HandleCurrentTargetDeath(AActor* DeadActor)
 	);
 
 	SetCurrentTarget(nullptr);
+}
+
+void ATPNPCAIController::AlertNearbyAllies(AActor* TargetActor)
+{
+	if (!ControlledNPC || !TargetActor)
+	{
+		return;
+	}
+
+	const UTPNPCDefinition* NPCDefinition =
+		ControlledNPC->GetNPCDefinition();
+
+	if (!NPCDefinition || NPCDefinition->AllyAlertRadius <= 0.0f)
+	{
+		return;
+	}
+
+	UWorld* World = GetWorld();
+
+	if (!World)
+	{
+		return;
+	}
+
+	const float AlertRadiusSquared =
+		FMath::Square(NPCDefinition->AllyAlertRadius);
+
+	for (TActorIterator<ATPNPCCharacter> It(World); It; ++It)
+	{
+		ATPNPCCharacter* OtherNPC = *It;
+
+		if (!OtherNPC || OtherNPC == ControlledNPC || OtherNPC->IsDead())
+		{
+			continue;
+		}
+
+		if (GetTeamAttitudeTowards(*OtherNPC) != ETeamAttitude::Friendly)
+		{
+			continue;
+		}
+
+		const float DistanceSquared = FVector::DistSquared(
+			ControlledNPC->GetActorLocation(),
+			OtherNPC->GetActorLocation()
+		);
+
+		if (DistanceSquared > AlertRadiusSquared)
+		{
+			continue;
+		}
+
+		ATPNPCAIController* OtherController =
+			Cast<ATPNPCAIController>(OtherNPC->GetController());
+
+		if (!OtherController || OtherController == this)
+		{
+			continue;
+		}
+
+		OtherController->ReceiveAllyAlert(
+			TargetActor,
+			this
+		);
+	}
+}
+
+void ATPNPCAIController::ReceiveAllyAlert(
+	AActor* TargetActor,
+	ATPNPCAIController* SourceController
+)
+{
+	if (!ShouldTrackActor(TargetActor))
+	{
+		return;
+	}
+
+	const bool bPreviousSuppressAllyAlertPropagation =
+		bSuppressAllyAlertPropagation;
+
+	bSuppressAllyAlertPropagation = SourceController != nullptr;
+
+	SetCurrentTarget(TargetActor);
+
+	bSuppressAllyAlertPropagation =
+		bPreviousSuppressAllyAlertPropagation;
+}
+
+void ATPNPCAIController::StartTargetValidation()
+{
+	if (!GetWorld())
+	{
+		return;
+	}
+
+	if (GetWorldTimerManager().IsTimerActive(TargetValidationTimerHandle))
+	{
+		return;
+	}
+
+	GetWorldTimerManager().SetTimer(
+		TargetValidationTimerHandle,
+		this,
+		&ATPNPCAIController::ValidateCurrentTarget,
+		0.35f,
+		true
+	);
+}
+
+void ATPNPCAIController::StopTargetValidation()
+{
+	GetWorldTimerManager().ClearTimer(TargetValidationTimerHandle);
+	CurrentTargetLastValidTime = 0.0f;
+}
+
+float ATPNPCAIController::GetTargetForgetDelay() const
+{
+	if (!ControlledNPC)
+	{
+		return 1.5f;
+	}
+
+	const UTPNPCDefinition* NPCDefinition =
+		ControlledNPC->GetNPCDefinition();
+
+	if (!NPCDefinition)
+	{
+		return 1.5f;
+	}
+
+	return FMath::Max(0.0f, NPCDefinition->TargetForgetDelay);
+}
+
+bool ATPNPCAIController::IsCurrentTargetWithinLoseSightRadius() const
+{
+	if (!ControlledNPC || !CurrentTarget)
+	{
+		return false;
+	}
+
+	const UTPNPCDefinition* NPCDefinition =
+		ControlledNPC->GetNPCDefinition();
+
+	if (!NPCDefinition)
+	{
+		return false;
+	}
+
+	const float LoseSightRadius =
+		FMath::Max(NPCDefinition->LoseSightRadius, NPCDefinition->SightRadius);
+
+	if (LoseSightRadius <= 0.0f)
+	{
+		return false;
+	}
+
+	return FVector::DistSquared(
+		ControlledNPC->GetActorLocation(),
+		CurrentTarget->GetActorLocation()
+	) <= FMath::Square(LoseSightRadius);
+}
+
+bool ATPNPCAIController::HasLineOfSightToCurrentTarget() const
+{
+	if (!CurrentTarget)
+	{
+		return false;
+	}
+
+	return LineOfSightTo(CurrentTarget);
+}
+
+void ATPNPCAIController::ValidateCurrentTarget()
+{
+	if (!ControlledNPC || ControlledNPC->IsDead())
+	{
+		ClearCurrentTarget();
+		return;
+	}
+
+	if (!CurrentTarget)
+	{
+		StopTargetValidation();
+		return;
+	}
+
+	if (!ShouldTrackActor(CurrentTarget))
+	{
+		ClearCurrentTarget();
+		return;
+	}
+
+	const bool bTargetWithinLoseSightRadius =
+		IsCurrentTargetWithinLoseSightRadius();
+
+	const bool bHasLineOfSight =
+		HasLineOfSightToCurrentTarget();
+
+	if (bTargetWithinLoseSightRadius && bHasLineOfSight)
+	{
+		if (GetWorld())
+		{
+			CurrentTargetLastValidTime = GetWorld()->GetTimeSeconds();
+			LastKnownTargetLocation = CurrentTarget->GetActorLocation();
+		}
+
+		return;
+	}
+
+	const UWorld* World = GetWorld();
+
+	if (!World)
+	{
+		return;
+	}
+
+	const float TimeSinceLastValidTarget =
+		World->GetTimeSeconds() - CurrentTargetLastValidTime;
+
+	if (TimeSinceLastValidTarget < GetTargetForgetDelay())
+	{
+		return;
+	}
+
+	UE_LOG(
+		LogTemp,
+		Display,
+		TEXT("[%.2f] %s lost target: %s. LineOfSight=%s WithinLoseSight=%s"),
+		World->GetTimeSeconds(),
+		*GetName(),
+		*GetNameSafe(CurrentTarget),
+		bHasLineOfSight ? TEXT("true") : TEXT("false"),
+		bTargetWithinLoseSightRadius ? TEXT("true") : TEXT("false")
+	);
+
+	ClearCurrentTarget();
 }

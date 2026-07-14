@@ -15,6 +15,8 @@
 #include "Kismet/GameplayStatics.h"
 #include "Sound/SoundBase.h"
 #include "Sound/SoundAttenuation.h"
+#include "NPC/TPNPCCharacter.h"
+#include "NPC/TPNPCAIController.h"
 
 ATPBlasterProjectile::ATPBlasterProjectile()
 {
@@ -322,6 +324,21 @@ void ATPBlasterProjectile::OnProjectileHit(
 				SourceASC->ApplyGameplayEffectSpecToTarget(
 					*SpecHandle.Data.Get(),
 					TargetASC
+				);
+			}
+		}
+	}
+	
+	if (SourceActor)
+	{
+		if (ATPNPCCharacter* HitNPC = Cast<ATPNPCCharacter>(OtherActor))
+		{
+			if (ATPNPCAIController* NPCController =
+				Cast<ATPNPCAIController>(HitNPC->GetController()))
+			{
+				NPCController->ReceiveAllyAlert(
+					SourceActor,
+					nullptr
 				);
 			}
 		}

@@ -67,6 +67,10 @@ public:
 	meta = (ClampMin = "0.0"))
 	float TargetForgetDelay = 1.5f;
 	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "NPC|Perception|Alert",
+	meta = (ClampMin = "0.0", UIMin = "0.0"))
+	float AllyAlertRadius = 2200.0f;
+	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "NPC|Combat",
 	meta = (ClampMin = "0.0"))
 	float FireRange = 900.0f;
