@@ -203,14 +203,17 @@ void ATPNPCAIController::HandleTargetPerceptionUpdated(
 		return;
 	}
 
-	UE_LOG(
-		LogTemp,
-		Display,
-		TEXT("[%.2f] Perception update: Actor=%s Sensed=%s"),
-		GetWorld() ? GetWorld()->GetTimeSeconds() : -1.0f,
-		*GetNameSafe(Actor),
-		Stimulus.WasSuccessfullySensed() ? TEXT("true") : TEXT("false")
-	);
+	if (bLogAIDebug)
+	{
+		UE_LOG(
+			LogTemp,
+			Display,
+			TEXT("[%.2f] Perception update: Actor=%s Sensed=%s"),
+			GetWorld() ? GetWorld()->GetTimeSeconds() : -1.0f,
+			*GetNameSafe(Actor),
+			Stimulus.WasSuccessfullySensed() ? TEXT("true") : TEXT("false")
+		);
+	}
 
 	if (Stimulus.WasSuccessfullySensed())
 	{
@@ -348,14 +351,17 @@ void ATPNPCAIController::StopAI(const FString& Reason)
 		AIPerceptionComponent->SetComponentTickEnabled(false);
 	}
 
-	UE_LOG(
-		LogTemp,
-		Display,
-		TEXT("[%.2f] %s stopped AI. Reason: %s"),
-		GetWorld() ? GetWorld()->GetTimeSeconds() : -1.0f,
-		*GetName(),
-		*Reason
-	);
+	if (bLogAIDebug)
+	{
+		UE_LOG(
+			LogTemp,
+			Display,
+			TEXT("[%.2f] %s stopped AI. Reason: %s"),
+			GetWorld() ? GetWorld()->GetTimeSeconds() : -1.0f,
+			*GetName(),
+			*Reason
+		);
+	}
 }
 
 void ATPNPCAIController::StopAIForDeath()
@@ -452,15 +458,18 @@ void ATPNPCAIController::SetCurrentTarget(AActor* NewTarget)
 		);
 	}
 
-	UE_LOG(
-		LogTemp,
-		Display,
-		TEXT("[%.2f] %s changed target: %s → %s"),
-		GetWorld() ? GetWorld()->GetTimeSeconds() : -1.0f,
-		*GetName(),
-		*GetNameSafe(CurrentTarget),
-		*GetNameSafe(NewTarget)
-	);
+	if (bLogAIDebug)
+	{
+		UE_LOG(
+			LogTemp,
+			Display,
+			TEXT("[%.2f] %s changed target: %s → %s"),
+			GetWorld() ? GetWorld()->GetTimeSeconds() : -1.0f,
+			*GetName(),
+			*GetNameSafe(CurrentTarget),
+			*GetNameSafe(NewTarget)
+		);
+	}
 
 	CurrentTarget = NewTarget;
 	
@@ -818,16 +827,19 @@ void ATPNPCAIController::ValidateCurrentTarget()
 		return;
 	}
 
-	UE_LOG(
-		LogTemp,
-		Display,
-		TEXT("[%.2f] %s lost target: %s. LineOfSight=%s WithinLoseSight=%s"),
-		World->GetTimeSeconds(),
-		*GetName(),
-		*GetNameSafe(CurrentTarget),
-		bHasLineOfSight ? TEXT("true") : TEXT("false"),
-		bTargetWithinLoseSightRadius ? TEXT("true") : TEXT("false")
-	);
+	if (bLogAIDebug)
+	{
+		UE_LOG(
+			LogTemp,
+			Display,
+			TEXT("[%.2f] %s lost target: %s. LineOfSight=%s WithinLoseSight=%s"),
+			World->GetTimeSeconds(),
+			*GetName(),
+			*GetNameSafe(CurrentTarget),
+			bHasLineOfSight ? TEXT("true") : TEXT("false"),
+			bTargetWithinLoseSightRadius ? TEXT("true") : TEXT("false")
+		);
+	}
 
 	ClearCurrentTarget();
 }

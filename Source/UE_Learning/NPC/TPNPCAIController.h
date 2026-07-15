@@ -82,6 +82,10 @@ private:
 
 	float CurrentTargetLastValidTime = 0.0f;
 	bool bSuppressAllyAlertPropagation = false;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "NPC|AI|Debug",
+	meta = (AllowPrivateAccess = "true"))
+	bool bLogAIDebug = false;
 
 	FVector LastKnownTargetLocation = FVector::ZeroVector;
 	FVector HomeLocation = FVector::ZeroVector;

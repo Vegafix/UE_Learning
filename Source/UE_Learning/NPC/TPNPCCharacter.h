@@ -4,7 +4,9 @@
 #include "Characters/TPBaseCharacter.h"
 #include "Interaction/Interactable.h"
 #include "TPNPCTypes.h"
+#include "TimerManager.h"
 #include "TPNPCCharacter.generated.h"
+
 
 
 class UTPNPCDefinition;
@@ -72,6 +74,13 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "NPC|UI")
 	bool bShowHealthBar = true;
 	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "NPC|UI|Visibility")
+	bool bHideHealthBarWhenOccluded = true;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "NPC|UI|Visibility",
+		meta = (EditCondition = "bHideHealthBarWhenOccluded", ClampMin = "0.05", UIMin = "0.05"))
+	float HealthBarVisibilityCheckInterval = 0.15f;
+	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "NPC|Audio")
 	TObjectPtr<USoundBase> DeadBodyFallSound;
 
@@ -86,6 +95,12 @@ private:
 
 	void InitializeHealthBar();
 	void RefreshHealthBar();
+	void StartHealthBarVisibilityUpdates();
+	void StopHealthBarVisibilityUpdates();
+	void RefreshHealthBarVisibility();
+	bool IsHealthBarVisibleFromLocalPlayerCamera() const;
+
+	FTimerHandle HealthBarVisibilityTimerHandle;
 
 	void HandleHealthChanged(const FOnAttributeChangeData& Data);
 	void HandleMaxHealthChanged(const FOnAttributeChangeData& Data);

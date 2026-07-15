@@ -58,6 +58,10 @@ protected:
 
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Projectile")
 	float Damage = 0.0f;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Projectile|Damage|Headshot",
+	meta = (ClampMin = "1.0", UIMin = "1.0"))
+	float HeadshotDamageMultiplier = 2.0f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Projectile")
 	float LifeSeconds = 3.0f;
@@ -83,7 +87,11 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Projectile|Audio|Headshot")
 	bool bDrawDebugHeadshotCheck = false;
 	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Projectile|Debug")
+	bool bLogProjectileDebug = false;
+	
 private:
 	bool IsHeadshotHit(const FHitResult& Hit) const;
+	bool CanApplyHeadshotRulesToActor(AActor* OtherActor) const;
 	void PlayImpactSound(const FHitResult& Hit, bool bHeadshot) const;
 };

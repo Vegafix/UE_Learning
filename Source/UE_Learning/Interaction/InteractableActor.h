@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "Interactable.h"
+#include "TimerManager.h"
 #include "InteractableActor.generated.h"
 
 class UStaticMeshComponent;
@@ -49,10 +50,24 @@ protected:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interaction|Highlight")
 	bool bAlwaysShowHighlight = false;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interaction|Highlight")
+	bool bHideHighlightWhenOccluded = true;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interaction|Highlight",
+		meta = (EditCondition = "bHideHighlightWhenOccluded", ClampMin = "0.05", UIMin = "0.05"))
+	float HighlightVisibilityCheckInterval = 0.15f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interaction|Highlight",
 	meta = (ClampMin = "1", ClampMax = "255", UIMin = "1", UIMax = "255"))
 	int32 FocusedStencilValue = 1;
 
 	void SetFocusedHighlight(bool bFocused);
+	
+	void ApplyHighlightVisibility(bool bVisible);
+	void RefreshHighlightVisibility();
+	bool IsHighlightVisibleFromLocalPlayerCamera() const;
+
+	bool bHighlightRequested = false;
+	FTimerHandle HighlightVisibilityTimerHandle;
 };

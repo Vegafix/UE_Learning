@@ -17,6 +17,9 @@
 #include "Sound/SoundAttenuation.h"
 #include "Quest/TPEnemyNegotiationComponent.h"
 #include "Quest/TPQuestGiverComponent.h"
+#include "Camera/PlayerCameraManager.h"
+#include "GameFramework/PlayerController.h"
+#include "TimerManager.h"
 
 
 ATPNPCCharacter::ATPNPCCharacter()
@@ -55,9 +58,11 @@ void ATPNPCCharacter::BeginPlay()
 	if (bShowHealthBar)
 	{
 		InitializeHealthBar();
+		StartHealthBarVisibilityUpdates();
 	}
 	else if (HealthBarWidgetComponent)
 	{
+		StopHealthBarVisibilityUpdates();
 		HealthBarWidgetComponent->SetHiddenInGame(true);
 		HealthBarWidgetComponent->SetVisibility(false);
 	}
@@ -99,9 +104,12 @@ void ATPNPCCharacter::HandleDeath()
 	
 	PlayDeathSound();
 	
+	StopHealthBarVisibilityUpdates();
+
 	if (HealthBarWidgetComponent)
 	{
 		HealthBarWidgetComponent->SetHiddenInGame(true);
+		HealthBarWidgetComponent->SetVisibility(false);
 	}
 
 	DetachFromControllerPendingDestroy();
@@ -363,4 +371,102 @@ void ATPNPCCharacter::SetCombatRotationMode(bool bEnableCombatRotation)
 bool ATPNPCCharacter::IsCombatRotationModeEnabled() const
 {
 	return bCombatRotationMode;
+}
+
+void ATPNPCCharacter::StartHealthBarVisibilityUpdates()
+{
+	if (!bShowHealthBar || !HealthBarWidgetComponent)
+	{
+		return;
+	}
+
+	if (!bHideHealthBarWhenOccluded)
+	{
+		HealthBarWidgetComponent->SetHiddenInGame(false);
+		HealthBarWidgetComponent->SetVisibility(true);
+		return;
+	}
+
+	RefreshHealthBarVisibility();
+
+	GetWorldTimerManager().SetTimer(
+		HealthBarVisibilityTimerHandle,
+		this,
+		&ATPNPCCharacter::RefreshHealthBarVisibility,
+		FMath::Max(0.05f, HealthBarVisibilityCheckInterval),
+		true
+	);
+}
+
+void ATPNPCCharacter::StopHealthBarVisibilityUpdates()
+{
+	GetWorldTimerManager().ClearTimer(HealthBarVisibilityTimerHandle);
+}
+
+void ATPNPCCharacter::RefreshHealthBarVisibility()
+{
+	if (!HealthBarWidgetComponent)
+	{
+		return;
+	}
+
+	if (!bShowHealthBar || IsDead())
+	{
+		HealthBarWidgetComponent->SetHiddenInGame(true);
+		HealthBarWidgetComponent->SetVisibility(false);
+		return;
+	}
+
+	const bool bShouldBeVisible =
+		!bHideHealthBarWhenOccluded ||
+		IsHealthBarVisibleFromLocalPlayerCamera();
+
+	HealthBarWidgetComponent->SetHiddenInGame(!bShouldBeVisible);
+	HealthBarWidgetComponent->SetVisibility(bShouldBeVisible);
+}
+
+bool ATPNPCCharacter::IsHealthBarVisibleFromLocalPlayerCamera() const
+{
+	const UWorld* World = GetWorld();
+
+	if (!World || !HealthBarWidgetComponent)
+	{
+		return true;
+	}
+
+	const APlayerCameraManager* CameraManager =
+		UGameplayStatics::GetPlayerCameraManager(this, 0);
+
+	if (!CameraManager)
+	{
+		return true;
+	}
+
+	const FVector TraceStart = CameraManager->GetCameraLocation();
+	const FVector TraceEnd = HealthBarWidgetComponent->GetComponentLocation();
+
+	FCollisionQueryParams QueryParams;
+	QueryParams.bTraceComplex = false;
+	QueryParams.AddIgnoredActor(this);
+
+	if (const APlayerController* PlayerController =
+		UGameplayStatics::GetPlayerController(this, 0))
+	{
+		if (const APawn* PlayerPawn = PlayerController->GetPawn())
+		{
+			QueryParams.AddIgnoredActor(PlayerPawn);
+		}
+	}
+
+	FHitResult Hit;
+
+	const bool bBlocked = World->LineTraceSingleByChannel(
+		Hit,
+		TraceStart,
+		TraceEnd,
+		ECC_Visibility,
+		QueryParams
+	);
+
+	return !bBlocked;
 }

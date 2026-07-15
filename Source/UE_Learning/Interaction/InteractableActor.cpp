@@ -2,6 +2,10 @@
 
 #include "Components/StaticMeshComponent.h"
 #include "UObject/ConstructorHelpers.h"
+#include "Camera/PlayerCameraManager.h"
+#include "GameFramework/PlayerController.h"
+#include "Kismet/GameplayStatics.h"
+#include "TimerManager.h"
 
 AInteractableActor::AInteractableActor()
 {
@@ -66,15 +70,117 @@ void AInteractableActor::OnUnfocused_Implementation(AActor* InstigatorActor)
 
 void AInteractableActor::SetFocusedHighlight(bool bFocused)
 {
-	if (!bUseHighlight || !MeshComponent)
+	bHighlightRequested = bFocused;
+
+	if (!MeshComponent)
 	{
 		return;
 	}
 
-	MeshComponent->SetRenderCustomDepth(bFocused);
-	if (bFocused)
+	if (!bUseHighlight)
+	{
+		GetWorldTimerManager().ClearTimer(HighlightVisibilityTimerHandle);
+		ApplyHighlightVisibility(false);
+		return;
+	}
+
+	if (!bHighlightRequested)
+	{
+		GetWorldTimerManager().ClearTimer(HighlightVisibilityTimerHandle);
+		ApplyHighlightVisibility(false);
+		return;
+	}
+
+	if (!bHideHighlightWhenOccluded)
+	{
+		GetWorldTimerManager().ClearTimer(HighlightVisibilityTimerHandle);
+		ApplyHighlightVisibility(true);
+		return;
+	}
+
+	RefreshHighlightVisibility();
+
+	GetWorldTimerManager().SetTimer(
+		HighlightVisibilityTimerHandle,
+		this,
+		&AInteractableActor::RefreshHighlightVisibility,
+		FMath::Max(0.05f, HighlightVisibilityCheckInterval),
+		true
+	);
+}
+
+void AInteractableActor::ApplyHighlightVisibility(bool bVisible)
+{
+	if (!MeshComponent)
+	{
+		return;
+	}
+
+	MeshComponent->SetRenderCustomDepth(bVisible);
+
+	if (bVisible)
 	{
 		MeshComponent->SetCustomDepthStencilValue(FocusedStencilValue);
 	}
-	
+}
+
+void AInteractableActor::RefreshHighlightVisibility()
+{
+	if (!bUseHighlight || !bHighlightRequested)
+	{
+		ApplyHighlightVisibility(false);
+		return;
+	}
+
+	const bool bShouldShowHighlight =
+		!bHideHighlightWhenOccluded ||
+		IsHighlightVisibleFromLocalPlayerCamera();
+
+	ApplyHighlightVisibility(bShouldShowHighlight);
+}
+
+bool AInteractableActor::IsHighlightVisibleFromLocalPlayerCamera() const
+{
+	const UWorld* World = GetWorld();
+
+	if (!World || !MeshComponent)
+	{
+		return true;
+	}
+
+	const APlayerCameraManager* CameraManager =
+		UGameplayStatics::GetPlayerCameraManager(this, 0);
+
+	if (!CameraManager)
+	{
+		return true;
+	}
+
+	const FVector TraceStart = CameraManager->GetCameraLocation();
+	const FVector TraceEnd = MeshComponent->Bounds.Origin;
+
+	FCollisionQueryParams QueryParams;
+	QueryParams.bTraceComplex = false;
+	QueryParams.AddIgnoredActor(this);
+
+	if (const APlayerController* PlayerController =
+		UGameplayStatics::GetPlayerController(this, 0))
+	{
+		if (const APawn* PlayerPawn = PlayerController->GetPawn())
+		{
+			QueryParams.AddIgnoredActor(PlayerPawn);
+		}
+	}
+
+	FHitResult Hit;
+
+	const bool bBlocked = World->LineTraceSingleByChannel(
+		Hit,
+		TraceStart,
+		TraceEnd,
+		ECC_Visibility,
+		QueryParams
+	);
+
+	return !bBlocked;
 }

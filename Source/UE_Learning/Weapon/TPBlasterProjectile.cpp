@@ -11,12 +11,12 @@
 #include "GameFramework/Character.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "DrawDebugHelpers.h"
-#include "GameFramework/Character.h"
 #include "Kismet/GameplayStatics.h"
 #include "Sound/SoundBase.h"
 #include "Sound/SoundAttenuation.h"
 #include "NPC/TPNPCCharacter.h"
 #include "NPC/TPNPCAIController.h"
+#include "Teams/TPTeamAttitude.h"
 
 ATPBlasterProjectile::ATPBlasterProjectile()
 {
@@ -198,6 +198,35 @@ bool ATPBlasterProjectile::IsHeadshotHit(
 	return bHeadshot;
 }
 
+bool ATPBlasterProjectile::CanApplyHeadshotRulesToActor(
+	AActor* OtherActor
+) const
+{
+	if (!SourceActor || !OtherActor)
+	{
+		return false;
+	}
+
+	const ATPNPCCharacter* HitNPC =
+		Cast<ATPNPCCharacter>(OtherActor);
+
+	if (!HitNPC)
+	{
+		return false;
+	}
+
+	const FGenericTeamId SourceTeam =
+		FGenericTeamId::GetTeamIdentifier(SourceActor);
+
+	const FGenericTeamId TargetTeam =
+		FGenericTeamId::GetTeamIdentifier(OtherActor);
+
+	return TPTeam::ResolveAttitude(
+		SourceTeam,
+		TargetTeam
+	) == ETeamAttitude::Hostile;
+}
+
 void ATPBlasterProjectile::PlayImpactSound(
 	const FHitResult& Hit,
 	bool bHeadshot
@@ -231,19 +260,22 @@ void ATPBlasterProjectile::OnProjectileHit(
 	const FHitResult& Hit
 )
 {
-	UE_LOG(
-	LogTemp,
-	Display,
-	TEXT(
-		"Blaster hit: Projectile=%s OtherActor=%s OtherComp=%s SourceActor=%s DamageEffect=%s Damage=%.1f"
-	),
-	*GetNameSafe(this),
-	*GetNameSafe(OtherActor),
-	*GetNameSafe(OtherComp),
-	*GetNameSafe(SourceActor),
-	*GetNameSafe(DamageEffect),
-	Damage
-	);
+	if (bLogProjectileDebug)
+	{
+		UE_LOG(
+			LogTemp,
+			Display,
+			TEXT(
+				"Blaster hit: Projectile=%s OtherActor=%s OtherComp=%s SourceActor=%s DamageEffect=%s Damage=%.1f"
+			),
+			*GetNameSafe(this),
+			*GetNameSafe(OtherActor),
+			*GetNameSafe(OtherComp),
+			*GetNameSafe(SourceActor),
+			*GetNameSafe(DamageEffect),
+			Damage
+		);
+	}
 	
 	if (!OtherActor || OtherActor == this || OtherActor == SourceActor)
 	{
@@ -270,8 +302,14 @@ void ATPBlasterProjectile::OnProjectileHit(
 		}
 	}
 	
+	const bool bCanUseHeadshotRules =
+		CanApplyHeadshotRulesToActor(OtherActor);
+
 	const bool bHeadshot =
-	IsHeadshotHit(Hit);
+		bCanUseHeadshotRules && IsHeadshotHit(Hit);
+
+	const float FinalDamage =
+		bHeadshot ? Damage * HeadshotDamageMultiplier : Damage;
 	
 	if (DamageEffect && Damage > 0.0f)
 	{
@@ -285,16 +323,18 @@ void ATPBlasterProjectile::OnProjectileHit(
 				OtherActor
 			);
 		
-		UE_LOG(
-			LogTemp,
-			Display,
-			TEXT(
-				"Blaster ASC check: SourceASC=%s TargetASC=%s"
-			),
-			*GetNameSafe(SourceASC),
-			*GetNameSafe(TargetASC)
-		);
-
+		if (bLogProjectileDebug)
+		{
+			UE_LOG(
+				LogTemp,
+				Display,
+				TEXT(
+					"Blaster ASC check: SourceASC=%s TargetASC=%s"
+				),
+				*GetNameSafe(SourceASC),
+				*GetNameSafe(TargetASC)
+			);
+		}
 		if (SourceASC && TargetASC)
 		{
 			FGameplayEffectContextHandle EffectContext =
@@ -318,7 +358,7 @@ void ATPBlasterProjectile::OnProjectileHit(
 
 				SpecHandle.Data->SetSetByCallerMagnitude(
 					DamageTag,
-					Damage
+					FinalDamage
 				);
 
 				SourceASC->ApplyGameplayEffectSpecToTarget(
