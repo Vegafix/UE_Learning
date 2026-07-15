@@ -5,6 +5,10 @@
 #include "NPC/TPNPCCharacter.h"
 #include "TimerManager.h"
 #include "Components/SceneComponent.h"
+#include "Camera/PlayerCameraManager.h"
+#include "GameFramework/Pawn.h"
+#include "GameFramework/PlayerController.h"
+#include "Kismet/GameplayStatics.h"
 
 ATPNPCRespawnPoint::ATPNPCRespawnPoint()
 {
@@ -85,15 +89,20 @@ void ATPNPCRespawnPoint::SpawnNPC()
 		return;
 	}
 
-	const FVector RandomOffset =
-		FVector(
-			FMath::RandRange(-SpawnRadius, SpawnRadius),
-			FMath::RandRange(-SpawnRadius, SpawnRadius),
-			0.0f
-		);
+	const bool bIsRespawn =
+	PendingRespawnCount > 0;
 
-	const FVector SpawnLocation =
-		GetActorLocation() + RandomOffset;
+	FVector SpawnLocation = GetActorLocation();
+
+	if (!TryFindSpawnLocation(SpawnLocation, bIsRespawn))
+	{
+		if (bIsRespawn)
+		{
+			ScheduleRespawnCheck(RespawnRetryDelay, true);
+		}
+
+		return;
+	}
 
 	const FRotator SpawnRotation =
 		GetActorRotation();
@@ -137,13 +146,7 @@ void ATPNPCRespawnPoint::SpawnNPC()
 
 	if (PendingRespawnCount > 0 && AliveNPCs.Num() < MaxAliveCount)
 	{
-		World->GetTimerManager().SetTimer(
-			RespawnTimerHandle,
-			this,
-			&ATPNPCRespawnPoint::SpawnNPC,
-			RespawnDelay,
-			false
-		);
+		ScheduleRespawnCheck(RespawnDelay, true);
 	}
 	
 	UE_LOG(
@@ -174,7 +177,16 @@ void ATPNPCRespawnPoint::RequestRespawn()
 {
 	++PendingRespawnCount;
 
+	ScheduleRespawnCheck(RespawnDelay);
+}
+
+void ATPNPCRespawnPoint::ScheduleRespawnCheck(
+	float Delay,
+	bool bForceReschedule
+)
+{
 	UWorld* World = GetWorld();
+
 	if (!World)
 	{
 		return;
@@ -182,14 +194,198 @@ void ATPNPCRespawnPoint::RequestRespawn()
 
 	if (World->GetTimerManager().IsTimerActive(RespawnTimerHandle))
 	{
-		return;
+		if (!bForceReschedule)
+		{
+			return;
+		}
+
+		World->GetTimerManager().ClearTimer(RespawnTimerHandle);
 	}
 
 	World->GetTimerManager().SetTimer(
 		RespawnTimerHandle,
 		this,
 		&ATPNPCRespawnPoint::SpawnNPC,
-		RespawnDelay,
+		FMath::Max(0.1f, Delay),
 		false
 	);
+}
+
+bool ATPNPCRespawnPoint::TryFindSpawnLocation(
+	FVector& OutSpawnLocation,
+	bool bApplySafeRespawnRules
+) const
+{
+	const int32 Attempts =
+		FMath::Max(1, SpawnLocationAttempts);
+
+	for (int32 AttemptIndex = 0; AttemptIndex < Attempts; ++AttemptIndex)
+	{
+		const FVector RandomOffset =
+			FVector(
+				FMath::RandRange(-SpawnRadius, SpawnRadius),
+				FMath::RandRange(-SpawnRadius, SpawnRadius),
+				0.0f
+			);
+
+		const FVector CandidateLocation =
+			GetActorLocation() + RandomOffset;
+
+		if (!bApplySafeRespawnRules ||
+			IsSpawnLocationAllowedForRespawn(CandidateLocation))
+		{
+			OutSpawnLocation = CandidateLocation;
+			return true;
+		}
+	}
+
+	return false;
+}
+
+bool ATPNPCRespawnPoint::IsSpawnLocationAllowedForRespawn(
+	const FVector& SpawnLocation
+) const
+{
+	if (!bUseSafeRespawnRules)
+	{
+		return true;
+	}
+
+	const APlayerController* PlayerController =
+		UGameplayStatics::GetPlayerController(this, 0);
+
+	if (!PlayerController)
+	{
+		return true;
+	}
+
+	const APawn* PlayerPawn =
+		PlayerController->GetPawn();
+
+	if (PlayerPawn && MinimumPlayerDistanceForRespawn > 0.0f)
+	{
+		const float DistanceSquared =
+			FVector::DistSquared(
+				PlayerPawn->GetActorLocation(),
+				SpawnLocation
+			);
+
+		if (DistanceSquared <
+			FMath::Square(MinimumPlayerDistanceForRespawn))
+		{
+			return false;
+		}
+	}
+
+	if (IsLocationVisibleToLocalPlayer(SpawnLocation))
+	{
+		return false;
+	}
+
+	return true;
+}
+
+bool ATPNPCRespawnPoint::IsLocationVisibleToLocalPlayer(
+	const FVector& Location
+) const
+{
+	const UWorld* World = GetWorld();
+
+	if (!World)
+	{
+		return false;
+	}
+
+	const APlayerController* PlayerController =
+		UGameplayStatics::GetPlayerController(this, 0);
+
+	if (!PlayerController)
+	{
+		return false;
+	}
+
+	const APlayerCameraManager* CameraManager =
+		UGameplayStatics::GetPlayerCameraManager(this, 0);
+
+	if (!CameraManager)
+	{
+		return false;
+	}
+
+	const FVector CameraLocation =
+		CameraManager->GetCameraLocation();
+
+	const FVector CameraForward =
+		CameraManager->GetCameraRotation().Vector();
+
+	const FVector TargetLocation =
+		Location + FVector(0.0f, 0.0f, 90.0f);
+
+	const FVector DirectionToTarget =
+		(TargetLocation - CameraLocation).GetSafeNormal();
+
+	const float ViewDot =
+		FVector::DotProduct(CameraForward, DirectionToTarget);
+
+	if (ViewDot <= 0.0f)
+	{
+		return false;
+	}
+
+	FVector2D ScreenLocation;
+
+	if (!PlayerController->ProjectWorldLocationToScreen(
+		TargetLocation,
+		ScreenLocation,
+		true
+	))
+	{
+		return false;
+	}
+
+	int32 ViewportSizeX = 0;
+	int32 ViewportSizeY = 0;
+
+	PlayerController->GetViewportSize(
+		ViewportSizeX,
+		ViewportSizeY
+	);
+
+	if (ViewportSizeX <= 0 || ViewportSizeY <= 0)
+	{
+		return false;
+	}
+
+	const bool bInsideViewport =
+		ScreenLocation.X >= 0.0f &&
+		ScreenLocation.Y >= 0.0f &&
+		ScreenLocation.X <= static_cast<float>(ViewportSizeX) &&
+		ScreenLocation.Y <= static_cast<float>(ViewportSizeY);
+
+	if (!bInsideViewport)
+	{
+		return false;
+	}
+
+	FCollisionQueryParams QueryParams;
+	QueryParams.bTraceComplex = false;
+	QueryParams.AddIgnoredActor(this);
+
+	if (const APawn* PlayerPawn = PlayerController->GetPawn())
+	{
+		QueryParams.AddIgnoredActor(PlayerPawn);
+	}
+
+	FHitResult Hit;
+
+	const bool bBlockedByWorld =
+		World->LineTraceSingleByChannel(
+			Hit,
+			CameraLocation,
+			TargetLocation,
+			ECC_Visibility,
+			QueryParams
+		);
+
+	return !bBlockedByWorld;
 }

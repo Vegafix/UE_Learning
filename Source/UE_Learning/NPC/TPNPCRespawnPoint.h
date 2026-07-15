@@ -35,6 +35,21 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "NPC|Respawn")
 	bool bSpawnOnBeginPlay = true;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "NPC|Respawn|Safe Respawn")
+	bool bUseSafeRespawnRules = true;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "NPC|Respawn|Safe Respawn",
+		meta = (EditCondition = "bUseSafeRespawnRules", ClampMin = "0.0", UIMin = "0.0"))
+	float MinimumPlayerDistanceForRespawn = 5000.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "NPC|Respawn|Safe Respawn",
+		meta = (EditCondition = "bUseSafeRespawnRules", ClampMin = "0.1", UIMin = "0.1"))
+	float RespawnRetryDelay = 1.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "NPC|Respawn|Safe Respawn",
+		meta = (EditCondition = "bUseSafeRespawnRules", ClampMin = "1", UIMin = "1"))
+	int32 SpawnLocationAttempts = 12;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "NPC|Respawn|Debug")
 	bool bDrawDebugSpawnRadius = false;
@@ -51,6 +66,11 @@ private:
 	void SpawnNPC();
 	void RequestRespawn();
 	void CleanupInvalidNPCs();
+
+	void ScheduleRespawnCheck(float Delay, bool bForceReschedule = false);
+	bool TryFindSpawnLocation(FVector& OutSpawnLocation, bool bApplySafeRespawnRules) const;
+	bool IsSpawnLocationAllowedForRespawn(const FVector& SpawnLocation) const;
+	bool IsLocationVisibleToLocalPlayer(const FVector& Location) const;
 
 	UFUNCTION()
 	void HandleSpawnedNPCDeath(AActor* DeadActor);
