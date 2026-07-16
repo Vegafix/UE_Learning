@@ -32,6 +32,9 @@ protected:
 	TObjectPtr<UButton> QuitButton;
 
 	UPROPERTY(BlueprintReadOnly, meta = (BindWidgetOptional))
+	TObjectPtr<UTextBlock> PauseTitleText;
+
+	UPROPERTY(BlueprintReadOnly, meta = (BindWidgetOptional))
 	TObjectPtr<UTextBlock> RestartText;
 
 	UPROPERTY(BlueprintReadOnly, meta = (BindWidgetOptional))
@@ -39,6 +42,13 @@ protected:
 
 	UPROPERTY(BlueprintReadOnly, meta = (BindWidgetOptional))
 	TObjectPtr<UTextBlock> QuitText;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Pause Menu|Text")
+	FText PauseTitleLabel = NSLOCTEXT(
+		"PauseMenu",
+		"PauseTitleLabel",
+		"ПАУЗА"
+	);
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Pause Menu|Text")
 	FText RestartLabel = NSLOCTEXT(

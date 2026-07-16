@@ -11,6 +11,11 @@ void UTPPauseMenuWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
 
+	if (PauseTitleText)
+	{
+		PauseTitleText->SetText(PauseTitleLabel);
+	}
+
 	if (RestartText)
 	{
 		RestartText->SetText(RestartLabel);

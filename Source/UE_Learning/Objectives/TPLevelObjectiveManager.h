@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "Quest/TPQuestTextDefinition.h"
 #include "TPLevelObjectiveManager.generated.h"
 
 class ATPNPCCharacter;
@@ -61,7 +62,10 @@ public:
 	
 	UFUNCTION(BlueprintCallable, Category = "Objective")
 	void StartObjective();
-
+	
+	UFUNCTION(BlueprintCallable, Category = "Objective")
+	void SetQuestTextDefinition(UTPQuestTextDefinition* InQuestTextDefinition);
+	
 	UFUNCTION(BlueprintPure, Category = "Objective")
 	bool IsObjectiveActive() const;
 
@@ -94,6 +98,25 @@ protected:
 
 	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "Objective")
 	TArray<TObjectPtr<ATPNPCCharacter>> TargetNPCs;
+	
+	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "Objective|Spawn")
+	bool bSpawnTargetNPCOnObjectiveStart = false;
+
+	UPROPERTY(
+		EditInstanceOnly,
+		BlueprintReadOnly,
+		Category = "Objective|Spawn",
+		meta = (EditCondition = "bSpawnTargetNPCOnObjectiveStart")
+	)
+	TSubclassOf<ATPNPCCharacter> TargetNPCClassToSpawn;
+
+	UPROPERTY(
+		EditInstanceOnly,
+		BlueprintReadOnly,
+		Category = "Objective|Spawn",
+		meta = (EditCondition = "bSpawnTargetNPCOnObjectiveStart")
+	)
+	TObjectPtr<AActor> TargetNPCSpawnPoint;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Objective")
 	ETPObjectiveCompletionMode CompletionMode = ETPObjectiveCompletionMode::KillAllTargets;
@@ -138,6 +161,9 @@ protected:
 		"ObjectiveAfterArtifact",
 		"ВЕРНИТЕСЬ К ИССЛЕДОВАТЕЛЮ"
 	);
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Objective|Text")
+	TObjectPtr<UTPQuestTextDefinition> QuestTextDefinition;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Objective|UI")
 	TSubclassOf<UTPObjectiveWidget> ObjectiveWidgetClass;
@@ -180,6 +206,12 @@ protected:
 	int32 CompletionWidgetZOrder = 100;
 
 private:
+	
+	FText GetObjectiveActiveText() const;
+	FText GetObjectiveReadyToTurnInText() const;
+	FText GetObjectiveItemsCollectedText() const;
+	FText GetObjectiveItemsProgressFormatText() const;
+	
 	UFUNCTION()
 	void HandleTargetDeath(AActor* DeadActor);
 	
@@ -195,6 +227,7 @@ private:
 	void BindObjectiveTargets();
 	void UnbindObjectiveTargets();
 	void SpawnQuestItemDropFrom(AActor* SourceActor);
+	void SpawnTargetNPCOnObjectiveStart();
 
 	bool HasRequiredQuestItemList() const;
 	bool AreAllRequiredQuestItemsCollected() const;
@@ -210,6 +243,7 @@ private:
 	void CompleteObjective();
 	void ShowCompletionWidget();
 	
+	
 	UPROPERTY()
 	TObjectPtr<UTPObjectiveWidget> ObjectiveWidget;
 	
@@ -221,6 +255,9 @@ private:
 	
 	UPROPERTY()
 	TObjectPtr<AActor> SelectedQuestItemDropper;
+	
+	UPROPERTY()
+	TObjectPtr<ATPNPCCharacter> SpawnedTargetNPC;
 
 	int32 CollectedQuestItemCount = 0;
 	bool bQuestItemDropped = false;

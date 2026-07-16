@@ -1,6 +1,7 @@
 ﻿#include "Quest/TPQuestGiverComponent.h"
 
 #include "Blueprint/UserWidget.h"
+#include "Quest/TPQuestTextDefinition.h"
 #include "GameFramework/PlayerController.h"
 #include "Interaction/InteractionDetectorComponent.h"
 #include "Kismet/GameplayStatics.h"
@@ -79,20 +80,20 @@ FText UTPQuestGiverComponent::GetCurrentPrompt() const
 {
 	if (bQuestCompleted)
 	{
-		return CompletedPrompt;
+		return GetCompletedPromptText();
 	}
 
 	if (bQuestGiven)
 	{
 		if (ObjectiveManager && ObjectiveManager->CanTurnInObjective())
 		{
-			return TurnInPrompt;
+			return GetTurnInPromptText();
 		}
 
-		return ActivePrompt;
+		return GetActivePromptText();
 	}
 
-	return AvailablePrompt;
+	return GetAvailablePromptText();
 }
 
 bool UTPQuestGiverComponent::IsQuestGiven() const
@@ -167,6 +168,7 @@ void UTPQuestGiverComponent::StartQuest()
 		return;
 	}
 
+	ObjectiveManager->SetQuestTextDefinition(QuestTextDefinition);
 	ObjectiveManager->StartObjective();
 
 	bQuestGiven = true;
@@ -204,10 +206,10 @@ void UTPQuestGiverComponent::ShowQuestOfferWidget()
 	}
 
 	ActiveQuestOfferWidget->SetQuestOfferText(
-		QuestOfferTitle,
-		QuestOfferDescription,
-		AcceptButtonText,
-		DeclineButtonText
+		GetQuestOfferTitleText(),
+		GetQuestOfferDescriptionText(),
+		GetAcceptButtonText(),
+		GetDeclineButtonText()
 	);
 
 	ActiveQuestOfferWidget->OnQuestOfferAccepted.AddUniqueDynamic(
@@ -301,4 +303,60 @@ void UTPQuestGiverComponent::RefreshInteractionPromptForPendingInstigator() cons
 	}
 
 	InteractionDetector->RefreshFocusNow();
+}
+
+FText UTPQuestGiverComponent::GetAvailablePromptText() const
+{
+	return QuestTextDefinition
+		? QuestTextDefinition->AvailablePrompt
+		: AvailablePrompt;
+}
+
+FText UTPQuestGiverComponent::GetActivePromptText() const
+{
+	return QuestTextDefinition
+		? QuestTextDefinition->ActivePrompt
+		: ActivePrompt;
+}
+
+FText UTPQuestGiverComponent::GetTurnInPromptText() const
+{
+	return QuestTextDefinition
+		? QuestTextDefinition->TurnInPrompt
+		: TurnInPrompt;
+}
+
+FText UTPQuestGiverComponent::GetCompletedPromptText() const
+{
+	return QuestTextDefinition
+		? QuestTextDefinition->CompletedPrompt
+		: CompletedPrompt;
+}
+
+FText UTPQuestGiverComponent::GetQuestOfferTitleText() const
+{
+	return QuestTextDefinition
+		? QuestTextDefinition->QuestOfferTitle
+		: QuestOfferTitle;
+}
+
+FText UTPQuestGiverComponent::GetQuestOfferDescriptionText() const
+{
+	return QuestTextDefinition
+		? QuestTextDefinition->QuestOfferDescription
+		: QuestOfferDescription;
+}
+
+FText UTPQuestGiverComponent::GetAcceptButtonText() const
+{
+	return QuestTextDefinition
+		? QuestTextDefinition->AcceptButtonText
+		: AcceptButtonText;
+}
+
+FText UTPQuestGiverComponent::GetDeclineButtonText() const
+{
+	return QuestTextDefinition
+		? QuestTextDefinition->DeclineButtonText
+		: DeclineButtonText;
 }

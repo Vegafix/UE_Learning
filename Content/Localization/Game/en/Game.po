@@ -4,8 +4,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: Game\n"
-"POT-Creation-Date: 2026-07-10 15:29\n"
-"PO-Revision-Date: 2026-07-10 15:29\n"
+"POT-Creation-Date: 2026-07-16 17:29\n"
+"PO-Revision-Date: 2026-07-16 17:29\n"
 "Language-Team: \n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
@@ -13,86 +13,198 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
+#. Key:	56C1A330461543AB28B8BBBC8545C738
+#. SourceLocation:	/Game/ProjectWork/Quest/BP_QuestItem_AncientTool.Default__BP_QuestItem_AncientTool_C.InteractionPrompt
+#: /Game/ProjectWork/Quest/BP_QuestItem_AncientTool.Default__BP_QuestItem_AncientTool_C.InteractionPrompt
+msgctxt ",56C1A330461543AB28B8BBBC8545C738"
+msgid "ЗАБРАТЬ ИНСТРУМЕНТ"
+msgstr "PICK UP THE TOOL"
+
+#. Key:	6731D91D4E56FC2AC8E93598DA4F5F90
+#. SourceLocation:	/Game/ProjectWork/Quest/BP_QuestItem_AncientTool.Default__BP_QuestItem_AncientTool_C.ItemDisplayName
+#: /Game/ProjectWork/Quest/BP_QuestItem_AncientTool.Default__BP_QuestItem_AncientTool_C.ItemDisplayName
+msgctxt ",6731D91D4E56FC2AC8E93598DA4F5F90"
+msgid "ДРЕВНИЙ ИНСТРУМЕНТ"
+msgstr "ANCIENT TOOL"
+
+#. Key:	1C102C284A488A1C1FD2DEBBE683E259
+#. SourceLocation:	/Game/ProjectWork/Quest/BP_QuestItem_BiomaterialContainer.Default__BP_QuestItem_BiomaterialContainer_C.InteractionPrompt
+#: /Game/ProjectWork/Quest/BP_QuestItem_BiomaterialContainer.Default__BP_QuestItem_BiomaterialContainer_C.InteractionPrompt
+msgctxt ",1C102C284A488A1C1FD2DEBBE683E259"
+msgid "ЗАБРАТЬ КОНТЕЙНЕР"
+msgstr "PICK UP THE CONTAINER"
+
+#. Key:	9B16E91C434E3CED99E53A9A8D7DF1B4
+#. SourceLocation:	/Game/ProjectWork/Quest/BP_QuestItem_BiomaterialContainer.Default__BP_QuestItem_BiomaterialContainer_C.ItemDisplayName
+#: /Game/ProjectWork/Quest/BP_QuestItem_BiomaterialContainer.Default__BP_QuestItem_BiomaterialContainer_C.ItemDisplayName
+msgctxt ",9B16E91C434E3CED99E53A9A8D7DF1B4"
+msgid "КОНТЕЙНЕР С БИОМАТЕРИАЛОМ"
+msgstr "BIOMATERIAL CONTAINER"
+
+#. Key:	718347254B71D5E1C331708BB7E21710
+#. SourceLocation:	/Game/ProjectWork/Quest/DA_QuestText_Guardian.DA_QuestText_Guardian.AcceptButtonText
+#: /Game/ProjectWork/Quest/DA_QuestText_Guardian.DA_QuestText_Guardian.AcceptButtonText
+msgctxt ",718347254B71D5E1C331708BB7E21710"
+msgid "ПРИНЯТЬ"
+msgstr "ACCEPT"
+
+#. Key:	8F0F229D4BA64727B6AA6480B6F3CEF4
+#. SourceLocation:	/Game/ProjectWork/Quest/DA_QuestText_Guardian.DA_QuestText_Guardian.ActivePrompt
+#: /Game/ProjectWork/Quest/DA_QuestText_Guardian.DA_QuestText_Guardian.ActivePrompt
+msgctxt ",8F0F229D4BA64727B6AA6480B6F3CEF4"
+msgid "НАЙДИТЕ ИНСТРУМЕНТ И КОНТЕЙНЕР"
+msgstr "FIND THE TOOL AND THE CONTAINER"
+
+#. Key:	A095BBC848B00FDD0A73E792A01FF498
+#. SourceLocation:	/Game/ProjectWork/Quest/DA_QuestText_Guardian.DA_QuestText_Guardian.AvailablePrompt
+#: /Game/ProjectWork/Quest/DA_QuestText_Guardian.DA_QuestText_Guardian.AvailablePrompt
+msgctxt ",A095BBC848B00FDD0A73E792A01FF498"
+msgid "ПОГОВОРИТЬ"
+msgstr "TALK"
+
+#. Key:	572294DD4EC4BCD4557EEDA34EF487A0
+#. SourceLocation:	/Game/ProjectWork/Quest/DA_QuestText_Guardian.DA_QuestText_Guardian.CompletedPrompt
+#: /Game/ProjectWork/Quest/DA_QuestText_Guardian.DA_QuestText_Guardian.CompletedPrompt
+msgctxt ",572294DD4EC4BCD4557EEDA34EF487A0"
+msgid "ЗАДАНИЕ ВЫПОЛНЕНО"
+msgstr "QUEST COMPLETED"
+
+#. Key:	6ADDD47D442A4D5334C4F493D62ED174
+#. SourceLocation:	/Game/ProjectWork/Quest/DA_QuestText_Guardian.DA_QuestText_Guardian.DeclineButtonText
+#: /Game/ProjectWork/Quest/DA_QuestText_Guardian.DA_QuestText_Guardian.DeclineButtonText
+msgctxt ",6ADDD47D442A4D5334C4F493D62ED174"
+msgid "ПОЗЖЕ"
+msgstr "LATER"
+
+#. Key:	0FA0EBBD402E269EFF1DFB8355AC752C
+#. SourceLocation:	/Game/ProjectWork/Quest/DA_QuestText_Guardian.DA_QuestText_Guardian.ObjectiveActiveText
+#: /Game/ProjectWork/Quest/DA_QuestText_Guardian.DA_QuestText_Guardian.ObjectiveActiveText
+msgctxt ",0FA0EBBD402E269EFF1DFB8355AC752C"
+msgid "НАЙДИТЕ ИНСТРУМЕНТ И КОНТЕЙНЕР"
+msgstr "FIND THE TOOL AND THE CONTAINER"
+
+#. Key:	BBEDF6D4424696EF1D865BB450A2E6B9
+#. SourceLocation:	/Game/ProjectWork/Quest/DA_QuestText_Guardian.DA_QuestText_Guardian.ObjectiveItemsCollectedText
+#: /Game/ProjectWork/Quest/DA_QuestText_Guardian.DA_QuestText_Guardian.ObjectiveItemsCollectedText
+msgctxt ",BBEDF6D4424696EF1D865BB450A2E6B9"
+msgid "ПРЕДМЕТЫ СОБРАНЫ"
+msgstr "ITEMS COLLECTED"
+
+#. Key:	CD9D7FE84E87BBC693901391B68E7E67
+#. SourceLocation:	/Game/ProjectWork/Quest/DA_QuestText_Guardian.DA_QuestText_Guardian.ObjectiveItemsProgressFormat
+#: /Game/ProjectWork/Quest/DA_QuestText_Guardian.DA_QuestText_Guardian.ObjectiveItemsProgressFormat
+msgctxt ",CD9D7FE84E87BBC693901391B68E7E67"
+msgid "ПРЕДМЕТЫ: {0} / {1}"
+msgstr "ITEMS: {0} / {1}"
+
+#. Key:	A957DDB847FE98C202431787D908F810
+#. SourceLocation:	/Game/ProjectWork/Quest/DA_QuestText_Guardian.DA_QuestText_Guardian.ObjectiveReadyToTurnInText
+#: /Game/ProjectWork/Quest/DA_QuestText_Guardian.DA_QuestText_Guardian.ObjectiveReadyToTurnInText
+msgctxt ",A957DDB847FE98C202431787D908F810"
+msgid "ВЕРНУТЬ ПРЕДМЕТЫ"
+msgstr "RETURN THE ITEMS"
+
+#. Key:	3AADBF304AA41AF9B422BB81704D8117
+#. SourceLocation:	/Game/ProjectWork/Quest/DA_QuestText_Guardian.DA_QuestText_Guardian.QuestOfferDescription
+#: /Game/ProjectWork/Quest/DA_QuestText_Guardian.DA_QuestText_Guardian.QuestOfferDescription
+msgctxt ",3AADBF304AA41AF9B422BB81704D8117"
+msgid "Приветствую, агент. Я хранитель. Тебе необходимо забрать с корабля контейнер с биоматериалом, он находится где-то на корабле. Также нужен будет древний инструмент, который позволит работать с этим материалом. Его можешь забрать у командира захватчиков, он всегда носит его при себе. Как соберешь всё, возвращайся ко мне."
+msgstr "Greetings, agent. I am the Keeper. You need to retrieve a container with biomaterial from the ship. It is somewhere on board. You will also need an ancient tool that makes it possible to work with this material. You can take it from the invader commander, he always carries it with him. Once you collect everything, return to me."
+
+#. Key:	4E83442E4E70F2E1EA9964834A1881CB
+#. SourceLocation:	/Game/ProjectWork/Quest/DA_QuestText_Guardian.DA_QuestText_Guardian.QuestOfferTitle
+#: /Game/ProjectWork/Quest/DA_QuestText_Guardian.DA_QuestText_Guardian.QuestOfferTitle
+msgctxt ",4E83442E4E70F2E1EA9964834A1881CB"
+msgid "ЗАДАНИЕ ХРАНИТЕЛЯ"
+msgstr "KEEPER'S QUEST"
+
+#. Key:	5306DD55471F910692FB2A8D4581A3B8
+#. SourceLocation:	/Game/ProjectWork/Quest/DA_QuestText_Guardian.DA_QuestText_Guardian.TurnInPrompt
+#: /Game/ProjectWork/Quest/DA_QuestText_Guardian.DA_QuestText_Guardian.TurnInPrompt
+msgctxt ",5306DD55471F910692FB2A8D4581A3B8"
+msgid "ВЕРНУТЬ ПРЕДМЕТЫ"
+msgstr "RETURN THE ITEMS"
+
 #. Key:	DeathScreenTitle
-#. SourceLocation:	Source/UE_Learning/Characters/TPPlayerCharacter.h(157)
-#: Source/UE_Learning/Characters/TPPlayerCharacter.h(157)
+#. SourceLocation:	Source/UE_Learning/Characters/TPPlayerCharacter.h(158)
+#: Source/UE_Learning/Characters/TPPlayerCharacter.h(158)
 msgctxt "Player,DeathScreenTitle"
 msgid "ВЫ ПОГИБЛИ"
 msgstr "YOU DIED"
 
 #. Key:	DeathScreenDescription
-#. SourceLocation:	Source/UE_Learning/Characters/TPPlayerCharacter.h(164)
-#: Source/UE_Learning/Characters/TPPlayerCharacter.h(164)
+#. SourceLocation:	Source/UE_Learning/Characters/TPPlayerCharacter.h(165)
+#: Source/UE_Learning/Characters/TPPlayerCharacter.h(165)
 msgctxt "Player,DeathScreenDescription"
 msgid "ПЕРЕЗАПУСК"
 msgstr "RESTART"
 
 #. Key:	DeathScreenMainMenuText
-#. SourceLocation:	Source/UE_Learning/Characters/TPPlayerCharacter.h(176)
-#: Source/UE_Learning/Characters/TPPlayerCharacter.h(176)
+#. SourceLocation:	Source/UE_Learning/Characters/TPPlayerCharacter.h(177)
+#: Source/UE_Learning/Characters/TPPlayerCharacter.h(177)
 msgctxt "Player,DeathScreenMainMenuText"
 msgid "ГЛАВНОЕ МЕНЮ"
 msgstr "MAIN MENU"
 
 #. Key:	DeathScreenQuitText
-#. SourceLocation:	Source/UE_Learning/Characters/TPPlayerCharacter.h(188)
-#: Source/UE_Learning/Characters/TPPlayerCharacter.h(188)
+#. SourceLocation:	Source/UE_Learning/Characters/TPPlayerCharacter.h(189)
+#: Source/UE_Learning/Characters/TPPlayerCharacter.h(189)
 msgctxt "Player,DeathScreenQuitText"
 msgid "ВЫХОД"
 msgstr "QUIT"
 
 #. Key:	QuestItemsCollected
-#. SourceLocation:	Source/UE_Learning/Objectives/TPLevelObjectiveManager.cpp(710)
-#: Source/UE_Learning/Objectives/TPLevelObjectiveManager.cpp(710)
+#. SourceLocation:	Source/UE_Learning/Objectives/TPLevelObjectiveManager.cpp(712)
+#: Source/UE_Learning/Objectives/TPLevelObjectiveManager.cpp(712)
 msgctxt "Objective,QuestItemsCollected"
 msgid "ПРЕДМЕТЫ СОБРАНЫ"
 msgstr "ITEMS COLLECTED"
 
 #. Key:	QuestItemsProgressFormat
-#. SourceLocation:	Source/UE_Learning/Objectives/TPLevelObjectiveManager.cpp(725)
-#: Source/UE_Learning/Objectives/TPLevelObjectiveManager.cpp(725)
+#. SourceLocation:	Source/UE_Learning/Objectives/TPLevelObjectiveManager.cpp(727)
+#: Source/UE_Learning/Objectives/TPLevelObjectiveManager.cpp(727)
 msgctxt "Objective,QuestItemsProgressFormat"
 msgid "ПРЕДМЕТЫ: {0} / {1}"
 msgstr "ITEMS: {0} / {1}"
 
 #. Key:	ObjectiveBeforeArtifact
-#. SourceLocation:	Source/UE_Learning/Objectives/TPLevelObjectiveManager.h(129)
-#: Source/UE_Learning/Objectives/TPLevelObjectiveManager.h(129)
+#. SourceLocation:	Source/UE_Learning/Objectives/TPLevelObjectiveManager.h(133)
+#: Source/UE_Learning/Objectives/TPLevelObjectiveManager.h(133)
 msgctxt "Objective,ObjectiveBeforeArtifact"
 msgid "ПОЛУЧИТЕ АРТЕФАКТ У БАНДИТОВ"
 msgstr "GET THE ARTIFACT FROM THE BANDITS"
 
 #. Key:	ObjectiveAfterArtifact
-#. SourceLocation:	Source/UE_Learning/Objectives/TPLevelObjectiveManager.h(136)
-#: Source/UE_Learning/Objectives/TPLevelObjectiveManager.h(136)
+#. SourceLocation:	Source/UE_Learning/Objectives/TPLevelObjectiveManager.h(140)
+#: Source/UE_Learning/Objectives/TPLevelObjectiveManager.h(140)
 msgctxt "Objective,ObjectiveAfterArtifact"
 msgid "ВЕРНИТЕСЬ К ИССЛЕДОВАТЕЛЮ"
 msgstr "RETURN TO THE RESEARCHER"
 
 #. Key:	LevelCompletedTitle
-#. SourceLocation:	Source/UE_Learning/Objectives/TPLevelObjectiveManager.h(152)
-#: Source/UE_Learning/Objectives/TPLevelObjectiveManager.h(152)
+#. SourceLocation:	Source/UE_Learning/Objectives/TPLevelObjectiveManager.h(159)
+#: Source/UE_Learning/Objectives/TPLevelObjectiveManager.h(159)
 msgctxt "Objective,LevelCompletedTitle"
 msgid "УРОВЕНЬ ЗАВЕРШЁН"
 msgstr "LEVEL COMPLETED"
 
 #. Key:	LevelCompletedDescription
-#. SourceLocation:	Source/UE_Learning/Objectives/TPLevelObjectiveManager.h(159)
-#: Source/UE_Learning/Objectives/TPLevelObjectiveManager.h(159)
+#. SourceLocation:	Source/UE_Learning/Objectives/TPLevelObjectiveManager.h(166)
+#: Source/UE_Learning/Objectives/TPLevelObjectiveManager.h(166)
 msgctxt "Objective,LevelCompletedDescription"
 msgid "ПЕРЕЗАПУСК"
 msgstr "RESTART"
 
 #. Key:	LevelCompletedMainMenuText
-#. SourceLocation:	Source/UE_Learning/Objectives/TPLevelObjectiveManager.h(166)
-#: Source/UE_Learning/Objectives/TPLevelObjectiveManager.h(166)
+#. SourceLocation:	Source/UE_Learning/Objectives/TPLevelObjectiveManager.h(173)
+#: Source/UE_Learning/Objectives/TPLevelObjectiveManager.h(173)
 msgctxt "Objective,LevelCompletedMainMenuText"
 msgid "ГЛАВНОЕ МЕНЮ"
 msgstr "MAIN MENU"
 
 #. Key:	LevelCompletedQuitText
-#. SourceLocation:	Source/UE_Learning/Objectives/TPLevelObjectiveManager.h(173)
-#: Source/UE_Learning/Objectives/TPLevelObjectiveManager.h(173)
+#. SourceLocation:	Source/UE_Learning/Objectives/TPLevelObjectiveManager.h(180)
+#: Source/UE_Learning/Objectives/TPLevelObjectiveManager.h(180)
 msgctxt "Objective,LevelCompletedQuitText"
 msgid "ВЫХОД"
 msgstr "QUIT"
@@ -139,61 +251,61 @@ msgctxt "Quest,EnemyNegotiationUnavailablePrompt"
 msgid "ПЕРЕГОВОРЫ НЕДОСТУПНЫ"
 msgstr "NEGOTIATION UNAVAILABLE"
 
+#. Key:	DefaultDeclineQuestText
+#. SourceLocation:	Source/UE_Learning/Quest/TPQuestGiverComponent.h(101)
+#: Source/UE_Learning/Quest/TPQuestGiverComponent.h(101)
+msgctxt "Quest,DefaultDeclineQuestText"
+msgid "ПОЗЖЕ"
+msgstr "LATER"
+
 #. Key:	QuestAvailablePrompt
-#. SourceLocation:	Source/UE_Learning/Quest/TPQuestGiverComponent.h(36)
-#: Source/UE_Learning/Quest/TPQuestGiverComponent.h(36)
+#. SourceLocation:	Source/UE_Learning/Quest/TPQuestGiverComponent.h(40)
+#: Source/UE_Learning/Quest/TPQuestGiverComponent.h(40)
 msgctxt "Quest,QuestAvailablePrompt"
 msgid "ПОГОВОРИТЬ"
 msgstr "TALK"
 
 #. Key:	QuestActivePrompt
-#. SourceLocation:	Source/UE_Learning/Quest/TPQuestGiverComponent.h(43)
-#: Source/UE_Learning/Quest/TPQuestGiverComponent.h(43)
+#. SourceLocation:	Source/UE_Learning/Quest/TPQuestGiverComponent.h(47)
+#: Source/UE_Learning/Quest/TPQuestGiverComponent.h(47)
 msgctxt "Quest,QuestActivePrompt"
 msgid "ЗАДАНИЕ УЖЕ ПОЛУЧЕНО"
 msgstr "QUEST ALREADY ACCEPTED"
 
 #. Key:	QuestTurnInPrompt
-#. SourceLocation:	Source/UE_Learning/Quest/TPQuestGiverComponent.h(50)
-#: Source/UE_Learning/Quest/TPQuestGiverComponent.h(50)
+#. SourceLocation:	Source/UE_Learning/Quest/TPQuestGiverComponent.h(54)
+#: Source/UE_Learning/Quest/TPQuestGiverComponent.h(54)
 msgctxt "Quest,QuestTurnInPrompt"
 msgid "ВЕРНУТЬСЯ С АРТЕФАКТОМ"
 msgstr "RETURN WITH THE ARTIFACT"
 
 #. Key:	QuestCompletedPrompt
-#. SourceLocation:	Source/UE_Learning/Quest/TPQuestGiverComponent.h(57)
-#: Source/UE_Learning/Quest/TPQuestGiverComponent.h(57)
+#. SourceLocation:	Source/UE_Learning/Quest/TPQuestGiverComponent.h(61)
+#: Source/UE_Learning/Quest/TPQuestGiverComponent.h(61)
 msgctxt "Quest,QuestCompletedPrompt"
 msgid "СПАСИБО, ЗАДАНИЕ ВЫПОЛНЕНО"
 msgstr "THANK YOU, QUEST COMPLETED"
 
 #. Key:	DefaultQuestOfferTitle
-#. SourceLocation:	Source/UE_Learning/Quest/TPQuestGiverComponent.h(76)
-#: Source/UE_Learning/Quest/TPQuestGiverComponent.h(76)
+#. SourceLocation:	Source/UE_Learning/Quest/TPQuestGiverComponent.h(80)
+#: Source/UE_Learning/Quest/TPQuestGiverComponent.h(80)
 msgctxt "Quest,DefaultQuestOfferTitle"
 msgid "ЗАДАНИЕ"
 msgstr "QUEST"
 
 #. Key:	DefaultQuestOfferDescription
-#. SourceLocation:	Source/UE_Learning/Quest/TPQuestGiverComponent.h(83)
-#: Source/UE_Learning/Quest/TPQuestGiverComponent.h(83)
+#. SourceLocation:	Source/UE_Learning/Quest/TPQuestGiverComponent.h(87)
+#: Source/UE_Learning/Quest/TPQuestGiverComponent.h(87)
 msgctxt "Quest,DefaultQuestOfferDescription"
 msgid "НУЖНО ПОЛУЧИТЬ АРТЕФАКТ, КОТОРЫЙ НАХОДИТСЯ У БАНДИТОВ"
 msgstr "GET THE ARTIFACT HELD BY THE BANDITS"
 
 #. Key:	DefaultAcceptQuestText
-#. SourceLocation:	Source/UE_Learning/Quest/TPQuestGiverComponent.h(90)
-#: Source/UE_Learning/Quest/TPQuestGiverComponent.h(90)
+#. SourceLocation:	Source/UE_Learning/Quest/TPQuestGiverComponent.h(94)
+#: Source/UE_Learning/Quest/TPQuestGiverComponent.h(94)
 msgctxt "Quest,DefaultAcceptQuestText"
 msgid "ПРИНЯТЬ"
 msgstr "ACCEPT"
-
-#. Key:	DefaultDeclineQuestText
-#. SourceLocation:	Source/UE_Learning/Quest/TPQuestGiverComponent.h(97)
-#: Source/UE_Learning/Quest/TPQuestGiverComponent.h(97)
-msgctxt "Quest,DefaultDeclineQuestText"
-msgid "ПОЗЖЕ"
-msgstr "LATER"
 
 #. Key:	PickUpArtifactPrompt
 #. SourceLocation:	Source/UE_Learning/Quest/TPQuestItemActor.cpp(8)
@@ -223,6 +335,55 @@ msgctxt "Health,HealthFormat"
 msgid "{0} / {1}"
 msgstr "{0} / {1}"
 
+#. Key:	StartGameLabel
+#. SourceLocation:	Source/UE_Learning/UI/TPMainMenuWidget.h(40)
+#: Source/UE_Learning/UI/TPMainMenuWidget.h(40)
+msgctxt "MainMenu,StartGameLabel"
+msgid "НАЧАТЬ ИГРУ"
+msgstr "START GAME"
+
+#. Key:	LevelSelectLabel
+#. SourceLocation:	Source/UE_Learning/UI/TPMainMenuWidget.h(47)
+#: Source/UE_Learning/UI/TPMainMenuWidget.h(47)
+msgctxt "MainMenu,LevelSelectLabel"
+msgid "ВЫБОР УРОВНЯ"
+msgstr "LEVEL SELECT"
+
+#. Key:	QuitLabel
+#. SourceLocation:	Source/UE_Learning/UI/TPMainMenuWidget.h(54)
+#: Source/UE_Learning/UI/TPMainMenuWidget.h(54)
+msgctxt "MainMenu,QuitLabel"
+msgid "ВЫХОД"
+msgstr "QUIT"
+
+#. Key:	SpaceStationLevelLabel
+#. SourceLocation:	Source/UE_Learning/UI/TPMainMenuWidget.h(61)
+#: Source/UE_Learning/UI/TPMainMenuWidget.h(61)
+msgctxt "MainMenu,SpaceStationLevelLabel"
+msgid "КОСМИЧЕСКАЯ СТАНЦИЯ"
+msgstr "SPACE STATION"
+
+#. Key:	HomeworkMapLevelLabel
+#. SourceLocation:	Source/UE_Learning/UI/TPMainMenuWidget.h(68)
+#: Source/UE_Learning/UI/TPMainMenuWidget.h(68)
+msgctxt "MainMenu,HomeworkMapLevelLabel"
+msgid "КАРТА С БОЛЬШИНСТВОМ ДЗ"
+msgstr "MAP WITH MOST HOMEWORK TASKS"
+
+#. Key:	LandscapeHomeworkLevelLabel
+#. SourceLocation:	Source/UE_Learning/UI/TPMainMenuWidget.h(75)
+#: Source/UE_Learning/UI/TPMainMenuWidget.h(75)
+msgctxt "MainMenu,LandscapeHomeworkLevelLabel"
+msgid "ДЗ ПО СОЗДАНИЮ LANDSCAPE"
+msgstr "LANDSCAPE HOMEWORK"
+
+#. Key:	BackLabel
+#. SourceLocation:	Source/UE_Learning/UI/TPMainMenuWidget.h(82)
+#: Source/UE_Learning/UI/TPMainMenuWidget.h(82)
+msgctxt "MainMenu,BackLabel"
+msgid "НАЗАД"
+msgstr "BACK"
+
 #. Key:	ObjectiveCompleted
 #. SourceLocation:	Source/UE_Learning/UI/TPObjectiveWidget.cpp(35)
 #: Source/UE_Learning/UI/TPObjectiveWidget.cpp(35)
@@ -236,4 +397,32 @@ msgstr "OBJECTIVE COMPLETED"
 msgctxt "Objective,TargetsRemainingFormat"
 msgid "ОСТАЛОСЬ: {0} / {1}"
 msgstr "REMAINING: {0} / {1}"
+
+#. Key:	PauseTitleLabel
+#. SourceLocation:	Source/UE_Learning/UI/TPPauseMenuWidget.h(47)
+#: Source/UE_Learning/UI/TPPauseMenuWidget.h(47)
+msgctxt "PauseMenu,PauseTitleLabel"
+msgid "ПАУЗА"
+msgstr "PAUSE"
+
+#. Key:	RestartLabel
+#. SourceLocation:	Source/UE_Learning/UI/TPPauseMenuWidget.h(54)
+#: Source/UE_Learning/UI/TPPauseMenuWidget.h(54)
+msgctxt "PauseMenu,RestartLabel"
+msgid "РЕСТАРТ"
+msgstr "RESTART"
+
+#. Key:	MainMenuLabel
+#. SourceLocation:	Source/UE_Learning/UI/TPPauseMenuWidget.h(61)
+#: Source/UE_Learning/UI/TPPauseMenuWidget.h(61)
+msgctxt "PauseMenu,MainMenuLabel"
+msgid "ГЛАВНОЕ МЕНЮ"
+msgstr "MAIN MENU"
+
+#. Key:	QuitLabel
+#. SourceLocation:	Source/UE_Learning/UI/TPPauseMenuWidget.h(68)
+#: Source/UE_Learning/UI/TPPauseMenuWidget.h(68)
+msgctxt "PauseMenu,QuitLabel"
+msgid "ВЫХОД"
+msgstr "QUIT"
 

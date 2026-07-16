@@ -3,10 +3,27 @@
 #include "HomeworkPlugin.h"
 #include "GameFramework/PlayerController.h"
 #include "GameFramework/Pawn.h"
+#include "Kismet/GameplayStatics.h"
 #include "TimerManager.h"
 #include "UObject/UObjectGlobals.h"
 
 #define LOCTEXT_NAMESPACE "FHomeworkPluginModule"
+
+namespace
+{
+	bool ShouldSpawnHomeworkCubeInWorld(const UWorld* World)
+	{
+		if (!World || !World->IsGameWorld())
+		{
+			return false;
+		}
+
+		const FString LevelName =
+			UGameplayStatics::GetCurrentLevelName(World, true);
+
+		return LevelName.Contains(TEXT("Lvl_ThirdPerson"));
+	}
+}
 
 void FHomeworkPluginModule::StartupModule()
 {
@@ -27,7 +44,7 @@ void FHomeworkPluginModule::ShutdownModule()
 
 void FHomeworkPluginModule::HandlePostWorldInitialization(UWorld* World, const UWorld::InitializationValues IVS)
 {
-	if (!World || !World->IsGameWorld())
+	if (!ShouldSpawnHomeworkCubeInWorld(World))
 	{
 		return;
 	}
@@ -39,7 +56,7 @@ void FHomeworkPluginModule::HandlePostWorldInitialization(UWorld* World, const U
 
 void FHomeworkPluginModule::SpawnCubeForPlayer(UWorld* World)
 {
-	if (!World || !World->IsGameWorld())
+	if (!ShouldSpawnHomeworkCubeInWorld(World))
 	{
 		return;
 	}

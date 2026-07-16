@@ -26,6 +26,8 @@ void ATPLevelObjectiveManager::BeginPlay()
 	}
 }
 
+
+
 void ATPLevelObjectiveManager::StartObjective()
 {
 	if (bObjectiveActive || bObjectiveCompleted)
@@ -45,6 +47,8 @@ void ATPLevelObjectiveManager::StartObjective()
 	{
 		RequiredItem.CollectedCount = 0;
 	}
+
+	SpawnTargetNPCOnObjectiveStart();
 
 	ProcessObjectiveStartAsync();
 }
@@ -391,6 +395,73 @@ void ATPLevelObjectiveManager::SpawnQuestItemDropFrom(AActor* SourceActor)
 	);
 }
 
+void ATPLevelObjectiveManager::SpawnTargetNPCOnObjectiveStart()
+{
+	if (!bSpawnTargetNPCOnObjectiveStart)
+	{
+		return;
+	}
+
+	if (IsValid(SpawnedTargetNPC))
+	{
+		TargetNPCs.AddUnique(SpawnedTargetNPC);
+		return;
+	}
+
+	if (!TargetNPCClassToSpawn)
+	{
+		UE_LOG(
+			LogTemp,
+			Warning,
+			TEXT("Objective target NPC spawn failed. TargetNPCClassToSpawn is not assigned.")
+		);
+
+		return;
+	}
+
+	UWorld* World = GetWorld();
+	if (!World)
+	{
+		return;
+	}
+
+	const FTransform SpawnTransform =
+		TargetNPCSpawnPoint
+			? TargetNPCSpawnPoint->GetActorTransform()
+			: GetActorTransform();
+
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.Owner = this;
+	SpawnParams.SpawnCollisionHandlingOverride =
+		ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+
+	SpawnedTargetNPC = World->SpawnActor<ATPNPCCharacter>(
+		TargetNPCClassToSpawn,
+		SpawnTransform,
+		SpawnParams
+	);
+
+	if (!SpawnedTargetNPC)
+	{
+		UE_LOG(
+			LogTemp,
+			Warning,
+			TEXT("Objective target NPC spawn failed. SpawnActor returned nullptr.")
+		);
+
+		return;
+	}
+
+	TargetNPCs.AddUnique(SpawnedTargetNPC);
+
+	UE_LOG(
+		LogTemp,
+		Display,
+		TEXT("Objective target NPC spawned: %s"),
+		*GetNameSafe(SpawnedTargetNPC)
+	);
+}
+
 void ATPLevelObjectiveManager::ProcessObjectiveStartAsync()
 {
 	TArray<FTPObjectiveTargetSnapshot> TargetSnapshots;
@@ -706,7 +777,7 @@ void ATPLevelObjectiveManager::UpdateObjectiveWidget()
 		if (bQuestItemCollected)
 		{
 			ObjectiveWidget->SetObjectiveStateText(
-				ObjectiveTextAfterArtifact,
+				GetObjectiveReadyToTurnInText(),
 				NSLOCTEXT(
 					"Objective",
 					"QuestItemsCollected",
@@ -720,7 +791,7 @@ void ATPLevelObjectiveManager::UpdateObjectiveWidget()
 		}
 
 		ObjectiveWidget->SetObjectiveStateText(
-			ObjectiveTextBeforeArtifact,
+			GetObjectiveActiveText(),
 			FText::Format(
 				NSLOCTEXT(
 					"Objective",
@@ -738,7 +809,7 @@ void ATPLevelObjectiveManager::UpdateObjectiveWidget()
 	}
 
 	ObjectiveWidget->SetObjectiveState(
-		ObjectiveTextBeforeArtifact,
+		GetObjectiveActiveText(),
 		AliveTargetsCount,
 		TotalTargetsCount,
 		bObjectiveCompleted,
@@ -781,7 +852,7 @@ void ATPLevelObjectiveManager::ShowCompletionWidget()
 	CompletionWidget = CreateWidget<UTPMessageScreenWidget>(
 		GetWorld(),
 		CompletionWidgetClass
-);
+	);
 
 	if (!CompletionWidget)
 	{
@@ -793,7 +864,7 @@ void ATPLevelObjectiveManager::ShowCompletionWidget()
 		CompletionDescription,
 		CompletionMainMenuText,
 		CompletionQuitText
-);
+	);
 
 	CompletionWidget->AddToViewport(CompletionWidgetZOrder);
 
@@ -824,4 +895,48 @@ void ATPLevelObjectiveManager::ShowCompletionWidget()
 	InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
 
 	PlayerController->SetInputMode(InputMode);
+}
+
+void ATPLevelObjectiveManager::SetQuestTextDefinition(
+	UTPQuestTextDefinition* InQuestTextDefinition
+)
+{
+	QuestTextDefinition = InQuestTextDefinition;
+	UpdateObjectiveWidget();
+}
+
+FText ATPLevelObjectiveManager::GetObjectiveActiveText() const
+{
+	return QuestTextDefinition && !QuestTextDefinition->ObjectiveActiveText.IsEmpty()
+		? QuestTextDefinition->ObjectiveActiveText
+		: ObjectiveTextBeforeArtifact;
+}
+
+FText ATPLevelObjectiveManager::GetObjectiveReadyToTurnInText() const
+{
+	return QuestTextDefinition && !QuestTextDefinition->ObjectiveReadyToTurnInText.IsEmpty()
+		? QuestTextDefinition->ObjectiveReadyToTurnInText
+		: ObjectiveTextAfterArtifact;
+}
+
+FText ATPLevelObjectiveManager::GetObjectiveItemsCollectedText() const
+{
+	return QuestTextDefinition && !QuestTextDefinition->ObjectiveItemsCollectedText.IsEmpty()
+		? QuestTextDefinition->ObjectiveItemsCollectedText
+		: NSLOCTEXT(
+			"Objective",
+			"QuestItemsCollected",
+			"ПРЕДМЕТЫ СОБРАНЫ"
+		);
+}
+
+FText ATPLevelObjectiveManager::GetObjectiveItemsProgressFormatText() const
+{
+	return QuestTextDefinition && !QuestTextDefinition->ObjectiveItemsProgressFormat.IsEmpty()
+		? QuestTextDefinition->ObjectiveItemsProgressFormat
+		: NSLOCTEXT(
+			"Objective",
+			"QuestItemsProgressFormat",
+			"ПРЕДМЕТЫ: {0} / {1}"
+		);
 }

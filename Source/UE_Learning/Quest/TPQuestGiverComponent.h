@@ -7,6 +7,7 @@
 class ATPNPCCharacter;
 class ATPLevelObjectiveManager;
 class UTPQuestOfferWidget;
+class UTPQuestTextDefinition;
 
 UCLASS(ClassGroup=(Quest), meta=(BlueprintSpawnableComponent))
 class UE_LEARNING_API UTPQuestGiverComponent : public UActorComponent
@@ -31,6 +32,9 @@ public:
 protected:
 	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "Quest")
 	TObjectPtr<ATPLevelObjectiveManager> ObjectiveManager;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Quest|Text")
+	TObjectPtr<UTPQuestTextDefinition> QuestTextDefinition;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Quest|Prompt")
 	FText AvailablePrompt = NSLOCTEXT(
@@ -120,6 +124,15 @@ private:
 	void ShowQuestOfferWidget();
 	void CloseQuestOfferWidget();
 	void RefreshInteractionPromptForPendingInstigator() const;
+
+	FText GetAvailablePromptText() const;
+	FText GetActivePromptText() const;
+	FText GetTurnInPromptText() const;
+	FText GetCompletedPromptText() const;
+	FText GetQuestOfferTitleText() const;
+	FText GetQuestOfferDescriptionText() const;
+	FText GetAcceptButtonText() const;
+	FText GetDeclineButtonText() const;
 
 	UPROPERTY()
 	TObjectPtr<ATPNPCCharacter> OwnerNPC;

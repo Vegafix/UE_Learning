@@ -223,8 +223,25 @@ void ATPPlayerCharacter::HandleDeath()
 
 	PlayerDeathScreenWidget->AddToViewport(100);
 
+	UWorld* World = GetWorld();
+
+	if (World)
+	{
+		UGameplayStatics::SetGamePaused(World, true);
+	}
+
 	APlayerController* PlayerController =
 		Cast<APlayerController>(GetController());
+
+	if (!PlayerController)
+	{
+		PlayerController = UGameplayStatics::GetPlayerController(this, 0);
+	}
+
+	if (!PlayerController && World)
+	{
+		PlayerController = World->GetFirstPlayerController();
+	}
 
 	if (!PlayerController)
 	{
@@ -232,6 +249,8 @@ void ATPPlayerCharacter::HandleDeath()
 	}
 
 	PlayerController->bShowMouseCursor = true;
+	PlayerController->SetIgnoreMoveInput(true);
+	PlayerController->SetIgnoreLookInput(true);
 
 	FInputModeUIOnly InputMode;
 	InputMode.SetWidgetToFocus(PlayerDeathScreenWidget->TakeWidget());
