@@ -11,6 +11,7 @@ class UTPMessageScreenWidget;
 class UTPObjectiveWidget;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnObjectiveCompletedSignature);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnObjectiveStartedSignature);
 
 UENUM(BlueprintType)
 enum class ETPObjectiveCompletionMode : uint8
@@ -56,6 +57,9 @@ class UE_LEARNING_API ATPLevelObjectiveManager : public AActor
 
 public:
 	ATPLevelObjectiveManager();
+	
+	UPROPERTY(BlueprintAssignable, Category = "Objective")
+	FOnObjectiveStartedSignature OnObjectiveStarted;
 	
 	UPROPERTY(BlueprintAssignable, Category = "Objective")
 	FOnObjectiveCompletedSignature OnObjectiveCompleted;

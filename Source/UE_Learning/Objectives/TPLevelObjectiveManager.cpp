@@ -48,6 +48,8 @@ void ATPLevelObjectiveManager::StartObjective()
 		RequiredItem.CollectedCount = 0;
 	}
 
+	OnObjectiveStarted.Broadcast();
+
 	SpawnTargetNPCOnObjectiveStart();
 
 	ProcessObjectiveStartAsync();

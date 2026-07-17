@@ -25,6 +25,8 @@ public:
 	virtual void Interact_Implementation(AActor* InstigatorActor) override;
 	virtual bool CanInteract_Implementation(AActor* InstigatorActor) const override;
 	virtual FText GetInteractionPrompt_Implementation() const override;
+	virtual void OnFocused_Implementation(AActor* InstigatorActor) override;
+	virtual void OnUnfocused_Implementation(AActor* InstigatorActor) override;
 
 	UFUNCTION(BlueprintPure, Category = "Quest Item")
 	FName GetItemId() const { return ItemId; }
@@ -41,11 +43,16 @@ public:
 protected:
 	virtual void BeginPlay() override;
 	
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Quest Item")
 	FName ItemId = FName(TEXT("BanditArtifact"));
 	
 	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "Quest Item")
 	TObjectPtr<ATPLevelObjectiveManager> ObjectiveManager;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Quest Item|Availability")
+	bool bRequireActiveObjectiveToInteract = false;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Quest Item")
 	FText ItemDisplayName = NSLOCTEXT(
@@ -65,7 +72,17 @@ protected:
 	float DestroyDelay = 0.1f;
 
 private:
+	UFUNCTION()
+	void HandleObjectiveStarted();
+
+	void BindObjectiveManager();
+	void UnbindObjectiveManager();
+	void RefreshQuestAvailability();
+	bool IsQuestInteractionUnlocked() const;
+	
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Quest Item",
 		meta = (AllowPrivateAccess = "true"))
 	bool bCollected = false;
+	
+	bool bBoundToObjectiveManager = false;
 };

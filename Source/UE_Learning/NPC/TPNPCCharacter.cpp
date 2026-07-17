@@ -42,10 +42,11 @@ ATPNPCCharacter::ATPNPCCharacter()
 	HealthBarWidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("HealthBarWidget"));
 
 	HealthBarWidgetComponent->SetupAttachment(RootComponent);
-	HealthBarWidgetComponent->SetWidgetSpace(EWidgetSpace::Screen);
+	HealthBarWidgetComponent->SetWidgetSpace(EWidgetSpace::World);
 	HealthBarWidgetComponent->SetDrawSize(FVector2D(120.0f, 16.0f));
 	HealthBarWidgetComponent->SetRelativeLocation(FVector(0.0f, 0.0f, 120.0f));
 	HealthBarWidgetComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	HealthBarWidgetComponent->SetTwoSided(true);
 	HealthBarWidgetComponent->SetHiddenInGame(false);
 }
 
@@ -380,20 +381,21 @@ void ATPNPCCharacter::StartHealthBarVisibilityUpdates()
 		return;
 	}
 
-	if (!bHideHealthBarWhenOccluded)
-	{
-		HealthBarWidgetComponent->SetHiddenInGame(false);
-		HealthBarWidgetComponent->SetVisibility(true);
-		return;
-	}
+	HealthBarWidgetComponent->SetHiddenInGame(false);
+	HealthBarWidgetComponent->SetVisibility(true);
 
 	RefreshHealthBarVisibility();
+
+	if (!bBillboardHealthBarToCamera)
+	{
+		return;
+	}
 
 	GetWorldTimerManager().SetTimer(
 		HealthBarVisibilityTimerHandle,
 		this,
 		&ATPNPCCharacter::RefreshHealthBarVisibility,
-		FMath::Max(0.05f, HealthBarVisibilityCheckInterval),
+		FMath::Max(0.05f, HealthBarFacingUpdateInterval),
 		true
 	);
 }
@@ -417,21 +419,17 @@ void ATPNPCCharacter::RefreshHealthBarVisibility()
 		return;
 	}
 
-	const bool bShouldBeVisible =
-		!bHideHealthBarWhenOccluded ||
-		IsHealthBarVisibleFromLocalPlayerCamera();
+	HealthBarWidgetComponent->SetHiddenInGame(false);
+	HealthBarWidgetComponent->SetVisibility(true);
 
-	HealthBarWidgetComponent->SetHiddenInGame(!bShouldBeVisible);
-	HealthBarWidgetComponent->SetVisibility(bShouldBeVisible);
+	FaceHealthBarToLocalPlayerCamera();
 }
 
-bool ATPNPCCharacter::IsHealthBarVisibleFromLocalPlayerCamera() const
+void ATPNPCCharacter::FaceHealthBarToLocalPlayerCamera()
 {
-	const UWorld* World = GetWorld();
-
-	if (!World || !HealthBarWidgetComponent)
+	if (!HealthBarWidgetComponent)
 	{
-		return true;
+		return;
 	}
 
 	const APlayerCameraManager* CameraManager =
@@ -439,34 +437,21 @@ bool ATPNPCCharacter::IsHealthBarVisibleFromLocalPlayerCamera() const
 
 	if (!CameraManager)
 	{
-		return true;
+		return;
 	}
 
-	const FVector TraceStart = CameraManager->GetCameraLocation();
-	const FVector TraceEnd = HealthBarWidgetComponent->GetComponentLocation();
+	const FVector WidgetLocation =
+		HealthBarWidgetComponent->GetComponentLocation();
 
-	FCollisionQueryParams QueryParams;
-	QueryParams.bTraceComplex = false;
-	QueryParams.AddIgnoredActor(this);
+	const FVector DirectionToCamera =
+		CameraManager->GetCameraLocation() - WidgetLocation;
 
-	if (const APlayerController* PlayerController =
-		UGameplayStatics::GetPlayerController(this, 0))
+	if (DirectionToCamera.IsNearlyZero())
 	{
-		if (const APawn* PlayerPawn = PlayerController->GetPawn())
-		{
-			QueryParams.AddIgnoredActor(PlayerPawn);
-		}
+		return;
 	}
 
-	FHitResult Hit;
-
-	const bool bBlocked = World->LineTraceSingleByChannel(
-		Hit,
-		TraceStart,
-		TraceEnd,
-		ECC_Visibility,
-		QueryParams
+	HealthBarWidgetComponent->SetWorldRotation(
+		DirectionToCamera.Rotation()
 	);
-
-	return !bBlocked;
 }

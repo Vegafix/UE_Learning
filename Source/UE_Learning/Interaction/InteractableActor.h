@@ -4,6 +4,7 @@
 #include "GameFramework/Actor.h"
 #include "Interactable.h"
 #include "TimerManager.h"
+#include "Materials/MaterialInterface.h"
 #include "InteractableActor.generated.h"
 
 class UStaticMeshComponent;
@@ -35,6 +36,9 @@ protected:
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Interaction")
 	TObjectPtr<UStaticMeshComponent> MeshComponent;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	TObjectPtr<UStaticMeshComponent> OutlineMeshComponent;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interaction")
 	EInteractionCategory InteractionCategory = EInteractionCategory::Info;
@@ -44,19 +48,26 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interaction")
 	bool bInteractionEnabled = true;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Interaction|Highlight")
+	bool bUseGeometryOutline = true;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Interaction|Highlight",
+		meta = (EditCondition = "bUseGeometryOutline"))
+	TObjectPtr<UMaterialInterface> GeometryOutlineMaterial;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Interaction|Highlight",
+		meta = (EditCondition = "bUseGeometryOutline", ClampMin = "1.0", UIMin = "1.0", UIMax = "1.1"))
+	float GeometryOutlineScale = 1.03f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Interaction|Highlight")
+	bool bUsePostProcessHighlight = false;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interaction|Highlight")
 	bool bUseHighlight = true;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interaction|Highlight")
 	bool bAlwaysShowHighlight = false;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interaction|Highlight")
-	bool bHideHighlightWhenOccluded = true;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interaction|Highlight",
-		meta = (EditCondition = "bHideHighlightWhenOccluded", ClampMin = "0.05", UIMin = "0.05"))
-	float HighlightVisibilityCheckInterval = 0.15f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Interaction|Highlight",
 	meta = (ClampMin = "1", ClampMax = "255", UIMin = "1", UIMax = "255"))
@@ -65,9 +76,10 @@ protected:
 	void SetFocusedHighlight(bool bFocused);
 	
 	void ApplyHighlightVisibility(bool bVisible);
-	void RefreshHighlightVisibility();
-	bool IsHighlightVisibleFromLocalPlayerCamera() const;
 
 	bool bHighlightRequested = false;
-	FTimerHandle HighlightVisibilityTimerHandle;
+	
+private:
+	void RefreshGeometryOutlineMesh();
+	
 };

@@ -2,10 +2,6 @@
 
 #include "Components/StaticMeshComponent.h"
 #include "UObject/ConstructorHelpers.h"
-#include "Camera/PlayerCameraManager.h"
-#include "GameFramework/PlayerController.h"
-#include "Kismet/GameplayStatics.h"
-#include "TimerManager.h"
 
 AInteractableActor::AInteractableActor()
 {
@@ -26,11 +22,27 @@ AInteractableActor::AInteractableActor()
 	MeshComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	MeshComponent->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
 	MeshComponent->SetRenderCustomDepth(false);
+	
+	OutlineMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("OutlineMeshComponent"));
+	OutlineMeshComponent->SetupAttachment(MeshComponent);
+	OutlineMeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	OutlineMeshComponent->SetGenerateOverlapEvents(false);
+	OutlineMeshComponent->SetCanEverAffectNavigation(false);
+	OutlineMeshComponent->SetCastShadow(false);
+	OutlineMeshComponent->SetRenderCustomDepth(false);
+	OutlineMeshComponent->SetHiddenInGame(true);
+	OutlineMeshComponent->SetVisibility(false);
+	OutlineMeshComponent->SetRelativeLocation(FVector::ZeroVector);
+	OutlineMeshComponent->SetRelativeRotation(FRotator::ZeroRotator);
+	OutlineMeshComponent->SetRelativeScale3D(FVector(GeometryOutlineScale));
 }
 
 void AInteractableActor::BeginPlay()
 {
 	Super::BeginPlay();
+	
+	RefreshGeometryOutlineMesh();
+	ApplyHighlightVisibility(false);
 
 	if (bAlwaysShowHighlight)
 	{
@@ -77,36 +89,10 @@ void AInteractableActor::SetFocusedHighlight(bool bFocused)
 		return;
 	}
 
-	if (!bUseHighlight)
-	{
-		GetWorldTimerManager().ClearTimer(HighlightVisibilityTimerHandle);
-		ApplyHighlightVisibility(false);
-		return;
-	}
+	const bool bShouldShowHighlight =
+		bUseHighlight && bHighlightRequested;
 
-	if (!bHighlightRequested)
-	{
-		GetWorldTimerManager().ClearTimer(HighlightVisibilityTimerHandle);
-		ApplyHighlightVisibility(false);
-		return;
-	}
-
-	if (!bHideHighlightWhenOccluded)
-	{
-		GetWorldTimerManager().ClearTimer(HighlightVisibilityTimerHandle);
-		ApplyHighlightVisibility(true);
-		return;
-	}
-
-	RefreshHighlightVisibility();
-
-	GetWorldTimerManager().SetTimer(
-		HighlightVisibilityTimerHandle,
-		this,
-		&AInteractableActor::RefreshHighlightVisibility,
-		FMath::Max(0.05f, HighlightVisibilityCheckInterval),
-		true
-	);
+	ApplyHighlightVisibility(bShouldShowHighlight);
 }
 
 void AInteractableActor::ApplyHighlightVisibility(bool bVisible)
@@ -116,71 +102,65 @@ void AInteractableActor::ApplyHighlightVisibility(bool bVisible)
 		return;
 	}
 
-	MeshComponent->SetRenderCustomDepth(bVisible);
+	const bool bShouldShowHighlight =
+		bUseHighlight && bHighlightRequested && bVisible;
 
-	if (bVisible)
+	const bool bShouldUsePostProcess =
+		bShouldShowHighlight && bUsePostProcessHighlight;
+
+	MeshComponent->SetRenderCustomDepth(bShouldUsePostProcess);
+
+	if (bShouldUsePostProcess)
 	{
 		MeshComponent->SetCustomDepthStencilValue(FocusedStencilValue);
 	}
-}
 
-void AInteractableActor::RefreshHighlightVisibility()
-{
-	if (!bUseHighlight || !bHighlightRequested)
+	if (!OutlineMeshComponent)
 	{
-		ApplyHighlightVisibility(false);
 		return;
 	}
 
-	const bool bShouldShowHighlight =
-		!bHideHighlightWhenOccluded ||
-		IsHighlightVisibleFromLocalPlayerCamera();
+	const bool bShouldShowGeometryOutline =
+		bShouldShowHighlight
+		&& bUseGeometryOutline
+		&& GeometryOutlineMaterial != nullptr;
 
-	ApplyHighlightVisibility(bShouldShowHighlight);
+	if (bShouldShowGeometryOutline)
+	{
+		RefreshGeometryOutlineMesh();
+	}
+
+	OutlineMeshComponent->SetHiddenInGame(!bShouldShowGeometryOutline);
+	OutlineMeshComponent->SetVisibility(bShouldShowGeometryOutline);
 }
 
-bool AInteractableActor::IsHighlightVisibleFromLocalPlayerCamera() const
+void AInteractableActor::RefreshGeometryOutlineMesh()
 {
-	const UWorld* World = GetWorld();
-
-	if (!World || !MeshComponent)
+	if (!OutlineMeshComponent || !MeshComponent)
 	{
-		return true;
+		return;
 	}
 
-	const APlayerCameraManager* CameraManager =
-		UGameplayStatics::GetPlayerCameraManager(this, 0);
+	UStaticMesh* SourceMesh = MeshComponent->GetStaticMesh();
+	OutlineMeshComponent->SetStaticMesh(SourceMesh);
+	OutlineMeshComponent->SetRelativeLocation(FVector::ZeroVector);
+	OutlineMeshComponent->SetRelativeRotation(FRotator::ZeroRotator);
+	OutlineMeshComponent->SetRelativeScale3D(FVector(GeometryOutlineScale));
+	OutlineMeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	OutlineMeshComponent->SetCastShadow(false);
+	OutlineMeshComponent->SetRenderCustomDepth(false);
 
-	if (!CameraManager)
+	if (!GeometryOutlineMaterial || !SourceMesh)
 	{
-		return true;
+		OutlineMeshComponent->SetHiddenInGame(true);
+		OutlineMeshComponent->SetVisibility(false);
+		return;
 	}
 
-	const FVector TraceStart = CameraManager->GetCameraLocation();
-	const FVector TraceEnd = MeshComponent->Bounds.Origin;
+	const int32 MaterialSlotsCount = FMath::Max(1, MeshComponent->GetNumMaterials());
 
-	FCollisionQueryParams QueryParams;
-	QueryParams.bTraceComplex = false;
-	QueryParams.AddIgnoredActor(this);
-
-	if (const APlayerController* PlayerController =
-		UGameplayStatics::GetPlayerController(this, 0))
+	for (int32 MaterialIndex = 0; MaterialIndex < MaterialSlotsCount; ++MaterialIndex)
 	{
-		if (const APawn* PlayerPawn = PlayerController->GetPawn())
-		{
-			QueryParams.AddIgnoredActor(PlayerPawn);
-		}
+		OutlineMeshComponent->SetMaterial(MaterialIndex, GeometryOutlineMaterial);
 	}
-
-	FHitResult Hit;
-
-	const bool bBlocked = World->LineTraceSingleByChannel(
-		Hit,
-		TraceStart,
-		TraceEnd,
-		ECC_Visibility,
-		QueryParams
-	);
-
-	return !bBlocked;
 }

@@ -75,11 +75,11 @@ protected:
 	bool bShowHealthBar = true;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "NPC|UI|Visibility")
-	bool bHideHealthBarWhenOccluded = true;
+	bool bBillboardHealthBarToCamera = true;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "NPC|UI|Visibility",
-		meta = (EditCondition = "bHideHealthBarWhenOccluded", ClampMin = "0.05", UIMin = "0.05"))
-	float HealthBarVisibilityCheckInterval = 0.15f;
+		meta = (EditCondition = "bBillboardHealthBarToCamera", ClampMin = "0.05", UIMin = "0.05"))
+	float HealthBarFacingUpdateInterval = 0.15f;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "NPC|Audio")
 	TObjectPtr<USoundBase> DeadBodyFallSound;
@@ -98,7 +98,7 @@ private:
 	void StartHealthBarVisibilityUpdates();
 	void StopHealthBarVisibilityUpdates();
 	void RefreshHealthBarVisibility();
-	bool IsHealthBarVisibleFromLocalPlayerCamera() const;
+	void FaceHealthBarToLocalPlayerCamera();
 
 	FTimerHandle HealthBarVisibilityTimerHandle;
 

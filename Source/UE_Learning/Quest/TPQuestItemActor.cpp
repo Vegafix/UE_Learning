@@ -19,6 +19,9 @@ void ATPQuestItemActor::BeginPlay()
 {
 	Super::BeginPlay();
 
+	BindObjectiveManager();
+	RefreshQuestAvailability();
+
 	if (!MeshComponent)
 	{
 		return;
@@ -42,11 +45,30 @@ void ATPQuestItemActor::BeginPlay()
 	}
 }
 
+void ATPQuestItemActor::EndPlay(
+	const EEndPlayReason::Type EndPlayReason
+)
+{
+	UnbindObjectiveManager();
+
+	Super::EndPlay(EndPlayReason);
+}
+
 void ATPQuestItemActor::SetObjectiveManager(
 	ATPLevelObjectiveManager* InObjectiveManager
 )
 {
+	if (ObjectiveManager == InObjectiveManager)
+	{
+		return;
+	}
+
+	UnbindObjectiveManager();
+
 	ObjectiveManager = InObjectiveManager;
+
+	BindObjectiveManager();
+	RefreshQuestAvailability();
 }
 
 void ATPQuestItemActor::Interact_Implementation(AActor* InstigatorActor)
@@ -57,6 +79,7 @@ void ATPQuestItemActor::Interact_Implementation(AActor* InstigatorActor)
 	}
 
 	bCollected = true;
+	RefreshQuestAvailability();
 	
 	if (MeshComponent)
 	{
@@ -97,15 +120,103 @@ void ATPQuestItemActor::Interact_Implementation(AActor* InstigatorActor)
 
 bool ATPQuestItemActor::CanInteract_Implementation(AActor* InstigatorActor) const
 {
-	return !bCollected && Super::CanInteract_Implementation(InstigatorActor);
+	return !bCollected
+		&& IsQuestInteractionUnlocked()
+		&& Super::CanInteract_Implementation(InstigatorActor);
 }
 
 FText ATPQuestItemActor::GetInteractionPrompt_Implementation() const
 {
-	if (bCollected)
+	if (bCollected || !IsQuestInteractionUnlocked())
 	{
 		return FText::GetEmpty();
 	}
 
 	return Super::GetInteractionPrompt_Implementation();
+}
+
+void ATPQuestItemActor::OnFocused_Implementation(AActor* InstigatorActor)
+{
+	if (!IsQuestInteractionUnlocked() || bCollected)
+	{
+		SetFocusedHighlight(false);
+		return;
+	}
+
+	Super::OnFocused_Implementation(InstigatorActor);
+}
+
+void ATPQuestItemActor::OnUnfocused_Implementation(AActor* InstigatorActor)
+{
+	if (!IsQuestInteractionUnlocked() || bCollected)
+	{
+		SetFocusedHighlight(false);
+		return;
+	}
+
+	Super::OnUnfocused_Implementation(InstigatorActor);
+}
+
+void ATPQuestItemActor::HandleObjectiveStarted()
+{
+	RefreshQuestAvailability();
+}
+
+void ATPQuestItemActor::BindObjectiveManager()
+{
+	if (!ObjectiveManager || bBoundToObjectiveManager)
+	{
+		return;
+	}
+
+	ObjectiveManager->OnObjectiveStarted.AddUniqueDynamic(
+		this,
+		&ATPQuestItemActor::HandleObjectiveStarted
+	);
+
+	bBoundToObjectiveManager = true;
+}
+
+void ATPQuestItemActor::UnbindObjectiveManager()
+{
+	if (!ObjectiveManager || !bBoundToObjectiveManager)
+	{
+		return;
+	}
+
+	ObjectiveManager->OnObjectiveStarted.RemoveDynamic(
+		this,
+		&ATPQuestItemActor::HandleObjectiveStarted
+	);
+
+	bBoundToObjectiveManager = false;
+}
+
+void ATPQuestItemActor::RefreshQuestAvailability()
+{
+	const bool bUnlocked =
+		IsQuestInteractionUnlocked() && !bCollected;
+
+	bInteractionEnabled = bUnlocked;
+
+	if (!bUnlocked)
+	{
+		SetFocusedHighlight(false);
+		return;
+	}
+
+	if (bAlwaysShowHighlight)
+	{
+		SetFocusedHighlight(true);
+	}
+}
+
+bool ATPQuestItemActor::IsQuestInteractionUnlocked() const
+{
+	if (!bRequireActiveObjectiveToInteract)
+	{
+		return true;
+	}
+
+	return ObjectiveManager && ObjectiveManager->IsObjectiveActive();
 }
