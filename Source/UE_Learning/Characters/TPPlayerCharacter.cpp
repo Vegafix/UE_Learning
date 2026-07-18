@@ -294,8 +294,8 @@ void ATPPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 	BindActionByTag(TAG_Input_Move, ETriggerEvent::Triggered, &ATPPlayerCharacter::Move);
 	BindActionByTag(TAG_Input_Look, ETriggerEvent::Triggered, &ATPPlayerCharacter::Look);
 
-	BindActionByTag(TAG_Input_Jump, ETriggerEvent::Started, &ACharacter::Jump);
-	BindActionByTag(TAG_Input_Jump, ETriggerEvent::Completed, &ACharacter::StopJumping);
+	BindActionByTag(TAG_Input_Jump, ETriggerEvent::Started, &ATPPlayerCharacter::HandleJumpStarted);
+	BindActionByTag(TAG_Input_Jump, ETriggerEvent::Completed, &ATPPlayerCharacter::HandleJumpCompleted);
 
 	BindActionByTag(TAG_Input_Interact, ETriggerEvent::Started, &ATPPlayerCharacter::Interact);
 	BindActionByTag(TAG_Input_Fire, ETriggerEvent::Started, &ATPPlayerCharacter::Fire);
@@ -606,8 +606,28 @@ void ATPPlayerCharacter::Fire()
 	CurrentWeapon->TryFireAtLocation(TargetLocation);
 }
 
+void ATPPlayerCharacter::HandleJumpStarted()
+{
+	if (MovementState == ETPMovementState::Aiming)
+	{
+		return;
+	}
+
+	Jump();
+}
+
+void ATPPlayerCharacter::HandleJumpCompleted()
+{
+	StopJumping();
+}
+
 void ATPPlayerCharacter::Dash()
 {
+	if (MovementState == ETPMovementState::Aiming)
+	{
+		return;
+	}
+
 	if (!DashAbilityClass)
 	{
 		return;

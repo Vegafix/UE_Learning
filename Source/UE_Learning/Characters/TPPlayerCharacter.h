@@ -226,6 +226,8 @@ private:
 	
 	void Interact();
 	void Fire();
+	void HandleJumpStarted();
+	void HandleJumpCompleted();
 	void Dash();
 	void InitializePlayerHealthWidget();
 	void RefreshPlayerHealthWidget();
