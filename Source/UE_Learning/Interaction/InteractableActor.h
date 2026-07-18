@@ -58,7 +58,7 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Interaction|Highlight",
 		meta = (EditCondition = "bUseGeometryOutline", ClampMin = "1.0", UIMin = "1.0", UIMax = "1.1"))
-	float GeometryOutlineScale = 1.03f;
+	float GeometryOutlineScale = 1.1f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Interaction|Highlight")
 	bool bUsePostProcessHighlight = false;
