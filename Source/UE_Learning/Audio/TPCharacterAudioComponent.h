@@ -22,6 +22,8 @@ public:
 		ELevelTick TickType,
 		FActorComponentTickFunction* ThisTickFunction
 	) override;
+	
+	virtual void BeginPlay() override;
 
 	UFUNCTION(BlueprintCallable, Category = "Audio|Character|Footsteps")
 	void PlayLeftFootstep();
@@ -55,7 +57,7 @@ protected:
 	float FootstepPitchMax = 1.05f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Audio|Footsteps|Detection")
-	bool bEnableAutomaticFootstepDetection = true;
+	bool bEnableAutomaticFootstepDetection = false;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Audio|Footsteps|Detection")
 	FName LeftFootSocketName = TEXT("foot_l");

@@ -4,13 +4,6 @@
 #include "TPNPCTypes.generated.h"
 
 UENUM(BlueprintType)
-enum class ETPNPCDisposition : uint8
-{
-	Neutral UMETA(DisplayName = "Neutral"),
-	Hostile UMETA(DisplayName = "Hostile")
-};
-
-UENUM(BlueprintType)
 enum class ETPNPCMovementSpeedMode : uint8
 {
 	Walk UMETA(DisplayName = "Walk"),

@@ -184,6 +184,11 @@ void ATPPlayerCharacter::Tick(float DeltaSeconds)
 void ATPPlayerCharacter::HandleDeath()
 {
 	Super::HandleDeath();
+
+	if (CharacterAudioComponent)
+	{
+		CharacterAudioComponent->StopLowHealthHeartbeat();
+	}
 	
 	ApplyAimCamera(false);
 	UpdateAimView();

@@ -13,7 +13,18 @@
 UTPCharacterAudioComponent::UTPCharacterAudioComponent()
 {
 	PrimaryComponentTick.bCanEverTick = true;
-	PrimaryComponentTick.bStartWithTickEnabled = true;
+	PrimaryComponentTick.bStartWithTickEnabled = false;
+}
+
+void UTPCharacterAudioComponent::BeginPlay()
+{
+	Super::BeginPlay();
+
+	const bool bCanUseAutomaticFootsteps =
+		bEnableAutomaticFootstepDetection
+		&& (LeftFootstepSound || RightFootstepSound);
+
+	SetComponentTickEnabled(bCanUseAutomaticFootsteps);
 }
 
 void UTPCharacterAudioComponent::TickComponent(
@@ -87,6 +98,12 @@ void UTPCharacterAudioComponent::PlayFootstepAtLocation(
 
 void UTPCharacterAudioComponent::SetHealthRatio(float HealthRatio)
 {
+	if (HealthRatio <= 0.0f)
+	{
+		StopLowHealthHeartbeat();
+		return;
+	}
+
 	if (HealthRatio <= LowHealthThreshold)
 	{
 		StartLowHealthHeartbeat();
@@ -172,13 +189,13 @@ bool UTPCharacterAudioComponent::CanPlayAutomaticFootsteps() const
 
 void UTPCharacterAudioComponent::UpdateAutomaticFootsteps(float DeltaTime)
 {
-	TimeSinceLastLeftFootstep += DeltaTime;
-	TimeSinceLastRightFootstep += DeltaTime;
-
-	if (!bEnableAutomaticFootstepDetection)
+	if (!bEnableAutomaticFootstepDetection || (!LeftFootstepSound && !RightFootstepSound))
 	{
 		return;
 	}
+
+	TimeSinceLastLeftFootstep += DeltaTime;
+	TimeSinceLastRightFootstep += DeltaTime;
 
 	if (!CanPlayAutomaticFootsteps())
 	{

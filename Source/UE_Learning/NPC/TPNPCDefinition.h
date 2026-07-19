@@ -23,9 +23,6 @@ public:
 	FGameplayTag NPCId;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "NPC|Identity")
-	ETPNPCDisposition Disposition = ETPNPCDisposition::Neutral;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "NPC|Identity")
 	FGameplayTagContainer NPCTags;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "NPC|Team",

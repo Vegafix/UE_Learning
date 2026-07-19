@@ -4,8 +4,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: Game\n"
-"POT-Creation-Date: 2026-07-19 20:36\n"
-"PO-Revision-Date: 2026-07-19 20:36\n"
+"POT-Creation-Date: 2026-07-19 22:56\n"
+"PO-Revision-Date: 2026-07-19 22:56\n"
 "Language-Team: \n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
@@ -133,29 +133,29 @@ msgid "ВЕРНУТЬ ПРЕДМЕТЫ"
 msgstr "RETURN THE ITEMS"
 
 #. Key:	DeathScreenTitle
-#. SourceLocation:	Source/UE_Learning/Characters/TPPlayerCharacter.h(158)
-#: Source/UE_Learning/Characters/TPPlayerCharacter.h(158)
+#. SourceLocation:	Source/UE_Learning/Characters/TPPlayerCharacter.h(170)
+#: Source/UE_Learning/Characters/TPPlayerCharacter.h(170)
 msgctxt "Player,DeathScreenTitle"
 msgid "ВЫ ПОГИБЛИ"
 msgstr "YOU DIED"
 
 #. Key:	DeathScreenDescription
-#. SourceLocation:	Source/UE_Learning/Characters/TPPlayerCharacter.h(165)
-#: Source/UE_Learning/Characters/TPPlayerCharacter.h(165)
+#. SourceLocation:	Source/UE_Learning/Characters/TPPlayerCharacter.h(177)
+#: Source/UE_Learning/Characters/TPPlayerCharacter.h(177)
 msgctxt "Player,DeathScreenDescription"
 msgid "ПЕРЕЗАПУСК"
 msgstr "RESTART"
 
 #. Key:	DeathScreenMainMenuText
-#. SourceLocation:	Source/UE_Learning/Characters/TPPlayerCharacter.h(177)
-#: Source/UE_Learning/Characters/TPPlayerCharacter.h(177)
+#. SourceLocation:	Source/UE_Learning/Characters/TPPlayerCharacter.h(189)
+#: Source/UE_Learning/Characters/TPPlayerCharacter.h(189)
 msgctxt "Player,DeathScreenMainMenuText"
 msgid "ГЛАВНОЕ МЕНЮ"
 msgstr "MAIN MENU"
 
 #. Key:	DeathScreenQuitText
-#. SourceLocation:	Source/UE_Learning/Characters/TPPlayerCharacter.h(189)
-#: Source/UE_Learning/Characters/TPPlayerCharacter.h(189)
+#. SourceLocation:	Source/UE_Learning/Characters/TPPlayerCharacter.h(201)
+#: Source/UE_Learning/Characters/TPPlayerCharacter.h(201)
 msgctxt "Player,DeathScreenQuitText"
 msgid "ВЫХОД"
 msgstr "QUIT"
