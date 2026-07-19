@@ -118,3 +118,105 @@ EStateTreeRunStatus FTPSTTask_DebugFireAtTarget::EnterState(
 
 	return EStateTreeRunStatus::Running;
 }
+
+bool FTPSTCondition_ShouldSearchLastKnownTargetLocation::TestCondition(
+	FStateTreeExecutionContext& Context
+) const
+{
+	const FInstanceDataType& InstanceData =
+		Context.GetInstanceData(*this);
+
+	const ATPNPCAIController* NPCController =
+		Cast<ATPNPCAIController>(InstanceData.AIController);
+
+	if (!NPCController)
+	{
+		return false;
+	}
+
+	return NPCController->ShouldSearchLastKnownTargetLocation();
+}
+
+EStateTreeRunStatus FTPSTTask_GetPreparedMoveLocation::EnterState(
+	FStateTreeExecutionContext& Context,
+	const FStateTreeTransitionResult& Transition
+) const
+{
+	FInstanceDataType& InstanceData =
+		Context.GetInstanceData(*this);
+
+	const ATPNPCAIController* NPCController =
+		Cast<ATPNPCAIController>(InstanceData.AIController);
+
+	if (!NPCController)
+	{
+		return EStateTreeRunStatus::Failed;
+	}
+
+	const FVector PreparedLocation =
+		NPCController->GetPreparedMoveLocation();
+
+	if (PreparedLocation.IsNearlyZero())
+	{
+		return EStateTreeRunStatus::Failed;
+	}
+
+	InstanceData.Destination = PreparedLocation;
+
+	return EStateTreeRunStatus::Succeeded;
+}
+
+EStateTreeRunStatus FTPSTTask_ConsumeTacticalMoveRequest::EnterState(
+	FStateTreeExecutionContext& Context,
+	const FStateTreeTransitionResult& Transition
+) const
+{
+	FInstanceDataType& InstanceData =
+		Context.GetInstanceData(*this);
+
+	ATPNPCAIController* NPCController =
+		Cast<ATPNPCAIController>(InstanceData.AIController);
+
+	if (!NPCController)
+	{
+		return EStateTreeRunStatus::Failed;
+	}
+
+	UE_LOG(
+		LogTemp,
+		Warning,
+		TEXT("[NPC AI] ENTERED Search Last Known Location. NPC=%s Prepared=%s"),
+		*GetNameSafe(NPCController->GetNPCCharacter()),
+		*NPCController->GetPreparedMoveLocation().ToString()
+	);
+
+	NPCController->BeginLastKnownTargetSearch();
+
+	return EStateTreeRunStatus::Succeeded;
+}
+
+void FTPSTTask_ConsumeTacticalMoveRequest::ExitState(
+	FStateTreeExecutionContext& Context,
+	const FStateTreeTransitionResult& Transition
+) const
+{
+	FInstanceDataType& InstanceData =
+		Context.GetInstanceData(*this);
+
+	ATPNPCAIController* NPCController =
+		Cast<ATPNPCAIController>(InstanceData.AIController);
+
+	if (!NPCController)
+	{
+		return;
+	}
+
+	UE_LOG(
+		LogTemp,
+		Warning,
+		TEXT("[NPC AI] EXITED Search Last Known Location. NPC=%s"),
+		*GetNameSafe(NPCController->GetNPCCharacter())
+	);
+
+	NPCController->FinishLastKnownTargetSearch();
+}

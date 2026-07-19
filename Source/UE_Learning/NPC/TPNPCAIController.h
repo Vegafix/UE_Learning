@@ -31,6 +31,36 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "NPC|AI")
 	void ClearCurrentTarget();
 	
+	UFUNCTION(BlueprintPure, Category = "NPC|AI|Search")
+	FVector GetLastKnownTargetLocation() const;
+
+	UFUNCTION(BlueprintPure, Category = "NPC|AI|Movement")
+	FVector GetPreparedMoveLocation() const;
+
+	UFUNCTION(BlueprintPure, Category = "NPC|AI|Search")
+	bool ShouldSearchLastKnownTargetLocation() const;
+
+	UFUNCTION(BlueprintCallable, Category = "NPC|AI|Search")
+	bool TryPrepareLastKnownTargetSearchLocation();
+
+	UFUNCTION(BlueprintCallable, Category = "NPC|AI|Movement")
+	void ClearTacticalMoveRequest();
+	
+	UFUNCTION(BlueprintCallable, Category = "NPC|AI|Movement")
+	void BeginLastKnownTargetSearch();
+
+	UFUNCTION(BlueprintCallable, Category = "NPC|AI|Movement")
+	void FinishLastKnownTargetSearch();
+	
+	UFUNCTION(BlueprintCallable, Category = "NPC|AI|Movement")
+	void ConsumeTacticalMoveRequest();
+
+	UFUNCTION(BlueprintPure, Category = "NPC|AI|Combat")
+	bool HasSafeShotToCurrentTarget() const;
+
+	UFUNCTION(BlueprintCallable, Category = "NPC|AI|Combat")
+	bool TryPrepareSafeFirePosition();
+	
 	UFUNCTION(BlueprintCallable, Category = "NPC|AI")
 	void ReceiveAllyAlert(
 		AActor* TargetActor,
@@ -79,9 +109,18 @@ private:
 	
 	FTimerHandle TargetForgetTimerHandle;
 	FTimerHandle TargetValidationTimerHandle;
+	FTimerHandle MovementProgressTimerHandle;
 
 	float CurrentTargetLastValidTime = 0.0f;
+	float StuckAccumulatedTime = 0.0f;
+
 	bool bSuppressAllyAlertPropagation = false;
+	bool bSearchLastKnownTargetLocationRequested = false;
+	bool bLastKnownSearchInProgress = false;
+	bool bLastKnownSearchAlreadyRequested = false;
+
+	FVector MovementProgressLastLocation = FVector::ZeroVector;
+	FVector PreparedMoveLocation = FVector::ZeroVector;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "NPC|AI|Debug",
 	meta = (AllowPrivateAccess = "true"))
@@ -89,6 +128,23 @@ private:
 
 	FVector LastKnownTargetLocation = FVector::ZeroVector;
 	FVector HomeLocation = FVector::ZeroVector;
+	
+	void StartMovementProgressMonitoring();
+	void StopMovementProgressMonitoring();
+	void ValidateMovementProgress();
+
+	bool TryProjectPointToNavigation(
+		const FVector& DesiredLocation,
+		float SearchRadius,
+		FVector& OutLocation
+	) const;
+
+	bool IsFriendlyActor(const AActor* OtherActor) const;
+
+	bool HasSafeShotFromLocation(
+		const FVector& ShooterLocation,
+		const AActor* TargetActor
+	) const;
 	
 	void SetCurrentTarget(AActor* NewTarget);
 	void RefreshCurrentTargetFromPerception();

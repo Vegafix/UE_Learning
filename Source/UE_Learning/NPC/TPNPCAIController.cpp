@@ -11,6 +11,9 @@
 #include "Teams/TPTeamAttitude.h"
 #include "TimerManager.h"
 #include "EngineUtils.h"
+#include "Navigation/PathFollowingComponent.h"
+#include "Components/CapsuleComponent.h"
+#include "DrawDebugHelpers.h"
 
 ATPNPCAIController::ATPNPCAIController()
 {
@@ -95,6 +98,7 @@ void ATPNPCAIController::OnPossess(APawn* InPawn)
 void ATPNPCAIController::OnUnPossess()
 {
 	StopTargetValidation();
+	StopMovementProgressMonitoring();
 	
 	if (StateTreeComponent && StateTreeComponent->IsRunning())
 	{
@@ -313,6 +317,242 @@ bool ATPNPCAIController::HasCurrentTarget() const
 	return GetCurrentTarget() != nullptr;
 }
 
+FVector ATPNPCAIController::GetLastKnownTargetLocation() const
+{
+	return LastKnownTargetLocation;
+}
+
+FVector ATPNPCAIController::GetPreparedMoveLocation() const
+{
+	return PreparedMoveLocation;
+}
+
+bool ATPNPCAIController::ShouldSearchLastKnownTargetLocation() const
+{
+	return bSearchLastKnownTargetLocationRequested;
+}
+
+void ATPNPCAIController::ClearTacticalMoveRequest()
+{
+	bSearchLastKnownTargetLocationRequested = false;
+	bLastKnownSearchInProgress = false;
+	bLastKnownSearchAlreadyRequested = false;
+
+	PreparedMoveLocation = FVector::ZeroVector;
+	StuckAccumulatedTime = 0.0f;
+
+	if (ControlledNPC)
+	{
+		MovementProgressLastLocation = ControlledNPC->GetActorLocation();
+	}
+}
+
+void ATPNPCAIController::BeginLastKnownTargetSearch()
+{
+	bSearchLastKnownTargetLocationRequested = false;
+	bLastKnownSearchInProgress = true;
+	StuckAccumulatedTime = 0.0f;
+
+	if (ControlledNPC)
+	{
+		MovementProgressLastLocation = ControlledNPC->GetActorLocation();
+	}
+}
+
+void ATPNPCAIController::FinishLastKnownTargetSearch()
+{
+	bLastKnownSearchInProgress = false;
+	StuckAccumulatedTime = 0.0f;
+
+	if (ControlledNPC)
+	{
+		MovementProgressLastLocation = ControlledNPC->GetActorLocation();
+	}
+}
+
+void ATPNPCAIController::ConsumeTacticalMoveRequest()
+{
+	bSearchLastKnownTargetLocationRequested = false;
+	StuckAccumulatedTime = 0.0f;
+
+	if (ControlledNPC)
+	{
+		MovementProgressLastLocation = ControlledNPC->GetActorLocation();
+	}
+}
+
+bool ATPNPCAIController::TryPrepareLastKnownTargetSearchLocation()
+{
+	if (!ControlledNPC)
+	{
+		return false;
+	}
+
+	if (bSearchLastKnownTargetLocationRequested ||
+	bLastKnownSearchInProgress ||
+	bLastKnownSearchAlreadyRequested)
+	{
+		return false;
+	}
+	
+	FVector DesiredSearchLocation = LastKnownTargetLocation;
+
+	if (DesiredSearchLocation.IsNearlyZero() && CurrentTarget)
+	{
+		DesiredSearchLocation = CurrentTarget->GetActorLocation();
+	}
+
+	if (DesiredSearchLocation.IsNearlyZero())
+	{
+		return false;
+	}
+
+	const UTPNPCDefinition* NPCDefinition =
+		ControlledNPC->GetNPCDefinition();
+
+	const float SearchRadius = NPCDefinition
+		? NPCDefinition->LastKnownLocationSearchRadius
+		: 350.0f;
+
+	FVector SearchLocation = FVector::ZeroVector;
+
+	if (!TryProjectPointToNavigation(
+		DesiredSearchLocation,
+		SearchRadius,
+		SearchLocation
+	))
+	{
+		return false;
+	}
+
+	PreparedMoveLocation = SearchLocation;
+	bSearchLastKnownTargetLocationRequested = true;
+	bLastKnownSearchAlreadyRequested = true;
+
+	return true;
+}
+
+bool ATPNPCAIController::HasSafeShotToCurrentTarget() const
+{
+	if (!ControlledNPC || !CurrentTarget)
+	{
+		return false;
+	}
+
+	if (!ShouldTrackActor(CurrentTarget))
+	{
+		return false;
+	}
+
+	const UTPNPCDefinition* NPCDefinition =
+		ControlledNPC->GetNPCDefinition();
+
+	const float FireRange = NPCDefinition
+		? NPCDefinition->FireRange
+		: 900.0f;
+
+	const float DistanceSquared = FVector::DistSquared(
+		ControlledNPC->GetActorLocation(),
+		CurrentTarget->GetActorLocation()
+	);
+
+	if (DistanceSquared > FMath::Square(FireRange))
+	{
+		return false;
+	}
+
+	return HasSafeShotFromLocation(
+		ControlledNPC->GetActorLocation(),
+		CurrentTarget
+	);
+}
+
+bool ATPNPCAIController::TryPrepareSafeFirePosition()
+{
+    if (!ControlledNPC || !CurrentTarget)
+    {
+        return false;
+    }
+
+    const UTPNPCDefinition* NPCDefinition =
+        ControlledNPC->GetNPCDefinition();
+
+    const float FireRange = NPCDefinition
+        ? NPCDefinition->FireRange
+        : 900.0f;
+
+    const float SearchRadius = NPCDefinition
+        ? NPCDefinition->SafeFireRepositionRadius
+        : 700.0f;
+
+    const int32 Samples = NPCDefinition
+        ? FMath::Max(4, NPCDefinition->SafeFireRepositionSamples)
+        : 12;
+
+    const FVector TargetLocation = CurrentTarget->GetActorLocation();
+    const FVector CurrentLocation = ControlledNPC->GetActorLocation();
+
+    FVector BestLocation = FVector::ZeroVector;
+    float BestDistanceSquared = TNumericLimits<float>::Max();
+
+    for (int32 Index = 0; Index < Samples; ++Index)
+    {
+        const float AngleRadians =
+            2.0f * PI * static_cast<float>(Index) / static_cast<float>(Samples);
+
+        const FVector Offset(
+            FMath::Cos(AngleRadians) * SearchRadius,
+            FMath::Sin(AngleRadians) * SearchRadius,
+            0.0f
+        );
+
+        FVector CandidateLocation = FVector::ZeroVector;
+
+        if (!TryProjectPointToNavigation(
+            TargetLocation + Offset,
+            250.0f,
+            CandidateLocation
+        ))
+        {
+            continue;
+        }
+
+        const float DistanceToTargetSquared = FVector::DistSquared(
+            CandidateLocation,
+            TargetLocation
+        );
+
+        if (DistanceToTargetSquared > FMath::Square(FireRange))
+        {
+            continue;
+        }
+
+        if (!HasSafeShotFromLocation(CandidateLocation, CurrentTarget))
+        {
+            continue;
+        }
+
+        const float DistanceToNPCSquared = FVector::DistSquared(
+            CurrentLocation,
+            CandidateLocation
+        );
+
+        if (DistanceToNPCSquared < BestDistanceSquared)
+        {
+            BestDistanceSquared = DistanceToNPCSquared;
+            BestLocation = CandidateLocation;
+        }
+    }
+
+    if (BestLocation.IsNearlyZero())
+    {
+        return false;
+    }
+
+    PreparedMoveLocation = BestLocation;
+    return true;
+}
+
 void ATPNPCAIController::ClearCurrentTarget()
 {
 	GetWorldTimerManager().ClearTimer(TargetForgetTimerHandle);
@@ -322,6 +562,8 @@ void ATPNPCAIController::ClearCurrentTarget()
 void ATPNPCAIController::StopAI(const FString& Reason)
 {
 	StopTargetValidation();
+	
+	StopMovementProgressMonitoring();
 
 	GetWorldTimerManager().ClearTimer(TargetForgetTimerHandle);
 
@@ -476,11 +718,16 @@ void ATPNPCAIController::SetCurrentTarget(AActor* NewTarget)
 	if (CurrentTarget && GetWorld())
 	{
 		CurrentTargetLastValidTime = GetWorld()->GetTimeSeconds();
+		LastKnownTargetLocation = CurrentTarget->GetActorLocation();
+
 		StartTargetValidation();
+		StartMovementProgressMonitoring();
 	}
 	else
 	{
 		StopTargetValidation();
+		StopMovementProgressMonitoring();
+		ClearTacticalMoveRequest();
 	}
 	
 	if (ControlledNPC)
@@ -809,6 +1056,27 @@ void ATPNPCAIController::ValidateCurrentTarget()
 			LastKnownTargetLocation = CurrentTarget->GetActorLocation();
 		}
 
+		bSearchLastKnownTargetLocationRequested = false;
+		bLastKnownSearchInProgress = false;
+		bLastKnownSearchAlreadyRequested = false;
+
+		return;
+	}
+
+	if (bTargetWithinLoseSightRadius && !bHasLineOfSight)
+	{
+		if (TryPrepareLastKnownTargetSearchLocation())
+		{
+			UE_LOG(
+				LogTemp,
+				Warning,
+				TEXT("[NPC AI] %s lost line of sight and requested Search Last Known Location. LastKnown=%s Prepared=%s"),
+				*GetNameSafe(ControlledNPC),
+				*LastKnownTargetLocation.ToString(),
+				*PreparedMoveLocation.ToString()
+			);
+		}
+
 		return;
 	}
 
@@ -842,4 +1110,248 @@ void ATPNPCAIController::ValidateCurrentTarget()
 	}
 
 	ClearCurrentTarget();
+}
+
+void ATPNPCAIController::StartMovementProgressMonitoring()
+{
+    if (!ControlledNPC || !GetWorld())
+    {
+        return;
+    }
+
+    const UTPNPCDefinition* NPCDefinition =
+        ControlledNPC->GetNPCDefinition();
+
+    const float CheckInterval = NPCDefinition
+        ? FMath::Max(0.1f, NPCDefinition->StuckCheckInterval)
+        : 0.35f;
+
+    MovementProgressLastLocation = ControlledNPC->GetActorLocation();
+    StuckAccumulatedTime = 0.0f;
+
+    if (GetWorldTimerManager().IsTimerActive(MovementProgressTimerHandle))
+    {
+        return;
+    }
+
+    GetWorldTimerManager().SetTimer(
+        MovementProgressTimerHandle,
+        this,
+        &ATPNPCAIController::ValidateMovementProgress,
+        CheckInterval,
+        true
+    );
+}
+
+void ATPNPCAIController::StopMovementProgressMonitoring()
+{
+    GetWorldTimerManager().ClearTimer(MovementProgressTimerHandle);
+    StuckAccumulatedTime = 0.0f;
+    MovementProgressLastLocation = FVector::ZeroVector;
+}
+
+void ATPNPCAIController::ValidateMovementProgress()
+{
+	if (!ControlledNPC || ControlledNPC->IsDead() || !CurrentTarget)
+	{
+		StopMovementProgressMonitoring();
+		return;
+	}
+	
+	if (bSearchLastKnownTargetLocationRequested ||	bLastKnownSearchInProgress || bLastKnownSearchAlreadyRequested)
+	{
+		return;
+	}
+
+	const UPathFollowingComponent* CurrentPathFollowingComponent =
+		GetPathFollowingComponent();
+
+	if (!CurrentPathFollowingComponent ||
+		CurrentPathFollowingComponent->GetStatus() != EPathFollowingStatus::Moving)
+	{
+		StuckAccumulatedTime = 0.0f;
+		MovementProgressLastLocation = ControlledNPC->GetActorLocation();
+		return;
+	}
+
+	const UTPNPCDefinition* NPCDefinition =
+		ControlledNPC->GetNPCDefinition();
+
+	const float CheckInterval = NPCDefinition
+		? FMath::Max(0.1f, NPCDefinition->StuckCheckInterval)
+		: 0.35f;
+
+	const float MinMoveDistance = NPCDefinition
+		? NPCDefinition->StuckMinMoveDistance
+		: 20.0f;
+
+	const float StuckTimeBeforeSearch = NPCDefinition
+		? NPCDefinition->StuckTimeBeforeSearch
+		: 1.2f;
+
+	const FVector CurrentLocation = ControlledNPC->GetActorLocation();
+
+	const float MovedDistance2D = FVector::Dist2D(
+		CurrentLocation,
+		MovementProgressLastLocation
+	);
+
+	MovementProgressLastLocation = CurrentLocation;
+
+	if (MovedDistance2D >= MinMoveDistance)
+	{
+		StuckAccumulatedTime = 0.0f;
+		return;
+	}
+
+	StuckAccumulatedTime += CheckInterval;
+
+	if (StuckAccumulatedTime < StuckTimeBeforeSearch)
+	{
+		return;
+	}
+
+	if (TryPrepareLastKnownTargetSearchLocation())
+	{
+		bSearchLastKnownTargetLocationRequested = true;
+
+		UE_LOG(
+			LogTemp,
+			Warning,
+			TEXT("[NPC AI] %s requested Search Last Known Location. LastKnown=%s Prepared=%s"),
+			*GetNameSafe(ControlledNPC),
+			*LastKnownTargetLocation.ToString(),
+			*PreparedMoveLocation.ToString()
+		);
+	}
+
+	StuckAccumulatedTime = 0.0f;
+}
+
+bool ATPNPCAIController::TryProjectPointToNavigation(
+    const FVector& DesiredLocation,
+    float SearchRadius,
+    FVector& OutLocation
+) const
+{
+    UWorld* World = GetWorld();
+
+    if (!World)
+    {
+        return false;
+    }
+
+    UNavigationSystemV1* NavigationSystem =
+        FNavigationSystem::GetCurrent<UNavigationSystemV1>(World);
+
+    if (!NavigationSystem)
+    {
+        return false;
+    }
+
+    FNavLocation ProjectedLocation;
+
+    const FVector QueryExtent(
+        SearchRadius,
+        SearchRadius,
+        300.0f
+    );
+
+    if (!NavigationSystem->ProjectPointToNavigation(
+        DesiredLocation,
+        ProjectedLocation,
+        QueryExtent
+    ))
+    {
+        return false;
+    }
+
+    OutLocation = ProjectedLocation.Location;
+    return true;
+}
+
+bool ATPNPCAIController::IsFriendlyActor(const AActor* OtherActor) const
+{
+    if (!OtherActor || OtherActor == ControlledNPC)
+    {
+        return false;
+    }
+
+    return GetTeamAttitudeTowards(*OtherActor) == ETeamAttitude::Friendly;
+}
+
+bool ATPNPCAIController::HasSafeShotFromLocation(
+    const FVector& ShooterLocation,
+    const AActor* TargetActor
+) const
+{
+    if (!ControlledNPC || !TargetActor)
+    {
+        return false;
+    }
+
+    UWorld* World = GetWorld();
+
+    if (!World)
+    {
+        return false;
+    }
+
+    float EyeHeight = 90.0f;
+
+    if (const UCapsuleComponent* Capsule = ControlledNPC->GetCapsuleComponent())
+    {
+        EyeHeight = Capsule->GetScaledCapsuleHalfHeight() * 0.65f;
+    }
+
+    const FVector TraceStart =
+        ShooterLocation + FVector(0.0f, 0.0f, EyeHeight);
+
+    const FVector TraceEnd =
+        TargetActor->GetActorLocation() + FVector(0.0f, 0.0f, EyeHeight);
+
+    FCollisionQueryParams QueryParams;
+    QueryParams.AddIgnoredActor(ControlledNPC);
+
+    TArray<FHitResult> HitResults;
+
+    const bool bHit = World->LineTraceMultiByChannel(
+        HitResults,
+        TraceStart,
+        TraceEnd,
+        ECC_Visibility,
+        QueryParams
+    );
+
+    if (!bHit)
+    {
+        return false;
+    }
+
+    for (const FHitResult& HitResult : HitResults)
+    {
+        AActor* HitActor = HitResult.GetActor();
+
+        if (!HitActor || HitActor == ControlledNPC)
+        {
+            continue;
+        }
+
+        if (IsFriendlyActor(HitActor))
+        {
+            return false;
+        }
+
+        if (HitActor == TargetActor)
+        {
+            return true;
+        }
+
+        if (HitResult.bBlockingHit)
+        {
+            return false;
+        }
+    }
+
+    return false;
 }

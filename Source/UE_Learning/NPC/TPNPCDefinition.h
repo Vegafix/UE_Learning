@@ -78,6 +78,34 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "NPC|Combat",
 		meta = (ClampMin = "0.0"))
 	float ShotInterval = 0.7f;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "NPC|Behavior|Chase",
+	meta = (ClampMin = "0.1", UIMin = "0.1"))
+	float StuckCheckInterval = 0.35f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "NPC|Behavior|Chase",
+		meta = (ClampMin = "0.0", UIMin = "0.0"))
+	float StuckMinMoveDistance = 20.0f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "NPC|Behavior|Chase",
+		meta = (ClampMin = "0.1", UIMin = "0.1"))
+	float StuckTimeBeforeSearch = 1.2f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "NPC|Behavior|Search",
+		meta = (ClampMin = "0.0", UIMin = "0.0"))
+	float LastKnownLocationSearchRadius = 350.0f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "NPC|Combat|Friendly Fire",
+		meta = (ClampMin = "0.0", UIMin = "0.0"))
+	float SafeFireRepositionRadius = 700.0f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "NPC|Combat|Friendly Fire",
+		meta = (ClampMin = "4", UIMin = "4"))
+	int32 SafeFireRepositionSamples = 12;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "NPC|Combat|Friendly Fire",
+		meta = (ClampMin = "0.0", UIMin = "0.0"))
+	float SafeFireAcceptanceRadius = 120.0f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "NPC|Behavior")
 	TObjectPtr<UStateTree> StateTreeAsset;
