@@ -4,8 +4,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: Game\n"
-"POT-Creation-Date: 2026-07-16 17:29\n"
-"PO-Revision-Date: 2026-07-16 17:29\n"
+"POT-Creation-Date: 2026-07-19 20:36\n"
+"PO-Revision-Date: 2026-07-19 20:36\n"
 "Language-Team: \n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
@@ -80,8 +80,8 @@ msgstr "LATER"
 #. SourceLocation:	/Game/ProjectWork/Quest/DA_QuestText_Guardian.DA_QuestText_Guardian.ObjectiveActiveText
 #: /Game/ProjectWork/Quest/DA_QuestText_Guardian.DA_QuestText_Guardian.ObjectiveActiveText
 msgctxt ",0FA0EBBD402E269EFF1DFB8355AC752C"
-msgid "НАЙДИТЕ ИНСТРУМЕНТ И КОНТЕЙНЕР"
-msgstr "FIND THE TOOL AND THE CONTAINER"
+msgid "СОБЕРИТЕ ПРЕДМЕТЫ И ОСЛАБЬТЕ ЗАХВАТЧИКОВ"
+msgstr "COLLECT THE ITEMS AND WEAKEN THE INVADERS"
 
 #. Key:	BBEDF6D4424696EF1D865BB450A2E6B9
 #. SourceLocation:	/Game/ProjectWork/Quest/DA_QuestText_Guardian.DA_QuestText_Guardian.ObjectiveItemsCollectedText
@@ -97,19 +97,26 @@ msgctxt ",CD9D7FE84E87BBC693901391B68E7E67"
 msgid "ПРЕДМЕТЫ: {0} / {1}"
 msgstr "ITEMS: {0} / {1}"
 
+#. Key:	21553B414530572E5DFB1D85970C441D
+#. SourceLocation:	/Game/ProjectWork/Quest/DA_QuestText_Guardian.DA_QuestText_Guardian.ObjectiveKillProgressFormat
+#: /Game/ProjectWork/Quest/DA_QuestText_Guardian.DA_QuestText_Guardian.ObjectiveKillProgressFormat
+msgctxt ",21553B414530572E5DFB1D85970C441D"
+msgid "ЗАХВАТЧИКИ: {0} / {1}"
+msgstr "INVADERS: {0} / {1}"
+
 #. Key:	A957DDB847FE98C202431787D908F810
 #. SourceLocation:	/Game/ProjectWork/Quest/DA_QuestText_Guardian.DA_QuestText_Guardian.ObjectiveReadyToTurnInText
 #: /Game/ProjectWork/Quest/DA_QuestText_Guardian.DA_QuestText_Guardian.ObjectiveReadyToTurnInText
 msgctxt ",A957DDB847FE98C202431787D908F810"
-msgid "ВЕРНУТЬ ПРЕДМЕТЫ"
-msgstr "RETURN THE ITEMS"
+msgid "ВЕРНИТЕСЬ К ХРАНИТЕЛЮ"
+msgstr "RETURN TO THE KEEPER"
 
 #. Key:	3AADBF304AA41AF9B422BB81704D8117
 #. SourceLocation:	/Game/ProjectWork/Quest/DA_QuestText_Guardian.DA_QuestText_Guardian.QuestOfferDescription
 #: /Game/ProjectWork/Quest/DA_QuestText_Guardian.DA_QuestText_Guardian.QuestOfferDescription
 msgctxt ",3AADBF304AA41AF9B422BB81704D8117"
-msgid "Приветствую, агент. Я хранитель. Тебе необходимо забрать с корабля контейнер с биоматериалом, он находится где-то на корабле. Также нужен будет древний инструмент, который позволит работать с этим материалом. Его можешь забрать у командира захватчиков, он всегда носит его при себе. Как соберешь всё, возвращайся ко мне."
-msgstr "Greetings, agent. I am the Keeper. You need to retrieve a container with biomaterial from the ship. It is somewhere on board. You will also need an ancient tool that makes it possible to work with this material. You can take it from the invader commander, he always carries it with him. Once you collect everything, return to me."
+msgid "Приветствую, агент. Я хранитель. Тебе необходимо забрать с корабля контейнер с биоматериалом, он находится где-то на корабле. Также нужен будет древний инструмент, который позволит работать с этим материалом. Его можешь забрать у командира захватчиков, он всегда носит его при себе. По возможности уничтожь как можно больше их бойцов. Чтобы ослабить группу, нужно вывести из строя 100 захватчиков. Как соберешь всё, возвращайся ко мне."
+msgstr "Greetings, Agent. I am the Keeper. You need to retrieve the biomaterial container from the ship, it is somewhere on board. You will also need the ancient tool that makes it possible to work with this material. You can take it from the invader commander, he always carries it with him. If possible, eliminate as many of their fighters as you can. To weaken the group, you need to take out 100 invaders. Return to me once you have collected everything."
 
 #. Key:	4E83442E4E70F2E1EA9964834A1881CB
 #. SourceLocation:	/Game/ProjectWork/Quest/DA_QuestText_Guardian.DA_QuestText_Guardian.QuestOfferTitle
@@ -154,57 +161,71 @@ msgid "ВЫХОД"
 msgstr "QUIT"
 
 #. Key:	QuestItemsCollected
-#. SourceLocation:	Source/UE_Learning/Objectives/TPLevelObjectiveManager.cpp(712)
-#: Source/UE_Learning/Objectives/TPLevelObjectiveManager.cpp(712)
+#. SourceLocation:	Source/UE_Learning/Objectives/TPLevelObjectiveManager.cpp(1149)
+#: Source/UE_Learning/Objectives/TPLevelObjectiveManager.cpp(1149)
 msgctxt "Objective,QuestItemsCollected"
 msgid "ПРЕДМЕТЫ СОБРАНЫ"
 msgstr "ITEMS COLLECTED"
 
 #. Key:	QuestItemsProgressFormat
-#. SourceLocation:	Source/UE_Learning/Objectives/TPLevelObjectiveManager.cpp(727)
-#: Source/UE_Learning/Objectives/TPLevelObjectiveManager.cpp(727)
+#. SourceLocation:	Source/UE_Learning/Objectives/TPLevelObjectiveManager.cpp(1160)
+#: Source/UE_Learning/Objectives/TPLevelObjectiveManager.cpp(1160)
 msgctxt "Objective,QuestItemsProgressFormat"
 msgid "ПРЕДМЕТЫ: {0} / {1}"
 msgstr "ITEMS: {0} / {1}"
 
+#. Key:	ObjectiveKillProgressFormat
+#. SourceLocation:	Source/UE_Learning/Objectives/TPLevelObjectiveManager.cpp(1171)
+#: Source/UE_Learning/Objectives/TPLevelObjectiveManager.cpp(1171)
+msgctxt "Objective,ObjectiveKillProgressFormat"
+msgid "ЗАХВАТЧИКИ: {0} / {1}"
+msgstr "INVADERS: {0} / {1}"
+
+#. Key:	ObjectiveItemAndKillProgressFormat
+#. SourceLocation:	Source/UE_Learning/Objectives/TPLevelObjectiveManager.cpp(992)
+#: Source/UE_Learning/Objectives/TPLevelObjectiveManager.cpp(992)
+msgctxt "Objective,ObjectiveItemAndKillProgressFormat"
+msgid "{0}\n{1}"
+msgstr "{0}\n{1}"
+
 #. Key:	ObjectiveBeforeArtifact
-#. SourceLocation:	Source/UE_Learning/Objectives/TPLevelObjectiveManager.h(133)
-#: Source/UE_Learning/Objectives/TPLevelObjectiveManager.h(133)
+#. SourceLocation:	Source/UE_Learning/Objectives/TPLevelObjectiveManager.h(172)
+#: Source/UE_Learning/Objectives/TPLevelObjectiveManager.h(172)
 msgctxt "Objective,ObjectiveBeforeArtifact"
 msgid "ПОЛУЧИТЕ АРТЕФАКТ У БАНДИТОВ"
 msgstr "GET THE ARTIFACT FROM THE BANDITS"
 
 #. Key:	ObjectiveAfterArtifact
-#. SourceLocation:	Source/UE_Learning/Objectives/TPLevelObjectiveManager.h(140)
-#: Source/UE_Learning/Objectives/TPLevelObjectiveManager.h(140)
+#. SourceLocation:	Source/UE_Learning/Objectives/TPLevelObjectiveManager.h(179)
+#: Source/UE_Learning/Objectives/TPLevelObjectiveManager.h(179)
 msgctxt "Objective,ObjectiveAfterArtifact"
 msgid "ВЕРНИТЕСЬ К ИССЛЕДОВАТЕЛЮ"
 msgstr "RETURN TO THE RESEARCHER"
 
 #. Key:	LevelCompletedTitle
-#. SourceLocation:	Source/UE_Learning/Objectives/TPLevelObjectiveManager.h(159)
-#: Source/UE_Learning/Objectives/TPLevelObjectiveManager.h(159)
+#. SourceLocation:	Source/UE_Learning/Objectives/TPLevelObjectiveManager.h(198)
+#: Source/UE_Learning/Objectives/TPLevelObjectiveManager.h(198)
 msgctxt "Objective,LevelCompletedTitle"
 msgid "УРОВЕНЬ ЗАВЕРШЁН"
 msgstr "LEVEL COMPLETED"
 
 #. Key:	LevelCompletedDescription
-#. SourceLocation:	Source/UE_Learning/Objectives/TPLevelObjectiveManager.h(166)
-#: Source/UE_Learning/Objectives/TPLevelObjectiveManager.h(166)
+#. SourceLocation:	Source/UE_Learning/Objectives/TPLevelObjectiveManager.h(205)
+#: Source/UE_Learning/Objectives/TPLevelObjectiveManager.h(205)
 msgctxt "Objective,LevelCompletedDescription"
 msgid "ПЕРЕЗАПУСК"
 msgstr "RESTART"
 
 #. Key:	LevelCompletedMainMenuText
-#. SourceLocation:	Source/UE_Learning/Objectives/TPLevelObjectiveManager.h(173)
-#: Source/UE_Learning/Objectives/TPLevelObjectiveManager.h(173)
+#. SourceLocation:	Source/UE_Learning/Objectives/TPLevelObjectiveManager.h(212)
+#: Source/UE_Learning/Objectives/TPLevelObjectiveManager.h(212)
 msgctxt "Objective,LevelCompletedMainMenuText"
 msgid "ГЛАВНОЕ МЕНЮ"
 msgstr "MAIN MENU"
 
 #. Key:	LevelCompletedQuitText
-#. SourceLocation:	Source/UE_Learning/Objectives/TPLevelObjectiveManager.h(180)
-#: Source/UE_Learning/Objectives/TPLevelObjectiveManager.h(180)
+#. SourceLocation:	Source/UE_Learning/Objectives/TPLevelObjectiveManager.h(219)
+#: Source/UE_Learning/Objectives/TPLevelObjectiveManager.h(219)
 msgctxt "Objective,LevelCompletedQuitText"
 msgid "ВЫХОД"
 msgstr "QUIT"
@@ -315,8 +336,8 @@ msgid "ЗАБРАТЬ АРТЕФАКТ"
 msgstr "PICK UP THE ARTIFACT"
 
 #. Key:	BanditArtifactDisplayName
-#. SourceLocation:	Source/UE_Learning/Quest/TPQuestItemActor.h(51)
-#: Source/UE_Learning/Quest/TPQuestItemActor.h(51)
+#. SourceLocation:	Source/UE_Learning/Quest/TPQuestItemActor.h(58)
+#: Source/UE_Learning/Quest/TPQuestItemActor.h(58)
 msgctxt "QuestItem,BanditArtifactDisplayName"
 msgid "АРТЕФАКТ БАНДИТА"
 msgstr "BANDIT ARTIFACT"

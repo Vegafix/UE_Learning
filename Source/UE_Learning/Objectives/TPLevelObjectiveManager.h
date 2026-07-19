@@ -99,6 +99,7 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "Objective")
 	TArray<TObjectPtr<ATPNPCCharacter>> TargetNPCs;
@@ -145,6 +146,21 @@ protected:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Objective|Turn In")
 	bool bRequireReturnToQuestGiver = true;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Objective|Kill Counter")
+	bool bUseKillCounter = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Objective|Kill Counter",
+		meta = (EditCondition = "bUseKillCounter", ClampMin = "1", UIMin = "1"))
+	int32 RequiredKillCount = 100;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Objective|Kill Counter",
+		meta = (EditCondition = "bUseKillCounter"))
+	TSubclassOf<ATPNPCCharacter> CountedKillNPCClass;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Objective|Kill Counter",
+		meta = (EditCondition = "bUseKillCounter", ClampMin = "0.1", UIMin = "0.1"))
+	float KillCounterBindingInterval = 0.25f;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Objective")
 	bool bStartOnBeginPlay = false;
@@ -215,6 +231,7 @@ private:
 	FText GetObjectiveReadyToTurnInText() const;
 	FText GetObjectiveItemsCollectedText() const;
 	FText GetObjectiveItemsProgressFormatText() const;
+	FText GetObjectiveKillProgressFormatText() const;
 	
 	UFUNCTION()
 	void HandleTargetDeath(AActor* DeadActor);
@@ -240,6 +257,13 @@ private:
 	
 	bool AreCompletionConditionsMet() const;
 	void TryCompleteObjective();
+	bool IsKillCounterCompleted() const;
+	bool ShouldCountKillFromNPC(const ATPNPCCharacter* NPC) const;
+	void IncrementKillCounterFromNPC(ATPNPCCharacter* DeadNPC);
+
+	void StartKillCounterBinding();
+	void StopKillCounterBinding();
+	void RefreshKillCounterBindings();
 
 	void CreateObjectiveWidget();
 	void UpdateObjectiveWidget();
@@ -264,6 +288,14 @@ private:
 	TObjectPtr<ATPNPCCharacter> SpawnedTargetNPC;
 
 	int32 CollectedQuestItemCount = 0;
+
+	int32 CurrentKillCount = 0;
+
+	UPROPERTY()
+	TArray<TObjectPtr<ATPNPCCharacter>> BoundKillCounterNPCs;
+
+	FTimerHandle KillCounterBindingTimerHandle;
+
 	bool bQuestItemDropped = false;
 	bool bQuestItemCollected = false;
 	bool bObjectiveActive = false;

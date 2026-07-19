@@ -10,6 +10,7 @@
 #include "Quest/TPQuestItemActor.h"
 #include "UI/TPObjectiveWidget.h"
 #include "UI/TPMessageScreenWidget.h"
+#include "EngineUtils.h"
 
 ATPLevelObjectiveManager::ATPLevelObjectiveManager()
 {
@@ -26,7 +27,15 @@ void ATPLevelObjectiveManager::BeginPlay()
 	}
 }
 
+void ATPLevelObjectiveManager::EndPlay(
+	const EEndPlayReason::Type EndPlayReason
+)
+{
+	StopKillCounterBinding();
+	UnbindObjectiveTargets();
 
+	Super::EndPlay(EndPlayReason);
+}
 
 void ATPLevelObjectiveManager::StartObjective()
 {
@@ -39,6 +48,9 @@ void ATPLevelObjectiveManager::StartObjective()
 	bQuestItemCollected = false;
 	bQuestItemDropped = false;
 	CollectedQuestItemCount = 0;
+	CurrentKillCount = 0;
+	BoundKillCounterNPCs.Reset();
+
 	SelectedQuestItemDropper = nullptr;
 	TotalTargetsCount = 0;
 	AliveTargetsCount = 0;
@@ -51,6 +63,8 @@ void ATPLevelObjectiveManager::StartObjective()
 	OnObjectiveStarted.Broadcast();
 
 	SpawnTargetNPCOnObjectiveStart();
+
+	StartKillCounterBinding();
 
 	ProcessObjectiveStartAsync();
 }
@@ -275,6 +289,151 @@ int32 ATPLevelObjectiveManager::GetCollectedQuestItemTotalCount() const
 	}
 
 	return TotalCount;
+}
+
+bool ATPLevelObjectiveManager::IsKillCounterCompleted() const
+{
+	if (!bUseKillCounter)
+	{
+		return true;
+	}
+
+	return CurrentKillCount >= FMath::Max(RequiredKillCount, 1);
+}
+
+bool ATPLevelObjectiveManager::ShouldCountKillFromNPC(
+	const ATPNPCCharacter* NPC
+) const
+{
+	if (!bUseKillCounter || !NPC || NPC->IsDead() == false)
+	{
+		return false;
+	}
+
+	if (!CountedKillNPCClass)
+	{
+		return false;
+	}
+
+	return NPC->IsA(CountedKillNPCClass);
+}
+
+void ATPLevelObjectiveManager::IncrementKillCounterFromNPC(
+	ATPNPCCharacter* DeadNPC
+)
+{
+	if (!ShouldCountKillFromNPC(DeadNPC))
+	{
+		return;
+	}
+
+	const int32 SafeRequiredKillCount =
+		FMath::Max(RequiredKillCount, 1);
+
+	CurrentKillCount = FMath::Clamp(
+		CurrentKillCount + 1,
+		0,
+		SafeRequiredKillCount
+	);
+
+	UE_LOG(
+		LogTemp,
+		Display,
+		TEXT("Objective kill counter: %s Count=%d / %d"),
+		*GetNameSafe(DeadNPC),
+		CurrentKillCount,
+		SafeRequiredKillCount
+	);
+}
+
+void ATPLevelObjectiveManager::StartKillCounterBinding()
+{
+	if (!bUseKillCounter || !GetWorld())
+	{
+		return;
+	}
+
+	RefreshKillCounterBindings();
+
+	GetWorldTimerManager().SetTimer(
+		KillCounterBindingTimerHandle,
+		this,
+		&ATPLevelObjectiveManager::RefreshKillCounterBindings,
+		FMath::Max(0.1f, KillCounterBindingInterval),
+		true
+	);
+}
+
+void ATPLevelObjectiveManager::StopKillCounterBinding()
+{
+	GetWorldTimerManager().ClearTimer(KillCounterBindingTimerHandle);
+
+	for (ATPNPCCharacter* NPC : BoundKillCounterNPCs)
+	{
+		if (!IsValid(NPC))
+		{
+			continue;
+		}
+
+		NPC->OnCharacterDeath.RemoveDynamic(
+			this,
+			&ATPLevelObjectiveManager::HandleTargetDeath
+		);
+	}
+
+	BoundKillCounterNPCs.Reset();
+}
+
+void ATPLevelObjectiveManager::RefreshKillCounterBindings()
+{
+	if (!bObjectiveActive || bObjectiveCompleted || !bUseKillCounter)
+	{
+		return;
+	}
+
+	UWorld* World = GetWorld();
+
+	if (!World)
+	{
+		return;
+	}
+
+	for (int32 Index = BoundKillCounterNPCs.Num() - 1; Index >= 0; --Index)
+	{
+		ATPNPCCharacter* NPC = BoundKillCounterNPCs[Index];
+
+		if (!IsValid(NPC) || NPC->IsDead())
+		{
+			BoundKillCounterNPCs.RemoveAt(Index);
+		}
+	}
+
+	for (TActorIterator<ATPNPCCharacter> It(World); It; ++It)
+	{
+		ATPNPCCharacter* NPC = *It;
+
+		if (!IsValid(NPC) || NPC->IsDead())
+		{
+			continue;
+		}
+
+		if (!CountedKillNPCClass || !NPC->IsA(CountedKillNPCClass))
+		{
+			continue;
+		}
+
+		if (BoundKillCounterNPCs.Contains(NPC))
+		{
+			continue;
+		}
+
+		NPC->OnCharacterDeath.AddUniqueDynamic(
+			this,
+			&ATPLevelObjectiveManager::HandleTargetDeath
+		);
+
+		BoundKillCounterNPCs.Add(NPC);
+	}
 }
 
 bool ATPLevelObjectiveManager::CanTurnInObjective() const
@@ -678,21 +837,39 @@ void ATPLevelObjectiveManager::HandleTargetDeath(AActor* DeadActor)
 		return;
 	}
 
-	if (!TargetNPCs.Contains(DeadNPC))
+	DeadNPC->OnCharacterDeath.RemoveDynamic(
+		this,
+		&ATPLevelObjectiveManager::HandleTargetDeath
+	);
+
+	BoundKillCounterNPCs.Remove(DeadNPC);
+
+	bool bShouldUpdateWidget = false;
+
+	if (ShouldCountKillFromNPC(DeadNPC))
 	{
-		return;
+		IncrementKillCounterFromNPC(DeadNPC);
+		bShouldUpdateWidget = true;
 	}
 
-	SpawnQuestItemDropFrom(DeadNPC);
-
-	AliveTargetsCount = FMath::Max(AliveTargetsCount - 1, 0);
-
-	UpdateObjectiveWidget();
-
-	if (AliveTargetsCount <= 0)
+	if (TargetNPCs.Contains(DeadNPC))
 	{
-		TryCompleteObjective();
+		SpawnQuestItemDropFrom(DeadNPC);
+
+		AliveTargetsCount = FMath::Max(
+			AliveTargetsCount - 1,
+			0
+		);
+
+		bShouldUpdateWidget = true;
 	}
+
+	if (bShouldUpdateWidget)
+	{
+		UpdateObjectiveWidget();
+	}
+
+	TryCompleteObjective();
 }
 
 void ATPLevelObjectiveManager::HandleQuestItemCollected(
@@ -706,16 +883,23 @@ void ATPLevelObjectiveManager::HandleQuestItemCollected(
 
 bool ATPLevelObjectiveManager::AreCompletionConditionsMet() const
 {
+	const bool bKillCounterCompleted =
+		IsKillCounterCompleted();
+
 	switch (CompletionMode)
 	{
 	case ETPObjectiveCompletionMode::KillAllTargets:
-		return AliveTargetsCount <= 0;
+		return AliveTargetsCount <= 0
+			&& bKillCounterCompleted;
 
 	case ETPObjectiveCompletionMode::CollectQuestItem:
-		return bQuestItemCollected;
+		return bQuestItemCollected
+			&& bKillCounterCompleted;
 
 	case ETPObjectiveCompletionMode::KillTargetsAndCollectQuestItem:
-		return AliveTargetsCount <= 0 && bQuestItemCollected;
+		return AliveTargetsCount <= 0
+			&& bQuestItemCollected
+			&& bKillCounterCompleted;
 
 	default:
 		return false;
@@ -774,16 +958,44 @@ void ATPLevelObjectiveManager::UpdateObjectiveWidget()
 		CompletionMode == ETPObjectiveCompletionMode::CollectQuestItem
 		|| CompletionMode == ETPObjectiveCompletionMode::KillTargetsAndCollectQuestItem;
 
+	const bool bReadyToTurnIn =
+		AreCompletionConditionsMet();
+
+	const FText ObjectiveTitle =
+		bReadyToTurnIn
+			? GetObjectiveReadyToTurnInText()
+			: GetObjectiveActiveText();
+
 	if (bUsesQuestItem)
 	{
-		if (bQuestItemCollected)
+		const FText ItemProgressText =
+			bQuestItemCollected
+				? GetObjectiveItemsCollectedText()
+				: FText::Format(
+					GetObjectiveItemsProgressFormatText(),
+					FText::AsNumber(GetCollectedQuestItemTotalCount()),
+					FText::AsNumber(GetRequiredQuestItemTotalCount())
+				);
+
+		if (bUseKillCounter)
 		{
+			const FText KillProgressText =
+				FText::Format(
+					GetObjectiveKillProgressFormatText(),
+					FText::AsNumber(CurrentKillCount),
+					FText::AsNumber(FMath::Max(RequiredKillCount, 1))
+				);
+
 			ObjectiveWidget->SetObjectiveStateText(
-				GetObjectiveReadyToTurnInText(),
-				NSLOCTEXT(
-					"Objective",
-					"QuestItemsCollected",
-					"ПРЕДМЕТЫ СОБРАНЫ"
+				ObjectiveTitle,
+				FText::Format(
+					NSLOCTEXT(
+						"Objective",
+						"ObjectiveItemAndKillProgressFormat",
+						"{0}\n{1}"
+					),
+					ItemProgressText,
+					KillProgressText
 				),
 				bObjectiveCompleted,
 				true
@@ -793,15 +1005,23 @@ void ATPLevelObjectiveManager::UpdateObjectiveWidget()
 		}
 
 		ObjectiveWidget->SetObjectiveStateText(
-			GetObjectiveActiveText(),
+			ObjectiveTitle,
+			ItemProgressText,
+			bObjectiveCompleted,
+			true
+		);
+
+		return;
+	}
+
+	if (bUseKillCounter)
+	{
+		ObjectiveWidget->SetObjectiveStateText(
+			ObjectiveTitle,
 			FText::Format(
-				NSLOCTEXT(
-					"Objective",
-					"QuestItemsProgressFormat",
-					"ПРЕДМЕТЫ: {0} / {1}"
-				),
-				FText::AsNumber(GetCollectedQuestItemTotalCount()),
-				FText::AsNumber(GetRequiredQuestItemTotalCount())
+				GetObjectiveKillProgressFormatText(),
+				FText::AsNumber(CurrentKillCount),
+				FText::AsNumber(FMath::Max(RequiredKillCount, 1))
 			),
 			bObjectiveCompleted,
 			true
@@ -837,6 +1057,7 @@ void ATPLevelObjectiveManager::CompleteObjective()
 		ObjectiveWidget = nullptr;
 	}
 
+	StopKillCounterBinding();
 	UnbindObjectiveTargets();
 
 	OnObjectiveCompleted.Broadcast();
@@ -940,5 +1161,16 @@ FText ATPLevelObjectiveManager::GetObjectiveItemsProgressFormatText() const
 			"Objective",
 			"QuestItemsProgressFormat",
 			"ПРЕДМЕТЫ: {0} / {1}"
+		);
+}
+
+FText ATPLevelObjectiveManager::GetObjectiveKillProgressFormatText() const
+{
+	return QuestTextDefinition && !QuestTextDefinition->ObjectiveKillProgressFormat.IsEmpty()
+		? QuestTextDefinition->ObjectiveKillProgressFormat
+		: NSLOCTEXT(
+			"Objective",
+			"ObjectiveKillProgressFormat",
+			"ЗАХВАТЧИКИ: {0} / {1}"
 		);
 }

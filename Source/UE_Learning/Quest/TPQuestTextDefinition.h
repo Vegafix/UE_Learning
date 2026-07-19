@@ -45,4 +45,7 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Quest|Objective")
 	FText ObjectiveItemsProgressFormat;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Quest|Objective")
+	FText ObjectiveKillProgressFormat;
 };
