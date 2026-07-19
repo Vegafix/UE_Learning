@@ -623,8 +623,25 @@ void ATPPlayerCharacter::HandleJumpCompleted()
 
 void ATPPlayerCharacter::Dash()
 {
+	if (IsDead())
+	{
+		return;
+	}
+
 	if (MovementState == ETPMovementState::Aiming)
 	{
+		return;
+	}
+
+	if (!IsDashCooldownReady())
+	{
+		UE_LOG(
+			LogTemp,
+			Display,
+			TEXT("Dash is on cooldown. Remaining: %.2f"),
+			GetDashCooldownRemaining()
+		);
+
 		return;
 	}
 
@@ -633,10 +650,48 @@ void ATPPlayerCharacter::Dash()
 		return;
 	}
 
-	if (UAbilitySystemComponent* ASC = GetAbilitySystemComponent())
+	UAbilitySystemComponent* ASC = GetAbilitySystemComponent();
+
+	if (!ASC)
 	{
-		ASC->TryActivateAbilityByClass(DashAbilityClass);
+		return;
 	}
+
+	const bool bActivated =
+		ASC->TryActivateAbilityByClass(DashAbilityClass);
+
+	if (!bActivated)
+	{
+		return;
+	}
+
+	if (UWorld* World = GetWorld())
+	{
+		LastDashActivationTime = World->GetTimeSeconds();
+	}
+}
+
+bool ATPPlayerCharacter::IsDashCooldownReady() const
+{
+	return GetDashCooldownRemaining() <= 0.0f;
+}
+
+float ATPPlayerCharacter::GetDashCooldownRemaining() const
+{
+	const UWorld* World = GetWorld();
+
+	if (!World || DashCooldownDuration <= 0.0f)
+	{
+		return 0.0f;
+	}
+
+	const float ElapsedTime =
+		World->GetTimeSeconds() - LastDashActivationTime;
+
+	return FMath::Max(
+		0.0f,
+		DashCooldownDuration - ElapsedTime
+	);
 }
 
 void ATPPlayerCharacter::ToggleCrouch()

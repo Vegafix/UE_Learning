@@ -60,6 +60,12 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Movement")
 	ETPMovementState GetMovementState() const;
 	
+	UFUNCTION(BlueprintPure, Category = "Abilities|Dash")
+	bool IsDashCooldownReady() const;
+
+	UFUNCTION(BlueprintPure, Category = "Abilities|Dash")
+	float GetDashCooldownRemaining() const;
+	
 protected:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaSeconds) override;
@@ -99,6 +105,12 @@ private:
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Abilities", meta = (AllowPrivateAccess = "true"))
 	TSubclassOf<UGameplayAbility> DashAbilityClass;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Abilities|Dash",
+	meta = (AllowPrivateAccess = "true", ClampMin = "0.0", UIMin = "0.0"))
+	float DashCooldownDuration = 1.5f;
+
+	float LastDashActivationTime = -10000.0f;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
 	float WalkSpeed = 200.0f;
