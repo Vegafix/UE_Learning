@@ -57,6 +57,9 @@ public:
 
 	UFUNCTION(BlueprintPure, Category = "NPC|AI|Combat")
 	bool HasSafeShotToCurrentTarget() const;
+	
+	UFUNCTION(BlueprintPure, Category = "NPC|AI|Combat")
+	bool HasUnsafeShotToCurrentTarget() const;
 
 	UFUNCTION(BlueprintCallable, Category = "NPC|AI|Combat")
 	bool TryPrepareSafeFirePosition();
@@ -143,6 +146,14 @@ private:
 
 	bool HasSafeShotFromLocation(
 		const FVector& ShooterLocation,
+		const AActor* TargetActor
+	) const;
+	
+	float GetSafeFireTraceRadius() const;
+
+	FVector GetCurrentWeaponMuzzleLocation() const;
+
+	FVector GetSafeFireTargetLocation(
 		const AActor* TargetActor
 	) const;
 	

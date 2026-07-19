@@ -78,7 +78,7 @@ EStateTreeRunStatus FTPSTTask_DebugFireAtTarget::EnterState(
 	FInstanceDataType& InstanceData =
 		Context.GetInstanceData(*this);
 
-	const ATPNPCAIController* NPCController =
+	ATPNPCAIController* NPCController =
 		Cast<ATPNPCAIController>(InstanceData.AIController);
 
 	if (!NPCController || !InstanceData.TargetActor)
@@ -112,9 +112,35 @@ EStateTreeRunStatus FTPSTTask_DebugFireAtTarget::EnterState(
 		return EStateTreeRunStatus::Failed;
 	}
 
+	if (!NPCController->HasSafeShotToCurrentTarget())
+	{
+		const bool bPreparedSafePosition =
+			NPCController->TryPrepareSafeFirePosition();
+
+		UE_LOG(
+			LogTemp,
+			Warning,
+			TEXT("[NPC AI] FRIENDLY FIRE BLOCKED. NPC=%s Target=%s Prepared=%s PreparedLocation=%s"),
+			*GetNameSafe(NPCController->GetNPCCharacter()),
+			*GetNameSafe(InstanceData.TargetActor),
+			bPreparedSafePosition ? TEXT("true") : TEXT("false"),
+			*NPCController->GetPreparedMoveLocation().ToString()
+		);
+
+		return EStateTreeRunStatus::Failed;
+	}
+
+	UE_LOG(
+		LogTemp,
+		Display,
+		TEXT("[NPC AI] SAFE SHOT. NPC=%s Target=%s"),
+		*GetNameSafe(NPCController->GetNPCCharacter()),
+		*GetNameSafe(InstanceData.TargetActor)
+	);
+
 	CurrentWeapon->TryFireOnce(
-	InstanceData.TargetActor
-);
+		InstanceData.TargetActor
+	);
 
 	return EStateTreeRunStatus::Running;
 }
@@ -145,7 +171,7 @@ EStateTreeRunStatus FTPSTTask_GetPreparedMoveLocation::EnterState(
 	FInstanceDataType& InstanceData =
 		Context.GetInstanceData(*this);
 
-	const ATPNPCAIController* NPCController =
+	ATPNPCAIController* NPCController =
 		Cast<ATPNPCAIController>(InstanceData.AIController);
 
 	if (!NPCController)
@@ -219,4 +245,55 @@ void FTPSTTask_ConsumeTacticalMoveRequest::ExitState(
 	);
 
 	NPCController->FinishLastKnownTargetSearch();
+}
+
+bool FTPSTCondition_HasUnsafeShotToCurrentTarget::TestCondition(
+	FStateTreeExecutionContext& Context
+) const
+{
+	const FInstanceDataType& InstanceData =
+		Context.GetInstanceData(*this);
+
+	const ATPNPCAIController* NPCController =
+		Cast<ATPNPCAIController>(InstanceData.AIController);
+
+	if (!NPCController)
+	{
+		return false;
+	}
+
+	return NPCController->HasUnsafeShotToCurrentTarget();
+}
+
+EStateTreeRunStatus FTPSTTask_PrepareSafeFirePosition::EnterState(
+	FStateTreeExecutionContext& Context,
+	const FStateTreeTransitionResult& Transition
+) const
+{
+	FInstanceDataType& InstanceData =
+		Context.GetInstanceData(*this);
+
+	ATPNPCAIController* NPCController =
+		Cast<ATPNPCAIController>(InstanceData.AIController);
+
+	if (!NPCController)
+	{
+		return EStateTreeRunStatus::Failed;
+	}
+
+	const bool bPrepared =
+		NPCController->TryPrepareSafeFirePosition();
+
+	UE_LOG(
+		LogTemp,
+		Warning,
+		TEXT("[NPC AI] ENTERED Reposition For Shot. NPC=%s Prepared=%s PreparedLocation=%s"),
+		*GetNameSafe(NPCController->GetNPCCharacter()),
+		bPrepared ? TEXT("true") : TEXT("false"),
+		*NPCController->GetPreparedMoveLocation().ToString()
+	);
+
+	return bPrepared
+		? EStateTreeRunStatus::Succeeded
+		: EStateTreeRunStatus::Failed;
 }

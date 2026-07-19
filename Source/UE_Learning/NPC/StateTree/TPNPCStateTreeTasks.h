@@ -168,6 +168,63 @@ struct UE_LEARNING_API FTPSTTask_ConsumeTacticalMoveRequest
 };
 
 USTRUCT()
+struct FTPSTCondition_HasUnsafeShotToCurrentTargetInstanceData
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, Category = "Context")
+	TObjectPtr<AAIController> AIController;
+};
+
+USTRUCT(meta = (DisplayName = "TP Has Unsafe Shot To Current Target", Category = "TP NPC"))
+struct UE_LEARNING_API FTPSTCondition_HasUnsafeShotToCurrentTarget
+	: public FStateTreeConditionCommonBase
+{
+	GENERATED_BODY()
+
+	using FInstanceDataType =
+		FTPSTCondition_HasUnsafeShotToCurrentTargetInstanceData;
+
+	virtual const UStruct* GetInstanceDataType() const override
+	{
+		return FInstanceDataType::StaticStruct();
+	}
+
+	virtual bool TestCondition(
+		FStateTreeExecutionContext& Context
+	) const override;
+};
+
+USTRUCT()
+struct FTPSTTask_PrepareSafeFirePositionInstanceData
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, Category = "Context")
+	TObjectPtr<AAIController> AIController;
+};
+
+USTRUCT(meta = (DisplayName = "TP Prepare Safe Fire Position", Category = "TP NPC"))
+struct UE_LEARNING_API FTPSTTask_PrepareSafeFirePosition
+	: public FStateTreeTaskCommonBase
+{
+	GENERATED_BODY()
+
+	using FInstanceDataType =
+		FTPSTTask_PrepareSafeFirePositionInstanceData;
+
+	virtual const UStruct* GetInstanceDataType() const override
+	{
+		return FInstanceDataType::StaticStruct();
+	}
+
+	virtual EStateTreeRunStatus EnterState(
+		FStateTreeExecutionContext& Context,
+		const FStateTreeTransitionResult& Transition
+	) const override;
+};
+
+USTRUCT()
 struct FTPSTTask_DebugFireAtTargetInstanceData
 {
 	GENERATED_BODY()

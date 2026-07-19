@@ -14,6 +14,9 @@
 #include "Navigation/PathFollowingComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "DrawDebugHelpers.h"
+#include "Characters/TPWeaponActor.h"
+#include "Weapon/TPWeaponEquipmentComponent.h"
+#include "Components/SceneComponent.h"
 
 ATPNPCAIController::ATPNPCAIController()
 {
@@ -432,6 +435,89 @@ bool ATPNPCAIController::TryPrepareLastKnownTargetSearchLocation()
 	return true;
 }
 
+float ATPNPCAIController::GetSafeFireTraceRadius() const
+{
+	if (!ControlledNPC)
+	{
+		return 90.0f;
+	}
+
+	const UTPNPCDefinition* NPCDefinition =
+		ControlledNPC->GetNPCDefinition();
+
+	return NPCDefinition
+		? NPCDefinition->SafeFireTraceRadius
+		: 90.0f;
+}
+
+FVector ATPNPCAIController::GetCurrentWeaponMuzzleLocation() const
+{
+	if (!ControlledNPC)
+	{
+		return FVector::ZeroVector;
+	}
+
+	const UTPWeaponEquipmentComponent* EquipmentComponent =
+		ControlledNPC->GetWeaponEquipmentComponent();
+
+	if (!EquipmentComponent)
+	{
+		return ControlledNPC->GetActorLocation() + FVector(0.0f, 0.0f, 80.0f);
+	}
+
+	const ATPWeaponActor* CurrentWeapon =
+		EquipmentComponent->GetCurrentWeapon();
+
+	if (!CurrentWeapon)
+	{
+		return ControlledNPC->GetActorLocation() + FVector(0.0f, 0.0f, 80.0f);
+	}
+
+	const USceneComponent* MuzzlePoint =
+		CurrentWeapon->GetMuzzlePoint();
+
+	if (!MuzzlePoint)
+	{
+		return ControlledNPC->GetActorLocation() + FVector(0.0f, 0.0f, 80.0f);
+	}
+
+	return MuzzlePoint->GetComponentLocation();
+}
+
+FVector ATPNPCAIController::GetSafeFireTargetLocation(
+	const AActor* TargetActor
+) const
+{
+	if (!TargetActor)
+	{
+		return FVector::ZeroVector;
+	}
+
+	FVector BoundsOrigin = FVector::ZeroVector;
+	FVector BoundsExtent = FVector::ZeroVector;
+
+	TargetActor->GetActorBounds(
+		true,
+		BoundsOrigin,
+		BoundsExtent
+	);
+
+	if (!BoundsExtent.IsNearlyZero())
+	{
+		return BoundsOrigin + FVector(
+			0.0f,
+			0.0f,
+			BoundsExtent.Z * 0.25f
+		);
+	}
+
+	return TargetActor->GetActorLocation() + FVector(
+		0.0f,
+		0.0f,
+		60.0f
+	);
+}
+
 bool ATPNPCAIController::HasSafeShotToCurrentTarget() const
 {
 	if (!ControlledNPC || !CurrentTarget)
@@ -462,6 +548,41 @@ bool ATPNPCAIController::HasSafeShotToCurrentTarget() const
 	}
 
 	return HasSafeShotFromLocation(
+		GetCurrentWeaponMuzzleLocation(),
+		CurrentTarget
+	);
+}
+
+bool ATPNPCAIController::HasUnsafeShotToCurrentTarget() const
+{
+	if (!ControlledNPC || !CurrentTarget)
+	{
+		return false;
+	}
+
+	if (!ShouldTrackActor(CurrentTarget))
+	{
+		return false;
+	}
+
+	const UTPNPCDefinition* NPCDefinition =
+		ControlledNPC->GetNPCDefinition();
+
+	const float FireRange = NPCDefinition
+		? NPCDefinition->FireRange
+		: 900.0f;
+
+	const float DistanceSquared = FVector::DistSquared(
+		ControlledNPC->GetActorLocation(),
+		CurrentTarget->GetActorLocation()
+	);
+
+	if (DistanceSquared > FMath::Square(FireRange))
+	{
+		return false;
+	}
+
+	return !HasSafeShotFromLocation(
 		ControlledNPC->GetActorLocation(),
 		CurrentTarget
 	);
@@ -527,10 +648,18 @@ bool ATPNPCAIController::TryPrepareSafeFirePosition()
             continue;
         }
 
-        if (!HasSafeShotFromLocation(CandidateLocation, CurrentTarget))
-        {
-            continue;
-        }
+    	const float FireHeight =
+			ControlledNPC->GetCapsuleComponent()
+				? ControlledNPC->GetCapsuleComponent()->GetScaledCapsuleHalfHeight() * 0.65f
+				: 80.0f;
+
+    	const FVector CandidateFireLocation =
+    		CandidateLocation + FVector(0.0f, 0.0f, FireHeight);
+
+    	if (!HasSafeShotFromLocation(CandidateFireLocation, CurrentTarget))
+    	{
+    		continue;
+    	}
 
         const float DistanceToNPCSquared = FVector::DistSquared(
             CurrentLocation,
@@ -1281,77 +1410,86 @@ bool ATPNPCAIController::IsFriendlyActor(const AActor* OtherActor) const
 }
 
 bool ATPNPCAIController::HasSafeShotFromLocation(
-    const FVector& ShooterLocation,
-    const AActor* TargetActor
+	const FVector& ShooterLocation,
+	const AActor* TargetActor
 ) const
 {
-    if (!ControlledNPC || !TargetActor)
-    {
-        return false;
-    }
+	if (!ControlledNPC || !TargetActor)
+	{
+		return false;
+	}
 
-    UWorld* World = GetWorld();
+	UWorld* World = GetWorld();
 
-    if (!World)
-    {
-        return false;
-    }
+	if (!World)
+	{
+		return false;
+	}
 
-    float EyeHeight = 90.0f;
+	const FVector Start = ShooterLocation;
+	const FVector End = GetSafeFireTargetLocation(TargetActor);
 
-    if (const UCapsuleComponent* Capsule = ControlledNPC->GetCapsuleComponent())
-    {
-        EyeHeight = Capsule->GetScaledCapsuleHalfHeight() * 0.65f;
-    }
+	if ((End - Start).IsNearlyZero())
+	{
+		return false;
+	}
 
-    const FVector TraceStart =
-        ShooterLocation + FVector(0.0f, 0.0f, EyeHeight);
+	const float TraceRadius =
+		GetSafeFireTraceRadius();
 
-    const FVector TraceEnd =
-        TargetActor->GetActorLocation() + FVector(0.0f, 0.0f, EyeHeight);
+	FCollisionQueryParams QueryParams(
+		SCENE_QUERY_STAT(NPCSafeFireTrace),
+		false
+	);
 
-    FCollisionQueryParams QueryParams;
-    QueryParams.AddIgnoredActor(ControlledNPC);
+	QueryParams.AddIgnoredActor(ControlledNPC);
 
-    TArray<FHitResult> HitResults;
+	TArray<FHitResult> Hits;
 
-    const bool bHit = World->LineTraceMultiByChannel(
-        HitResults,
-        TraceStart,
-        TraceEnd,
-        ECC_Visibility,
-        QueryParams
-    );
+	World->SweepMultiByChannel(
+		Hits,
+		Start,
+		End,
+		FQuat::Identity,
+		ECC_Visibility,
+		FCollisionShape::MakeSphere(TraceRadius),
+		QueryParams
+	);
 
-    if (!bHit)
-    {
-        return false;
-    }
+	Hits.Sort(
+		[](
+			const FHitResult& Left,
+			const FHitResult& Right
+		)
+		{
+			return Left.Distance < Right.Distance;
+		}
+	);
 
-    for (const FHitResult& HitResult : HitResults)
-    {
-        AActor* HitActor = HitResult.GetActor();
+	for (const FHitResult& Hit : Hits)
+	{
+		AActor* HitActor = Hit.GetActor();
 
-        if (!HitActor || HitActor == ControlledNPC)
-        {
-            continue;
-        }
+		if (!HitActor || HitActor == ControlledNPC)
+		{
+			continue;
+		}
 
-        if (IsFriendlyActor(HitActor))
-        {
-            return false;
-        }
+		if (HitActor == TargetActor)
+		{
+			return true;
+		}
 
-        if (HitActor == TargetActor)
-        {
-            return true;
-        }
+		if (IsFriendlyActor(HitActor))
+		{
+			return false;
+		}
 
-        if (HitResult.bBlockingHit)
-        {
-            return false;
-        }
-    }
+		if (Hit.bBlockingHit)
+		{
+			return false;
+		}
+	}
 
-    return false;
+	return true;
 }
