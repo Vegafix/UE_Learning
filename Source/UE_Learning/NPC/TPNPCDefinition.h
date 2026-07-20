@@ -106,7 +106,7 @@ public:
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "NPC|Combat|Friendly Fire",
 	meta = (ClampMin = "0.0", UIMin = "0.0"))
-	float SafeFireTraceRadius = 90.0f;
+	float SafeFireTraceRadius = 35.0f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "NPC|Behavior")
 	TObjectPtr<UStateTree> StateTreeAsset;

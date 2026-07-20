@@ -447,7 +447,7 @@ float ATPNPCAIController::GetSafeFireTraceRadius() const
 
 	return NPCDefinition
 		? NPCDefinition->SafeFireTraceRadius
-		: 35.0f;
+		: 90.0f;
 }
 
 FVector ATPNPCAIController::GetCurrentWeaponMuzzleLocation() const
