@@ -81,6 +81,9 @@ public:
 	UFUNCTION(BlueprintPure, Category = "NPC|AI")
 	UStateTreeAIComponent* GetStateTreeComponent() const;
 	
+	UFUNCTION(BlueprintPure, Category = "NPC|AI|Debug")
+	bool ShouldLogAIDebug() const;
+	
 	UFUNCTION(BlueprintPure, Category = "NPC|AI")
 	FVector GetHomeLocation() const;
 

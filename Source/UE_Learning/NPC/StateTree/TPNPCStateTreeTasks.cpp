@@ -117,27 +117,32 @@ EStateTreeRunStatus FTPSTTask_DebugFireAtTarget::EnterState(
 		const bool bPreparedSafePosition =
 			NPCController->TryPrepareSafeFirePosition();
 
-		UE_LOG(
-			LogTemp,
-			Warning,
-			TEXT("[NPC AI] FRIENDLY FIRE BLOCKED. NPC=%s Target=%s Prepared=%s PreparedLocation=%s"),
-			*GetNameSafe(NPCController->GetNPCCharacter()),
-			*GetNameSafe(InstanceData.TargetActor),
-			bPreparedSafePosition ? TEXT("true") : TEXT("false"),
-			*NPCController->GetPreparedMoveLocation().ToString()
-		);
-
+		if (NPCController->ShouldLogAIDebug())
+		{
+			UE_LOG(
+		   LogTemp,
+		   Warning,
+		   TEXT("[NPC AI] FRIENDLY FIRE BLOCKED. NPC=%s Target=%s Prepared=%s PreparedLocation=%s"),
+		   *GetNameSafe(NPCController->GetNPCCharacter()),
+		   *GetNameSafe(InstanceData.TargetActor),
+		   bPreparedSafePosition ? TEXT("true") : TEXT("false"),
+		   *NPCController->GetPreparedMoveLocation().ToString()
+			 );
+		}
 		return EStateTreeRunStatus::Failed;
 	}
-
-	UE_LOG(
-		LogTemp,
-		Display,
-		TEXT("[NPC AI] SAFE SHOT. NPC=%s Target=%s"),
-		*GetNameSafe(NPCController->GetNPCCharacter()),
-		*GetNameSafe(InstanceData.TargetActor)
-	);
-
+	
+	if (NPCController->ShouldLogAIDebug())
+	{
+		UE_LOG(
+			LogTemp,
+			Display,
+			TEXT("[NPC AI] SAFE SHOT. NPC=%s Target=%s"),
+			*GetNameSafe(NPCController->GetNPCCharacter()),
+			*GetNameSafe(InstanceData.TargetActor)
+		);
+	}
+		
 	CurrentWeapon->TryFireOnce(
 		InstanceData.TargetActor
 	);
@@ -208,14 +213,16 @@ EStateTreeRunStatus FTPSTTask_ConsumeTacticalMoveRequest::EnterState(
 		return EStateTreeRunStatus::Failed;
 	}
 
-	UE_LOG(
-		LogTemp,
-		Warning,
-		TEXT("[NPC AI] ENTERED Search Last Known Location. NPC=%s Prepared=%s"),
-		*GetNameSafe(NPCController->GetNPCCharacter()),
-		*NPCController->GetPreparedMoveLocation().ToString()
-	);
-
+	if (NPCController->ShouldLogAIDebug())
+	{
+		UE_LOG(
+			LogTemp,
+			Warning,
+			TEXT("[NPC AI] ENTERED Search Last Known Location. NPC=%s Prepared=%s"),
+			*GetNameSafe(NPCController->GetNPCCharacter()),
+			*NPCController->GetPreparedMoveLocation().ToString()
+		);
+	}
 	NPCController->BeginLastKnownTargetSearch();
 
 	return EStateTreeRunStatus::Succeeded;
@@ -237,13 +244,15 @@ void FTPSTTask_ConsumeTacticalMoveRequest::ExitState(
 		return;
 	}
 
-	UE_LOG(
-		LogTemp,
-		Warning,
-		TEXT("[NPC AI] EXITED Search Last Known Location. NPC=%s"),
-		*GetNameSafe(NPCController->GetNPCCharacter())
-	);
-
+	if (NPCController->ShouldLogAIDebug())
+	{
+		UE_LOG(
+			LogTemp,
+			Warning,
+			TEXT("[NPC AI] EXITED Search Last Known Location. NPC=%s"),
+			*GetNameSafe(NPCController->GetNPCCharacter())
+		);
+	}
 	NPCController->FinishLastKnownTargetSearch();
 }
 
@@ -284,15 +293,18 @@ EStateTreeRunStatus FTPSTTask_PrepareSafeFirePosition::EnterState(
 	const bool bPrepared =
 		NPCController->TryPrepareSafeFirePosition();
 
-	UE_LOG(
-		LogTemp,
-		Warning,
-		TEXT("[NPC AI] ENTERED Reposition For Shot. NPC=%s Prepared=%s PreparedLocation=%s"),
-		*GetNameSafe(NPCController->GetNPCCharacter()),
-		bPrepared ? TEXT("true") : TEXT("false"),
-		*NPCController->GetPreparedMoveLocation().ToString()
-	);
-
+	if (NPCController->ShouldLogAIDebug())
+	{
+		UE_LOG(
+			LogTemp,
+			Warning,
+			TEXT("[NPC AI] ENTERED Reposition For Shot. NPC=%s Prepared=%s PreparedLocation=%s"),
+			*GetNameSafe(NPCController->GetNPCCharacter()),
+			bPrepared ? TEXT("true") : TEXT("false"),
+			*NPCController->GetPreparedMoveLocation().ToString()
+		);
+	}
+	
 	return bPrepared
 		? EStateTreeRunStatus::Succeeded
 		: EStateTreeRunStatus::Failed;

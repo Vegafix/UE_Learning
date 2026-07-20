@@ -447,7 +447,7 @@ float ATPNPCAIController::GetSafeFireTraceRadius() const
 
 	return NPCDefinition
 		? NPCDefinition->SafeFireTraceRadius
-		: 90.0f;
+		: 35.0f;
 }
 
 FVector ATPNPCAIController::GetCurrentWeaponMuzzleLocation() const
@@ -583,20 +583,23 @@ bool ATPNPCAIController::HasUnsafeShotToCurrentTarget() const
 	}
 
 	return !HasSafeShotFromLocation(
-		ControlledNPC->GetActorLocation(),
+		GetCurrentWeaponMuzzleLocation(),
 		CurrentTarget
 	);
 }
 
 bool ATPNPCAIController::TryPrepareSafeFirePosition()
 {
-    if (!ControlledNPC || !CurrentTarget)
-    {
-        return false;
-    }
+	if (!ControlledNPC || !CurrentTarget)
+	{
+		PreparedMoveLocation = FVector::ZeroVector;
+		return false;
+	}
 
-    const UTPNPCDefinition* NPCDefinition =
-        ControlledNPC->GetNPCDefinition();
+	PreparedMoveLocation = FVector::ZeroVector;
+
+	const UTPNPCDefinition* NPCDefinition =
+		ControlledNPC->GetNPCDefinition();
 
     const float FireRange = NPCDefinition
         ? NPCDefinition->FireRange
@@ -748,6 +751,11 @@ ATPNPCCharacter* ATPNPCAIController::GetNPCCharacter() const
 UStateTreeAIComponent* ATPNPCAIController::GetStateTreeComponent() const
 {
 	return StateTreeComponent;
+}
+
+bool ATPNPCAIController::ShouldLogAIDebug() const
+{
+	return bLogAIDebug;
 }
 
 FVector ATPNPCAIController::GetHomeLocation() const
